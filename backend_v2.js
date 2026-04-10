@@ -161,10 +161,7 @@ app.post('/webhooks/email', express.urlencoded({ extended: true }), async (req, 
     const subject = req.body.subject || '';
     const rawText = req.body['body-plain'] || req.body['body-html'] || '';
 
-    // Check if this is an ADF&G announcement
-    if (!rawText.includes('Prince William Sound') && !rawText.includes('Announcement')) {
-      return res.status(200).send('OK (not a PWS announcement)');
-    }
+    console.log(`📨 Email received — subject: "${subject}", body length: ${rawText.length}, body preview: "${rawText.slice(0, 200)}"`);
 
     // Hash content to detect duplicates
     const contentHash = crypto.createHash('md5').update(rawText).digest('hex');
