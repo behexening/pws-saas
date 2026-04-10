@@ -187,7 +187,7 @@ Return ONLY valid JSON array, no markdown, no preamble."""
     try:
         response = client.messages.create(
             model='claude-haiku-4-5-20251001',
-            max_tokens=2000,
+            max_tokens=8096,
             messages=[
                 {
                     "role": "user",
@@ -211,7 +211,11 @@ Return ONLY valid JSON array, no markdown, no preamble."""
             end = json_str.rfind(']') + 1
             json_str = json_str[start:end]
 
-        districts = json.loads(json_str)
+        try:
+            districts = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            print(f"  Raw response (first 500 chars): {json_str[:500]}", file=sys.stderr)
+            raise e
         if not isinstance(districts, list):
             districts = [districts]
 
