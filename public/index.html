@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AK Fish Info — PWS Salmon Alerts</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem; border-radius: 8px; text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2.5em; margin-bottom: 0.5rem; }
+        .cta-section { background: white; padding: 2rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        button { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; font-weight: 600; }
+        button:hover { background: #5568d3; }
+        .latest-section { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        #latest-content { font-size: 1.1em; line-height: 1.6; color: #666; }
+        .disclaimer { background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 1rem; border-radius: 4px; margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚓ AK Fish Info</h1>
+            <p>Real-time PWS Salmon Fishing Alerts</p>
+        </div>
+
+        <div class="cta-section">
+            <h2>Get SMS Alerts When Announcements Drop</h2>
+            <p style="margin-bottom: 1.5rem;">Free to view the map. $15/month for SMS notifications.</p>
+            <button onclick="location.href='/signup.html'">Sign Up Free</button>
+        </div>
+
+        <div class="latest-section">
+            <h2>Latest Announcement</h2>
+            <div id="latest-content">Loading...</div>
+        </div>
+
+        <div class="disclaimer">
+            <strong>⚠️ Disclaimer:</strong> Always verify with ADF&G at (907) 424-3212 or adfg.alaska.gov
+        </div>
+    </div>
+
+    <script>
+        async function loadLatest() {
+            try {
+                const resp = await fetch('/api/latest');
+                const data = await resp.json();
+                if (!data.latest) {
+                    document.getElementById('latest-content').innerHTML = 'No announcements yet.';
+                    return;
+                }
+                const { districts, html_url, parsed_at } = data.latest;
+                document.getElementById('latest-content').innerHTML = `
+                    <p><strong>Districts:</strong> ${districts.join(', ')}</p>
+                    <p><strong>Parsed:</strong> ${new Date(parsed_at).toLocaleString()}</p>
+                    <p><a href="${html_url}" target="_blank">→ View Interactive Map</a></p>
+                `;
+            } catch (err) {
+                document.getElementById('latest-content').innerHTML = 'Error loading data.';
+            }
+        }
+        loadLatest();
+        setInterval(loadLatest, 30000);
+    </script>
+</body>
+</html>
