@@ -290,7 +290,7 @@ async function runLiveTest(announcementId, rawText) {
 
     // Call live_test.py with announcement ID and output path
     execFile('python3', [
-      'live_test.py',
+      'live_test_server.py',
       '--announcement-id', announcementId.toString(),
       '--output', outputPath,
       '--input-text', rawText,
