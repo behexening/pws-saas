@@ -37,3 +37,7 @@ yarn-debug.log*
 
 # Railway
 .railway/
+
+# Crash logs
+logs/*.log
+logs/*.txt
