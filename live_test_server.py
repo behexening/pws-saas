@@ -304,7 +304,14 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             </div>
             """
 
-    district_geojson = json.dumps(geojson_data.get('districts', {}))
+    import datetime
+    class _DateEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, (datetime.date, datetime.datetime)):
+                return obj.isoformat()
+            return super().default(obj)
+
+    district_geojson = json.dumps(geojson_data.get('districts', {}), cls=_DateEncoder)
 
     return html_template.format(
         timestamp=datetime.now().isoformat(),
