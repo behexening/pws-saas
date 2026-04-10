@@ -56,8 +56,6 @@ const twilio = require('twilio')(
 
 async function initDatabase() {
   try {
-    await db.query('CREATE EXTENSION IF NOT EXISTS postgis;');
-
     // Raw announcements
     await db.query(`
       CREATE TABLE IF NOT EXISTS announcements (
@@ -591,6 +589,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ============================================================
 
 async function start() {
+  if (!process.env.DATABASE_URL) {
+    console.error('FATAL: DATABASE_URL environment variable is not set');
+    process.exit(1);
+  }
+
   try {
     await initDatabase();
     app.listen(PORT, () => {
