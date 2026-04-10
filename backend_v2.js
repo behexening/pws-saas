@@ -589,6 +589,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ============================================================
 
 async function start() {
+  console.log('ENV KEYS:', Object.keys(process.env).join(', '));
+  console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+
   if (!process.env.DATABASE_URL) {
     console.error('FATAL: DATABASE_URL environment variable is not set');
     process.exit(1);
