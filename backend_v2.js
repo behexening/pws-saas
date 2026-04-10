@@ -25,6 +25,9 @@ const { execFile } = require('child_process');
 const { promisify } = require('util');
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
+
+const upload = multer({ dest: '/tmp/mailgun-uploads/' });
 
 // ============================================================
 // CONFIG
@@ -153,20 +156,29 @@ async function initDatabase() {
  * POST /webhooks/email
  * Receives email from Mailgun, extracts PDF, queues parsing
  */
-app.post('/webhooks/email', express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/webhooks/email', upload.any(), async (req, res) => {
   try {
-    // TODO: add signature verification once flow is confirmed working
-
-    // Extract subject and body
     const subject = req.body.subject || '';
-    const rawText = req.body['body-plain'] || req.body['body-html'] || '';
+    const attachmentCount = parseInt(req.body['attachment-count'] || '0', 10);
 
-    console.log(`📨 Email received — subject: "${subject}", body length: ${rawText.length}, body preview: "${rawText.slice(0, 200)}"`);
+    console.log(`📨 Email received — subject: "${subject}", attachments: ${attachmentCount}, files: ${req.files?.length || 0}`);
 
-    // Hash content to detect duplicates
-    const contentHash = crypto.createHash('md5').update(rawText).digest('hex');
+    // Find PDF attachment
+    const pdfFile = req.files?.find(f =>
+      f.mimetype === 'application/pdf' || f.originalname?.endsWith('.pdf')
+    );
 
-    // Check for existing
+    if (!pdfFile) {
+      console.warn('⚠ No PDF attachment found — skipping');
+      return res.status(200).send('OK (no PDF)');
+    }
+
+    console.log(`📎 PDF found: ${pdfFile.originalname} (${pdfFile.size} bytes) at ${pdfFile.path}`);
+
+    // Use PDF path as duplicate hash
+    const pdfBuffer = await fs.readFile(pdfFile.path);
+    const contentHash = crypto.createHash('md5').update(pdfBuffer).digest('hex');
+
     const existing = await db.query(
       'SELECT id FROM announcements WHERE content_hash = $1',
       [contentHash]
@@ -174,29 +186,23 @@ app.post('/webhooks/email', express.urlencoded({ extended: true }), async (req, 
 
     if (existing.rows.length > 0) {
       console.log(`📋 Duplicate announcement (hash: ${contentHash})`);
+      await fs.unlink(pdfFile.path).catch(() => {});
       return res.status(200).send('OK (duplicate)');
     }
 
-    // Extract PDF from Mailgun (if present)
-    let pdfData = null;
-    let pdfFilename = null;
-
-    // Mailgun stores attachments — retrieve via API
-    // For now, we'll store raw text; you can enhance to fetch PDF from Mailgun's storage
-    
-    // Insert announcement
+    // Store announcement record
     const result = await db.query(
       `INSERT INTO announcements (source, raw_text, content_hash, published_at, pdf_filename)
        VALUES ($1, $2, $3, NOW(), $4)
        RETURNING id`,
-      ['email', rawText, contentHash, pdfFilename]
+      ['email', '', contentHash, pdfFile.originalname]
     );
 
     const announcementId = result.rows[0].id;
     console.log(`✓ Announcement #${announcementId} stored`);
 
-    // Queue async parsing
-    parseAnnouncementAsync(announcementId, rawText).catch(err => {
+    // Queue async parsing with the PDF path
+    parseAnnouncementAsync(announcementId, pdfFile.path).catch(err => {
       console.error(`Error parsing announcement #${announcementId}:`, err);
     });
 
@@ -214,16 +220,11 @@ app.post('/webhooks/email', express.urlencoded({ extended: true }), async (req, 
 /**
  * Run live_test.py on the announcement to generate HTML
  */
-async function parseAnnouncementAsync(announcementId, rawText) {
-  console.log(`🔄 Parsing announcement #${announcementId}...`);
+async function parseAnnouncementAsync(announcementId, pdfPath) {
+  console.log(`🔄 Parsing announcement #${announcementId} from ${pdfPath}...`);
 
   try {
-    // Write raw text to temp PDF file (you'll have the actual PDF from Mailgun)
-    // For now, we're working with text; enhance later to handle actual PDF
-
-    // Run live_test.py with the announcement text as input
-    // You'll need to modify live_test.py to accept stdin or file input
-    const htmlPath = await runLiveTest(announcementId, rawText);
+    const htmlPath = await runLiveTest(announcementId, pdfPath);
 
     if (!htmlPath) {
       console.error(`❌ live_test.py failed for announcement #${announcementId}`);
@@ -263,37 +264,31 @@ async function parseAnnouncementAsync(announcementId, rawText) {
  * 2. Output HTML to a specific location
  * 3. Return exit code 0 on success
  */
-async function runLiveTest(announcementId, rawText) {
-  return new Promise((resolve, reject) => {
+async function runLiveTest(announcementId, pdfPath) {
+  return new Promise(async (resolve, reject) => {
     const timestamp = Date.now();
     const outputFilename = `announcement_${announcementId}_${timestamp}.html`;
     const outputPath = path.join(__dirname, 'public', 'results', outputFilename);
 
-    // Ensure output directory exists
-    fs.mkdir(path.dirname(outputPath), { recursive: true }).catch(reject);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true }).catch(reject);
 
-    // Call live_test.py with announcement ID and output path
     execFile('python3', [
       'live_test_server.py',
       '--announcement-id', announcementId.toString(),
       '--output', outputPath,
-      '--input-text', rawText,
+      '--pdf-path', pdfPath,
     ], {
       cwd: __dirname,
-      timeout: 30000, // 30s timeout
-      maxBuffer: 1024 * 1024 * 10, // 10MB
+      timeout: 120000, // 2 min — Claude API can take a moment
+      maxBuffer: 1024 * 1024 * 10,
     }, (error, stdout, stderr) => {
+      console.log(`live_test_server.py stdout: ${stdout}`);
+      console.log(`live_test_server.py stderr: ${stderr}`);
       if (error) {
-        console.error(`live_test.py error: ${stderr}`);
+        console.error(`live_test_server.py failed (exit ${error.code}): ${stderr}`);
         return reject(error);
       }
-
-      console.log(`live_test.py output: ${stdout}`);
-
-      // Check if HTML file was created
-      fs.stat(outputPath).then(() => {
-        resolve(outputPath);
-      }).catch(reject);
+      fs.stat(outputPath).then(() => resolve(outputPath)).catch(reject);
     });
   });
 }
