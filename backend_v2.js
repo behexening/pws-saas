@@ -163,7 +163,7 @@ app.post('/webhooks/email', express.urlencoded({ extended: true }), async (req, 
 
       const expectedSig = crypto
         .createHmac('sha256', process.env.MAILGUN_WEBHOOK_SECRET)
-        .update(timestamp + token)
+        .update(String(timestamp || '') + String(token || ''))
         .digest('hex');
 
       if (signature !== expectedSig) {
