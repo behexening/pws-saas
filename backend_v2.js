@@ -156,18 +156,22 @@ async function initDatabase() {
 app.post('/webhooks/email', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     // Verify Mailgun signature
-    const timestamp = req.body.timestamp;
-    const token = req.body.token;
-    const signature = req.body.signature;
+    if (process.env.MAILGUN_WEBHOOK_SECRET) {
+      const timestamp = req.body.timestamp;
+      const token = req.body.token;
+      const signature = req.body.signature;
 
-    const expectedSig = crypto
-      .createHmac('sha256', process.env.MAILGUN_WEBHOOK_SECRET)
-      .update(timestamp + token)
-      .digest('hex');
+      const expectedSig = crypto
+        .createHmac('sha256', process.env.MAILGUN_WEBHOOK_SECRET)
+        .update(timestamp + token)
+        .digest('hex');
 
-    if (signature !== expectedSig) {
-      console.warn('⚠ Invalid Mailgun signature');
-      return res.status(401).send('Unauthorized');
+      if (signature !== expectedSig) {
+        console.warn('⚠ Invalid Mailgun signature');
+        return res.status(401).send('Unauthorized');
+      }
+    } else {
+      console.warn('⚠ MAILGUN_WEBHOOK_SECRET not set — skipping signature check');
     }
 
     // Extract subject and body
