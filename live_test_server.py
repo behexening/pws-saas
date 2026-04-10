@@ -304,10 +304,10 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             </div>
             """
 
-    import datetime
+    import datetime as _dt
     class _DateEncoder(json.JSONEncoder):
         def default(self, obj):
-            if isinstance(obj, (datetime.date, datetime.datetime)):
+            if isinstance(obj, (_dt.date, _dt.datetime)):
                 return obj.isoformat()
             return super().default(obj)
 
