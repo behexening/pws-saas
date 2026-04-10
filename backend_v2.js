@@ -224,19 +224,11 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
   console.log(`🔄 Parsing announcement #${announcementId} from ${pdfPath}...`);
 
   try {
-    const htmlPath = await runLiveTest(announcementId, pdfPath);
-
-    if (!htmlPath) {
-      console.error(`❌ live_test.py failed for announcement #${announcementId}`);
-      return;
-    }
-
-    // Extract districts from HTML (parse via regex or cheerio)
-    const districts = extractDistrictsFromHTML(htmlPath);
+    const { htmlPath, districts } = await runLiveTest(announcementId, pdfPath);
 
     // Store result in DB
     const htmlFilename = path.basename(htmlPath);
-    const htmlUrl = `${BASE_URL}/results/${htmlFilename}`;
+    const htmlUrl = `/results/${htmlFilename}`;
 
     await db.query(
       `INSERT INTO parsed_results (announcement_id, html_filename, html_path, html_url, districts)
@@ -279,16 +271,18 @@ async function runLiveTest(announcementId, pdfPath) {
       '--pdf-path', pdfPath,
     ], {
       cwd: __dirname,
-      timeout: 120000, // 2 min — Claude API can take a moment
+      timeout: 120000,
       maxBuffer: 1024 * 1024 * 10,
     }, (error, stdout, stderr) => {
-      console.log(`live_test_server.py stdout: ${stdout}`);
       console.log(`live_test_server.py stderr: ${stderr}`);
       if (error) {
         console.error(`live_test_server.py failed (exit ${error.code}): ${stderr}`);
         return reject(error);
       }
-      fs.stat(outputPath).then(() => resolve(outputPath)).catch(reject);
+      let districts = [];
+      try { districts = JSON.parse(stdout.trim()); } catch (_) {}
+      console.log(`Districts from parser: ${districts.join(', ')}`);
+      fs.stat(outputPath).then(() => resolve({ htmlPath: outputPath, districts })).catch(reject);
     });
   });
 }

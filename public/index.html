@@ -52,7 +52,7 @@
                 }
                 const { districts, html_url, parsed_at } = data.latest;
                 document.getElementById('latest-content').innerHTML = `
-                    <p><strong>Districts:</strong> ${districts.join(', ')}</p>
+                    <p><strong>Districts:</strong> ${(districts || []).join(', ') || 'See map'}</p>
                     <p><strong>Parsed:</strong> ${new Date(parsed_at).toLocaleString()}</p>
                     <p><a href="${html_url}" target="_blank">→ View Interactive Map</a></p>
                 `;

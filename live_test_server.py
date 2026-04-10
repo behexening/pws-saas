@@ -380,6 +380,10 @@ def main():
         f.write(html)
 
     print(f"✓ Saved to {output_path}", file=sys.stderr)
+
+    # Print district names to stdout for the Node.js backend to read
+    district_names = [d.get('district', '') for d in districts if d.get('district')]
+    print(json.dumps(district_names))
     sys.exit(0)
 
 if __name__ == '__main__':
