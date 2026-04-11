@@ -1,0 +1,13 @@
+priority,name,district,lon,lat,tier,notes
+1,Port Valdez,Eastern,-146.501944,61.105556,1,Long E-W fjord - needs wide rectangle to Valdez Narrows
+2,Eaglek Bay,Northern,-147.7425,60.876111,1,Small pocket on north shore - tight bbox only
+3,Unakwik Inlet,Northern,-147.564444,61.008333,2,Long N-S fjord 30+km
+4,Main Bay,Northern,-148.058333,60.539444,2,Deep N-S embayment west of Perry Island
+5,Wells Bay,Northern,-147.47,60.973056,2,Near Cannery Creek Subdistrict boundary
+6,Bettles Bay,Northern,-148.283889,60.94,2,West end near Perry Island
+7,Jack Bay,Eastern,-146.601111,61.031111,3,Short compact bay
+8,Sawmill Bay,Eastern,-146.783611,61.054722,3,Name collision - the Eastern one
+9,Galena Bay,Eastern,-146.640278,60.942778,3,Small compact
+10,Landlocked Bay,Eastern,-146.587222,60.834444,3,Pocket bay
+11,Irish Cove,Eastern,-146.445556,60.772222,3,Name collision - the Eastern one
+12,Saint Matthews Bay,Eastern,-146.32,60.750833,3,Small

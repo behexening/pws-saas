@@ -500,6 +500,83 @@ def build_feature_scope(centroid, coords, synthesized, district_geom=None):
     return buf
 
 
+# ── Hand-drawn PWS water-feature bboxes (data/pws_bboxes.geojson) ──
+# When a closure names a feature that's too long/wide for a circular buffer
+# to cover cleanly (Port Valdez, Unakwik Inlet, etc.), we prefer a tight
+# polygon hand-drawn in QGIS over the GNIS centroid + circle. See
+# docs/bay_bboxes_needed.md for the rationale and priority list.
+_BBOXES = None
+_BBOXES_PATH = Path(__file__).parent / 'data' / 'pws_bboxes.geojson'
+
+def _load_bboxes():
+    """Load and cache the hand-drawn PWS bbox layer. Returns a dict keyed by
+    the same normalized name used for the gazetteer, with values as a list of
+    {'polygon': shapely, 'district': str_or_none} entries so collisions
+    (Sawmill Bay, Irish Cove) can be disambiguated at lookup time."""
+    global _BBOXES
+    if _BBOXES is not None:
+        return _BBOXES
+    _BBOXES = {}
+    if not _BBOXES_PATH.exists():
+        print(f"WARNING: bbox file not found at {_BBOXES_PATH}", file=sys.stderr)
+        return _BBOXES
+    try:
+        with open(_BBOXES_PATH) as f:
+            gj = json.load(f)
+    except Exception as e:
+        print(f"WARNING: failed to load bboxes: {e}", file=sys.stderr)
+        return _BBOXES
+    for feat in gj.get('features', []) or []:
+        props = feat.get('properties') or {}
+        name = props.get('name')
+        if not name:
+            continue
+        try:
+            poly = shape(feat.get('geometry'))
+            if poly.is_empty:
+                continue
+            if not poly.is_valid:
+                poly = make_valid(poly)
+        except Exception as e:
+            print(f"WARNING: bad bbox geometry for {name!r}: {e}", file=sys.stderr)
+            continue
+        key = _normalize_feature_name(name)
+        if not key:
+            continue
+        _BBOXES.setdefault(key, []).append({
+            'polygon': poly,
+            'district': (props.get('district') or '').strip().lower() or None,
+        })
+    return _BBOXES
+
+
+def find_bbox_polygon(name, district_geom=None):
+    """Look up a hand-drawn bbox for a named feature. When a name collides
+    across districts, pick the bbox whose polygon intersects `district_geom`.
+    Returns a shapely Polygon/MultiPolygon, or None if no match."""
+    bb = _load_bboxes()
+    if not bb:
+        return None
+    key = _normalize_feature_name(name)
+    if not key:
+        return None
+    entries = bb.get(key)
+    if not entries:
+        return None
+    if len(entries) == 1:
+        return entries[0]['polygon']
+    # Multiple bboxes with the same name — disambiguate by district_geom
+    if district_geom is not None:
+        for e in entries:
+            try:
+                if district_geom.intersects(e['polygon']):
+                    return e['polygon']
+            except Exception:
+                continue
+    # Can't disambiguate — refuse the lookup rather than return the wrong one
+    return None
+
+
 def _polys_only(geom):
     """Extract polygon/multipolygon components from any shapely geometry."""
     if geom is None or geom.is_empty:
@@ -969,18 +1046,29 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
 
                 bay_scope = _is_bay_named(c_name)
 
-                # STEP 3 — gazetteer lookup: if the closure name matches a
-                # known PWS water feature, compute a geographic scope buffer
-                # around its centroid. This bounds the cut so it can't spill
-                # into the rest of the district.
+                # STEP 3 — feature scope lookup. Prefer a hand-drawn bbox
+                # from data/pws_bboxes.geojson (tight polygon for long/wide
+                # features), otherwise fall back to a circular buffer around
+                # the GNIS centroid from the gazetteer. Either way the scope
+                # bounds the cut so it can't spill into the rest of the district.
                 scope_geom = None
-                gaz_entry = find_gazetteer_feature(c_name, d_geom)
-                if gaz_entry is not None:
-                    centroid = gaz_entry.get('centroid')
-                    if centroid:
-                        scope_geom = build_feature_scope(
-                            centroid, coords, synthesized, district_geom=d_geom,
-                        )
+                bbox_poly = find_bbox_polygon(c_name, d_geom)
+                if bbox_poly is not None:
+                    try:
+                        scope_geom = bbox_poly.intersection(d_geom) if d_geom is not None else bbox_poly
+                        if scope_geom.is_empty:
+                            scope_geom = bbox_poly  # bbox doesn't overlap district; trust the hand-drawn extent
+                    except Exception as e:
+                        print(f"WARNING: bbox ∩ district failed for {c_name!r}: {e}", file=sys.stderr)
+                        scope_geom = bbox_poly
+                else:
+                    gaz_entry = find_gazetteer_feature(c_name, d_geom)
+                    if gaz_entry is not None:
+                        centroid = gaz_entry.get('centroid')
+                        if centroid:
+                            scope_geom = build_feature_scope(
+                                centroid, coords, synthesized, district_geom=d_geom,
+                            )
 
                 closure_lines.append({
                     'name': c_name,
