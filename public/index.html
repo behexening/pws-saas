@@ -482,11 +482,11 @@
     <div class="map-panel">
       <div id="map"></div>
       <div class="map-legend">
-        <h4>Districts</h4>
-        <div class="legend-row"><span class="legend-swatch" style="background:#27ae60"></span> Open</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#e74c3c"></span> Closed</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#ff6b6b;height:2px"></span> Closure line</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#ff3333;height:2px"></span> Permanent closure</div>
+        <h4>Map Legend</h4>
+        <div class="legend-row"><span class="legend-swatch" style="background:rgba(39,174,96,0.4);border:2px solid #27ae60;height:10px;border-radius:2px"></span> Open District</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#ff6b6b;height:2px"></span> Closure line (this period)</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#ff3333;height:2px"></span> Closure line (permanent)</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:rgba(231,76,60,0.4);border:1px dashed #e74c3c;height:10px;border-radius:2px"></span> Excluded subdistrict</div>
       </div>
       <div class="map-note">ADF&amp;G PWS Commercial Salmon</div>
       <div class="disclaimer-bar">
@@ -505,15 +505,12 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   subdomains: 'abcd', maxZoom: 17,
 }).addTo(map);
 
-let districtLayers = [];
+let activeLayers = [];       // all Leaflet layers — cleared on each reload
+let mapDistrictLayers = {};  // district_key → Leaflet layer (for card↔map sync)
+let currentDistrictsGJ = null;  // kept for PIP click handler
+let currentHighlighted = {};    // district name → {key, color, open}
 let currentTab = 'live';
 let allResults = [];
-
-const DISTRICT_COLORS = [
-  '#3498db','#e74c3c','#27ae60','#f39c12','#9b59b6',
-  '#1abc9c','#e91e63','#ff5722','#00bcd4','#8bc34a',
-  '#ff9800','#607d8b','#795548',
-];
 
 // ── Tab switching ──
 function setTab(tab, btn) {
@@ -695,10 +692,59 @@ function renderPanel(result) {
   });
 }
 
+// ── Point-in-polygon (for map→card click) ──
+function _pip(ring, lng, lat) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function districtAtLatLng(latlng) {
+  if (!currentDistrictsGJ) return null;
+  const lng = latlng.lng, lat = latlng.lat;
+  for (const feature of currentDistrictsGJ.features) {
+    const name = feature.properties.DISTRICT_N || '';
+    const info = currentHighlighted[name];
+    if (!info) continue;
+    const geom = feature.geometry;
+    const rings = geom.type === 'Polygon'
+      ? [geom.coordinates[0]]
+      : geom.type === 'MultiPolygon'
+        ? geom.coordinates.map(p => p[0])
+        : [];
+    if (rings.some(r => _pip(r, lng, lat))) return info;
+  }
+  return null;
+}
+
+// Single map-level click → find district via PIP → scroll card
+map.on('click', function(e) {
+  const info = districtAtLatLng(e.latlng);
+  if (!info) return;
+  const card = document.getElementById('card-' + info.key);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('highlighted');
+    setTimeout(() => card.classList.remove('highlighted'), 2000);
+  }
+  const layer = mapDistrictLayers[info.key];
+  if (layer) {
+    layer.setStyle({ fillOpacity: 0.4, weight: 3 });
+    setTimeout(() => layer.setStyle({ fillOpacity: 0.15, weight: 2 }), 1500);
+  }
+});
+
 // ── Render map ──
 function renderMap(result) {
-  districtLayers.forEach(l => map.removeLayer(l));
-  districtLayers = [];
+  activeLayers.forEach(l => map.removeLayer(l));
+  activeLayers = [];
+  mapDistrictLayers = {};
+  currentDistrictsGJ = null;
+  currentHighlighted = {};
 
   if (!result || !result._html) return;
 
@@ -707,48 +753,135 @@ function renderMap(result) {
   let scriptText = '';
   doc.querySelectorAll('script').forEach(s => { scriptText += s.textContent; });
 
-  const geojsonData = extractBalancedJson(scriptText, 'DISTRICTS_GJ');
-  if (geojsonData && geojsonData.features) {
-    geojsonData.features.forEach((feature, i) => {
-      const color = DISTRICT_COLORS[i % DISTRICT_COLORS.length];
-      const layer = L.geoJSON(feature, {
-        style: { color, weight: 2, fillColor: color, fillOpacity: 0.15, opacity: 0.8 }
-      }).addTo(map);
-      districtLayers.push(layer);
-    });
-    if (districtLayers.length) {
-      map.fitBounds(L.featureGroup(districtLayers).getBounds(), { padding: [20, 20] });
-    }
+  // ── Build HIGHLIGHTED from card DOM ──────────────────────────────────────
+  doc.querySelectorAll('.district-card').forEach(card => {
+    const key = card.dataset.district;
+    const nameEl = card.querySelector('.district-name');
+    const name = nameEl ? nameEl.textContent.trim() : '';
+    if (!key || !name) return;
+    const isOpen = !!card.querySelector('.status-open');
+    const styleStr = card.getAttribute('style') || '';
+    const colorM = styleStr.match(/border-left:\s*\d+px solid ([^;]+)/);
+    const color = colorM ? colorM[1].trim() : '#3498db';
+    const excluded = Array.from(card.querySelectorAll('.excl-tag.subdistrict'))
+      .map(e => e.textContent.trim().toLowerCase());
+    currentHighlighted[name] = { key, color, open: isOpen, excluded };
+  });
+
+  const allExcluded = new Set();
+  Object.values(currentHighlighted).forEach(info =>
+    (info.excluded || []).forEach(n => allExcluded.add(n))
+  );
+
+  // ── District polygons ────────────────────────────────────────────────────
+  const districtsGJ = extractBalancedJson(scriptText, 'DISTRICTS_GJ');
+  currentDistrictsGJ = districtsGJ;
+
+  if (districtsGJ && districtsGJ.features) {
+    const geoLayer = L.geoJSON(districtsGJ, {
+      style: function(feature) {
+        const name = feature.properties.DISTRICT_N || '';
+        const info = currentHighlighted[name];
+        if (info && info.open)
+          return { color: info.color, weight: 2, opacity: 0.8, fillColor: info.color, fillOpacity: 0.15 };
+        return { color: '#3a3f5c', weight: 1, opacity: 0.35, fillOpacity: 0.04 };
+      },
+      onEachFeature: function(feature, layer) {
+        const name = feature.properties.DISTRICT_N || '';
+        const info = currentHighlighted[name];
+        if (!info) return;
+        mapDistrictLayers[info.key] = layer;
+        layer.bindTooltip(name + (info.open ? ' — Open' : ' — Closed'), { direction: 'center' });
+      }
+    }).addTo(map);
+    activeLayers.push(geoLayer);
+    map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
   }
 
-  // ── Closure lines ──
-  const closureLines = extractBalancedArray(scriptText, 'CLOSURE_LINES');
-  if (closureLines && closureLines.length) {
-    closureLines.forEach(line => {
-      const latlngs = line.coords.map(c => [c[1], c[0]]);
-      const isPermanent = line.applies === 'all_periods';
-      const lineColor = isPermanent ? '#ff3333' : '#ff6b6b';
-      const l = L.polyline(latlngs, {
-        color: lineColor,
-        weight: isPermanent ? 3 : 2.5,
-        opacity: 0.9,
-        dashArray: isPermanent ? '8,4' : null,
-      }).addTo(map);
-      districtLayers.push(l);
-      const sideText = line.closed_side
-        ? ' — Waters ' + line.closed_side.toUpperCase() + ' are CLOSED'
-        : '';
-      l.bindTooltip('⛔ ' + line.name + sideText, { sticky: true });
+  // ── Excluded subdistricts (hatched red) ──────────────────────────────────
+  const subdistrictsGJ = extractBalancedJson(scriptText, 'SUBDISTRICTS_GJ');
+  if (subdistrictsGJ && subdistrictsGJ.features && allExcluded.size > 0) {
+    const exclLayer = L.geoJSON(subdistrictsGJ, {
+      style: function(feature) {
+        const subdName = (feature.properties.SUBDISTRIC || '').toLowerCase().trim();
+        const shortName = subdName.replace(' subdistrict', '').trim();
+        const isExcl = allExcluded.has(subdName) || allExcluded.has(shortName)
+          || Array.from(allExcluded).some(ex => subdName.includes(ex) || ex.includes(shortName));
+        if (isExcl)
+          return { color: '#e74c3c', weight: 2, opacity: 0.9, fillColor: '#e74c3c', fillOpacity: 0.25, dashArray: '5,4' };
+        return { color: 'transparent', weight: 0, fillOpacity: 0 };
+      },
+      onEachFeature: function(feature, layer) {
+        const subdName = (feature.properties.SUBDISTRIC || '').toLowerCase().trim();
+        const shortName = subdName.replace(' subdistrict', '').trim();
+        const isExcl = allExcluded.has(subdName) || allExcluded.has(shortName)
+          || Array.from(allExcluded).some(ex => subdName.includes(ex) || ex.includes(shortName));
+        if (isExcl)
+          layer.bindTooltip('⛔ CLOSED: ' + (feature.properties.SUBDISTRIC || ''), { direction: 'center' });
+      }
+    }).addTo(map);
+    activeLayers.push(exclLayer);
+  }
+
+  // ── Closure lines (from script var if present, else extract from card DOM) ──
+  let closureLines = extractBalancedArray(scriptText, 'CLOSURE_LINES') || [];
+
+  if (!closureLines.length) {
+    doc.querySelectorAll('.district-card').forEach(card => {
+      card.querySelectorAll('.closure-entry').forEach(entry => {
+        const rows = entry.querySelectorAll('.points-table tbody tr');
+        if (rows.length < 2) return;
+        const coords = [];
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 3) {
+            const lat = parseFloat(cells[1].textContent);
+            const lon = parseFloat(cells[2].textContent);
+            if (!isNaN(lat) && !isNaN(lon)) coords.push([lon, lat]);
+          }
+        });
+        if (coords.length >= 2) {
+          const nameEl = entry.querySelector('.closure-name');
+          const appBadge = entry.querySelector('.applies-badge');
+          closureLines.push({
+            name: nameEl ? nameEl.textContent.trim() : 'Closure',
+            coords,
+            applies: appBadge && appBadge.classList.contains('allperiods') ? 'all_periods' : 'this_period',
+            closed_side: null,
+          });
+        }
+      });
     });
   }
+
+  closureLines.forEach(line => {
+    const latlngs = line.coords.map(c => [c[1], c[0]]);
+    const isPermanent = line.applies === 'all_periods';
+    const l = L.polyline(latlngs, {
+      color: isPermanent ? '#ff3333' : '#ff6b6b',
+      weight: isPermanent ? 3 : 2.5,
+      opacity: 0.9,
+      dashArray: isPermanent ? '8,4' : null,
+    }).addTo(map);
+    activeLayers.push(l);
+    const sideText = line.closed_side ? ' — Waters ' + line.closed_side.toUpperCase() + ' are CLOSED' : '';
+    l.bindTooltip('⛔ ' + line.name + sideText, { sticky: true });
+  });
 }
 
-function highlightDistrict(id) {
+// ── Card → map ──
+function highlightDistrict(key) {
   document.querySelectorAll('.district-card').forEach(c => c.classList.remove('highlighted'));
-  const card = document.getElementById(`card-${id}`);
+  const card = document.getElementById('card-' + key);
   if (card) {
     card.classList.add('highlighted');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  const layer = mapDistrictLayers[key];
+  if (layer) {
+    map.fitBounds(layer.getBounds(), { padding: [40, 40] });
+    layer.setStyle({ fillOpacity: 0.4, weight: 3 });
+    setTimeout(() => layer.setStyle({ fillOpacity: 0.15, weight: 2 }), 1500);
   }
 }
 
