@@ -82,25 +82,28 @@ async function initDatabase() {
       CREATE TABLE IF NOT EXISTS parsed_results (
         id SERIAL PRIMARY KEY,
         announcement_id INT REFERENCES announcements(id),
-        
+
         -- HTML artifact
         html_filename VARCHAR(255),
         html_path VARCHAR(512),
         html_url VARCHAR(512),
-        
+        html_content TEXT,
+
         -- Parsed data
         districts TEXT[],
         parsed_json JSONB,
-        
+
         -- Status
         parsed_at TIMESTAMPTZ DEFAULT NOW(),
         sms_sent BOOLEAN DEFAULT false,
         sms_sent_at TIMESTAMPTZ,
-        
+
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_parsed_results_announcement ON parsed_results(announcement_id);
     `);
+    // Add html_content column if it doesn't exist (for existing DBs)
+    await db.query(`ALTER TABLE parsed_results ADD COLUMN IF NOT EXISTS html_content TEXT;`);
 
     // Users
     await db.query(`
@@ -226,14 +229,15 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
   try {
     const { htmlPath, districts } = await runLiveTest(announcementId, pdfPath);
 
-    // Store result in DB
+    // Read HTML content to store in DB (Railway filesystem is ephemeral)
+    const htmlContent = await fs.readFile(htmlPath, 'utf8');
     const htmlFilename = path.basename(htmlPath);
     const htmlUrl = `/results/${htmlFilename}`;
 
     await db.query(
-      `INSERT INTO parsed_results (announcement_id, html_filename, html_path, html_url, districts)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [announcementId, htmlFilename, htmlPath, htmlUrl, districts]
+      `INSERT INTO parsed_results (announcement_id, html_filename, html_path, html_url, districts, html_content)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [announcementId, htmlFilename, htmlPath, htmlUrl, districts, htmlContent]
     );
 
     console.log(`✓ Announcement #${announcementId} parsed → ${htmlUrl}`);
@@ -535,6 +539,26 @@ app.get('/api/latest', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/result/:id/html
+ * Serve stored HTML content from DB
+ */
+app.get('/api/result/:id/html', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT html_content FROM parsed_results WHERE id = $1`,
+      [req.params.id]
+    );
+    if (!result.rows.length || !result.rows[0].html_content) {
+      return res.status(404).send('Not found');
+    }
+    res.setHeader('Content-Type', 'text/html');
+    res.send(result.rows[0].html_content);
+  } catch (err) {
+    res.status(500).send('Error');
   }
 });
 

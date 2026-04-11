@@ -495,6 +495,13 @@ async function loadLatest() {
     const resp = await fetch('/api/latest');
     const data = await resp.json();
     latestData = data.latest;
+    if (data.latest) {
+      // Fetch HTML from DB endpoint
+      const htmlResp = await fetch(`/api/result/${data.latest.id}/html`);
+      if (htmlResp.ok) {
+        data.latest._html = await htmlResp.text();
+      }
+    }
     renderPanel(data.latest);
     renderMap(data.latest);
   } catch (err) {
@@ -509,96 +516,74 @@ function renderPanel(latest) {
   const meta = document.getElementById('panel-meta');
   const stats = document.getElementById('panel-stats');
 
-  if (!latest) {
+  if (!latest || !latest._html) {
     header.style.display = 'none';
     container.innerHTML = '<div class="no-data"><strong>No announcements yet</strong>Waiting for ADF&amp;G to publish.</div>';
     return;
   }
 
-  // Fetch the full HTML result and inject district cards from it
-  fetch(latest.html_url)
-    .then(r => r.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(latest._html, 'text/html');
+  const cards = doc.querySelectorAll('.district-card');
 
-      // Extract cards
-      const cards = doc.querySelectorAll('.district-card');
-      const subtitle = doc.querySelector('.subtitle');
+  let openCount = 0, closedCount = 0;
+  cards.forEach(card => {
+    if (card.querySelector('.status-open')) openCount++;
+    else closedCount++;
+  });
 
-      // Count open/closed
-      let openCount = 0, closedCount = 0;
-      cards.forEach(card => {
-        if (card.querySelector('.status-open')) openCount++;
-        else closedCount++;
-      });
+  header.style.display = 'block';
+  meta.textContent = `${new Date(latest.parsed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — ADF&G PWS Commercial Salmon`;
+  stats.innerHTML = `
+    <span class="stat-pill open-pill">${openCount} Open</span>
+    ${closedCount ? `<span class="stat-pill closed-pill">${closedCount} Closed</span>` : ''}
+  `;
 
-      header.style.display = 'block';
-      meta.textContent = `${new Date(latest.parsed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — ADF&G PWS Commercial Salmon`;
-      stats.innerHTML = `
-        <span class="stat-pill open-pill">${openCount} Open</span>
-        ${closedCount ? `<span class="stat-pill closed-pill">${closedCount} Closed</span>` : ''}
-      `;
+  const grid = document.createElement('div');
+  grid.className = 'cards-grid';
+  cards.forEach(card => grid.appendChild(card.cloneNode(true)));
+  container.innerHTML = '';
+  container.appendChild(grid);
 
-      const grid = document.createElement('div');
-      grid.className = 'cards-grid';
-      cards.forEach(card => {
-        grid.appendChild(card.cloneNode(true));
-      });
-      container.innerHTML = '';
-      container.appendChild(grid);
-
-      // Card click highlights map layer
-      container.querySelectorAll('.district-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const id = card.dataset.district;
-          highlightDistrict(id);
-        });
-      });
-    })
-    .catch(() => {
-      const districts = latest.districts || [];
-      header.style.display = 'block';
-      meta.textContent = new Date(latest.parsed_at).toLocaleString();
-      stats.innerHTML = '';
-      container.innerHTML = `<div class="no-data"><strong>${districts.join(', ') || 'Announcement loaded'}</strong><a href="${latest.html_url}" target="_blank" style="color:#5b8dee;text-decoration:none;font-size:11px;">View full map</a></div>`;
-    });
+  container.querySelectorAll('.district-card').forEach(card => {
+    card.addEventListener('click', () => highlightDistrict(card.dataset.district));
+  });
 }
 
 function renderMap(latest) {
   districtLayers.forEach(l => map.removeLayer(l));
   districtLayers = [];
 
-  if (!latest || !latest.html_url) return;
+  if (!latest || !latest._html) return;
 
-  fetch(latest.html_url)
-    .then(r => r.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(latest._html, 'text/html');
 
-      // Extract embedded district GeoJSON from script tag
-      const scripts = doc.querySelectorAll('script');
-      let geojsonData = null;
-      scripts.forEach(s => {
-        const m = s.textContent.match(/const\s+districtGeoJSON\s*=\s*(\{[\s\S]*?\});/);
-        if (m) {
-          try { geojsonData = JSON.parse(m[1]); } catch(_) {}
-        }
-      });
+  let geojsonData = null;
+  doc.querySelectorAll('script').forEach(s => {
+    const m = s.textContent.match(/(?:const|var)\s+DISTRICTS_GJ\s*=\s*(\{[\s\S]*?\});\s*(?:const|var)/);
+    if (m) {
+      try { geojsonData = JSON.parse(m[1]); } catch(_) {}
+    }
+    if (!geojsonData) {
+      const m2 = s.textContent.match(/(?:const|var)\s+districtData\s*=\s*(\{[\s\S]*?\});\s/);
+      if (m2) { try { geojsonData = JSON.parse(m2[1]); } catch(_) {} }
+    }
+  });
 
-      if (geojsonData && geojsonData.features) {
-        let i = 0;
-        geojsonData.features.forEach(feature => {
-          const color = colorForIndex(i++);
-          const layer = L.geoJSON(feature, {
-            style: { color, weight: 2, fillColor: color, fillOpacity: 0.15, opacity: 0.8 }
-          }).addTo(map);
-          districtLayers.push(layer);
-        });
-      }
-    })
-    .catch(() => {});
+  if (geojsonData && geojsonData.features) {
+    let i = 0;
+    geojsonData.features.forEach(feature => {
+      const color = colorForIndex(i++);
+      L.geoJSON(feature, {
+        style: { color, weight: 2, fillColor: color, fillOpacity: 0.15, opacity: 0.8 }
+      }).addTo(map);
+      districtLayers.push(L.geoJSON(feature));
+    });
+    // Fit map to districts
+    const group = L.featureGroup(districtLayers.map(l => l));
+    if (group.getLayers().length) map.fitBounds(group.getBounds(), { padding: [20, 20] });
+  }
 }
 
 function highlightDistrict(id) {
