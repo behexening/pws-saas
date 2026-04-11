@@ -382,6 +382,124 @@ def _is_bay_named(closure_name):
     return any(w in n for w in BAY_KEYWORDS)
 
 
+# ── PWS named-feature gazetteer (GNIS + OSM, built by scripts/build_feature_gazetteer.py) ──
+_GAZETTEER = None
+_GAZETTEER_PATH = Path(__file__).parent / 'data' / 'pws_gazetteer.json'
+
+def _load_gazetteer():
+    """Load and cache the PWS water-feature gazetteer. Returns {} on failure
+    so the rest of the pipeline keeps working (with degraded precision)."""
+    global _GAZETTEER
+    if _GAZETTEER is not None:
+        return _GAZETTEER
+    if not _GAZETTEER_PATH.exists():
+        print(f"WARNING: gazetteer not found at {_GAZETTEER_PATH}", file=sys.stderr)
+        _GAZETTEER = {}
+        return _GAZETTEER
+    try:
+        with open(_GAZETTEER_PATH) as f:
+            _GAZETTEER = json.load(f)
+    except Exception as e:
+        print(f"WARNING: failed to load gazetteer: {e}", file=sys.stderr)
+        _GAZETTEER = {}
+    return _GAZETTEER
+
+
+def _normalize_feature_name(name):
+    """Normalize a closure name for gazetteer lookup. Strips punctuation,
+    collapses whitespace, canonicalizes 'St./St' → 'saint', and strips
+    trailing descriptors like 'Closure', 'Area', 'Section' so 'Port
+    Valdez Closure' matches the gazetteer's 'Port Valdez'."""
+    if not name:
+        return ""
+    import re
+    n = name.lower().strip()
+    n = re.sub(r"[^\w\s]", " ", n)
+    n = re.sub(r"\s+", " ", n).strip()
+    n = re.sub(r"\bst\b", "saint", n)
+    # Strip trailing descriptor words — closure names often add these
+    for suffix in (" closure", " closed area", " area", " section",
+                   " waters", " portion"):
+        if n.endswith(suffix):
+            n = n[:-len(suffix)].strip()
+            break
+    return n
+
+
+def find_gazetteer_feature(name, district_geom=None):
+    """Look up a named PWS water feature. When a name collides (e.g., two
+    Sawmill Bays) disambiguate by district: pick the entry whose centroid
+    lies inside `district_geom`. Returns entry dict or None."""
+    gaz = _load_gazetteer()
+    if not gaz:
+        return None
+    key = _normalize_feature_name(name)
+    if not key:
+        return None
+    entry = gaz.get(key)
+    if entry is None:
+        return None
+    # Single entry — no disambiguation needed
+    if isinstance(entry, dict):
+        return entry
+    # Multiple entries — disambiguate by district containment
+    if district_geom is not None:
+        try:
+            for e in entry:
+                c = e.get('centroid')
+                if not c:
+                    continue
+                if district_geom.contains(Point(c[0], c[1])):
+                    return e
+        except Exception:
+            pass
+    # Can't disambiguate — refuse the lookup rather than return the wrong one
+    return None
+
+
+def build_feature_scope(centroid, coords, synthesized, district_geom=None):
+    """Build a polygon scope around a named feature's centroid.
+
+    The scope is a circle centered on the gazetteer centroid, sized so it
+    captures the whole feature but not its neighbors:
+
+    - If real shore-marker `coords` are provided, radius = max distance
+      from centroid to any shore marker × 1.25, clamped to [0.035, 0.12]°.
+      That range is ~4-13km in PWS latitudes.
+    - If `synthesized` (no shore markers, just a lat or lon line from the
+      definition text), use 0.08° ≈ 9km — enough for any single bay.
+
+    Returns a shapely Polygon, optionally intersected with district_geom
+    so the scope never extends outside the district."""
+    if centroid is None:
+        return None
+    cx, cy = centroid[0], centroid[1]
+    if coords and not synthesized:
+        try:
+            dists = [
+                ((float(p[0]) - cx) ** 2 + (float(p[1]) - cy) ** 2) ** 0.5
+                for p in coords
+            ]
+            radius = max(dists) * 1.25
+            radius = max(0.035, min(radius, 0.12))
+        except Exception:
+            radius = 0.08
+    else:
+        radius = 0.08
+    try:
+        buf = Point(cx, cy).buffer(radius)
+    except Exception:
+        return None
+    if district_geom is not None:
+        try:
+            buf = buf.intersection(district_geom)
+            if buf.is_empty:
+                return None
+        except Exception:
+            pass
+    return buf
+
+
 def _polys_only(geom):
     """Extract polygon/multipolygon components from any shapely geometry."""
     if geom is None or geom.is_empty:
@@ -440,7 +558,7 @@ def _pick_pieces_on_side(pieces, coords, closed_side):
     return keep
 
 
-def get_closed_area(closed_side, coords, district_geom, bay_scope=False, synthesized=False):
+def get_closed_area(closed_side, coords, district_geom, bay_scope=False, synthesized=False, scope_geom=None):
     """Return the closed water area within `district_geom` for ONE closure.
 
     Parameters
@@ -451,8 +569,17 @@ def get_closed_area(closed_side, coords, district_geom, bay_scope=False, synthes
     bay_scope   : if True the closure is scoped to a local bay (not district-wide)
     synthesized : if True the coords were synthesized from a single meridian/parallel
                   in the definition text (no real shore markers given)
+    scope_geom  : optional shapely polygon that constrains the closed area
+                  geographically. When provided, the closed area is the
+                  intersection of (district ∩ half-plane ∩ scope). This is
+                  the authoritative path for closures whose name matches a
+                  PWS gazetteer entry — the scope is a buffer around the
+                  feature's GNIS centroid.
 
     Strategy:
+    - If `scope_geom` is provided → trust it. Compute half-plane ∩ district
+      ∩ scope and return. This is the cleanest path and bypasses every
+      split-based heuristic.
     - If bay_scope and synthesized → we don't know where the bay is located
       along the parallel/meridian, so skip the cut entirely (return None).
     - If bay_scope (coords are real shore markers crossing a bay mouth):
@@ -465,6 +592,25 @@ def get_closed_area(closed_side, coords, district_geom, bay_scope=False, synthes
         return None
     if district_geom is None or district_geom.is_empty:
         return None
+
+    # Gazetteer-scoped closure — the named feature has a known location.
+    # Use half-plane ∩ district ∩ scope. This bypasses split() entirely.
+    if scope_geom is not None and not scope_geom.is_empty:
+        hp = _build_half_plane(closed_side, coords, district_geom)
+        if hp is None:
+            # No half-plane built → treat the whole named feature as closed
+            try:
+                region = district_geom.intersection(scope_geom)
+            except Exception as e:
+                print(f"WARNING: gazetteer-only intersection failed: {e}", file=sys.stderr)
+                return None
+            return _polys_only(region)
+        try:
+            region = district_geom.intersection(hp).intersection(scope_geom)
+        except Exception as e:
+            print(f"WARNING: gazetteer scope intersection failed: {e}", file=sys.stderr)
+            return None
+        return _polys_only(region)
 
     # Bay referenced but no geographic anchor point — can't cut safely
     if bay_scope and synthesized:
@@ -572,6 +718,7 @@ def extract_open_geom(district_geom, closures, excl_geoms):
                 g,
                 bay_scope=c.get('bay_scope', False),
                 synthesized=c.get('synthesized', False),
+                scope_geom=c.get('scope_geom'),
             )
             if closed_area is not None and not closed_area.is_empty:
                 g = g.difference(closed_area)
@@ -757,6 +904,19 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
 
                 bay_scope = _is_bay_named(c_name)
 
+                # STEP 3 — gazetteer lookup: if the closure name matches a
+                # known PWS water feature, compute a geographic scope buffer
+                # around its centroid. This bounds the cut so it can't spill
+                # into the rest of the district.
+                scope_geom = None
+                gaz_entry = find_gazetteer_feature(c_name, d_geom)
+                if gaz_entry is not None:
+                    centroid = gaz_entry.get('centroid')
+                    if centroid:
+                        scope_geom = build_feature_scope(
+                            centroid, coords, synthesized, district_geom=d_geom,
+                        )
+
                 closure_lines.append({
                     'name': c_name,
                     'closed_side': closed_side,
@@ -772,6 +932,7 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                         'coords': coords,
                         'bay_scope': bay_scope,
                         'synthesized': synthesized,
+                        'scope_geom': scope_geom,
                     })
 
     closure_lines_json = json.dumps(closure_lines, cls=_DateEncoder)
