@@ -41,3 +41,6 @@ yarn-debug.log*
 # Crash logs
 logs/*.log
 logs/*.txt
+
+# Upstream gazetteer source data (regenerate via scripts/build_feature_gazetteer.py)
+data/OSM&GNIS/

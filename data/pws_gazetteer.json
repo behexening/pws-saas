@@ -1,0 +1,3698 @@
+{
+  "anderson bay": [
+    {
+      "name": "Anderson Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1398246",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.555278,
+        61.080833
+      ]
+    },
+    {
+      "name": "Anderson Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1420102",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.515833,
+        60.471944
+      ]
+    }
+  ],
+  "barry arm": {
+    "name": "Barry Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1398636",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.133056,
+      61.049444
+    ]
+  },
+  "college fiord": {
+    "name": "College Fiord",
+    "feature_class": "Bay",
+    "gnis_id": "1400581",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.921111,
+      61.108889
+    ]
+  },
+  "doran strait": {
+    "name": "Doran Strait",
+    "feature_class": "Channel",
+    "gnis_id": "1401354",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.188889,
+      61.076111
+    ]
+  },
+  "harriman fiord": {
+    "name": "Harriman Fiord",
+    "feature_class": "Bay",
+    "gnis_id": "1403193",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.321389,
+      61.038889
+    ]
+  },
+  "harvard arm": {
+    "name": "Harvard Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1403217",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.753056,
+      61.241111
+    ]
+  },
+  "jack bay": {
+    "name": "Jack Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1404027",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.601111,
+      61.031111
+    ]
+  },
+  "jonah bay": {
+    "name": "Jonah Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1404211",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.643889,
+      61.004444
+    ]
+  },
+  "kayak entrance": {
+    "name": "Kayak Entrance",
+    "feature_class": "Channel",
+    "gnis_id": "1404538",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.356944,
+      59.986389
+    ]
+  },
+  "lower herring bay": {
+    "name": "Lower Herring Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1405760",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.799722,
+      60.384444
+    ]
+  },
+  "miners bay": {
+    "name": "Miners Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1406388",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.491944,
+      61.068611
+    ]
+  },
+  "orca channel": {
+    "name": "Orca Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1407596",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.729167,
+      60.605
+    ]
+  },
+  "orca inlet": {
+    "name": "Orca Inlet",
+    "feature_class": "Channel",
+    "gnis_id": "1407597",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.866667,
+      60.523056
+    ]
+  },
+  "port valdez": {
+    "name": "Port Valdez",
+    "feature_class": "Bay",
+    "gnis_id": "1408225",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.501944,
+      61.105556
+    ]
+  },
+  "sawmill bay": [
+    {
+      "name": "Sawmill Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1409112",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.783611,
+        61.054722
+      ]
+    },
+    {
+      "name": "Sawmill Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1414503",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -148.011667,
+        60.058611
+      ]
+    }
+  ],
+  "shoup bay": {
+    "name": "Shoup Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1409476",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.583889,
+      61.131667
+    ]
+  },
+  "surprise inlet": {
+    "name": "Surprise Inlet",
+    "feature_class": "Bay",
+    "gnis_id": "1410428",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.379722,
+      61.051944
+    ]
+  },
+  "unakwik inlet": {
+    "name": "Unakwik Inlet",
+    "feature_class": "Bay",
+    "gnis_id": "1411515",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.564444,
+      61.008333
+    ]
+  },
+  "valdez narrows": {
+    "name": "Valdez Narrows",
+    "feature_class": "Channel",
+    "gnis_id": "1411620",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.669722,
+      61.067778
+    ]
+  },
+  "yale arm": {
+    "name": "Yale Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1412305",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.719722,
+      61.208611
+    ]
+  },
+  "lutris pass": {
+    "name": "Lutris Pass",
+    "feature_class": "Channel",
+    "gnis_id": "1412428",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.056944,
+      60.958333
+    ]
+  },
+  "gulf of alaska": {
+    "name": "Gulf of Alaska",
+    "feature_class": "Sea",
+    "gnis_id": "1413097",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.488248,
+      59.927045
+    ]
+  },
+  "saint matthews bay": {
+    "name": "Saint Matthews Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414416",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.32,
+      60.750833
+    ]
+  },
+  "san juan bay": {
+    "name": "San Juan Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414470",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.900556,
+      59.806667
+    ]
+  },
+  "schoppe bay": {
+    "name": "Schoppe Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414521",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.670556,
+      60.882222
+    ]
+  },
+  "shady cove": {
+    "name": "Shady Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1414605",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.422222,
+      60.558611
+    ]
+  },
+  "sheep bay": {
+    "name": "Sheep Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414629",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.0075,
+      60.660833
+    ]
+  },
+  "shelter bay": [
+    {
+      "name": "Shelter Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1414640",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.951944,
+        60.1325
+      ]
+    },
+    {
+      "name": "Shelter Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1414641",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.648333,
+        60.428333
+      ]
+    }
+  ],
+  "shipyard bay": {
+    "name": "Shipyard Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414672",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.804444,
+      60.571667
+    ]
+  },
+  "short arm bay of isles": {
+    "name": "Short Arm Bay of Isles",
+    "feature_class": "Bay",
+    "gnis_id": "1414689",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.671111,
+      60.3825
+    ]
+  },
+  "shotgun cove": {
+    "name": "Shotgun Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1414695",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.543611,
+      60.797778
+    ]
+  },
+  "simpson bay": {
+    "name": "Simpson Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414724",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.900278,
+      60.635278
+    ]
+  },
+  "siwash bay": {
+    "name": "Siwash Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414751",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.650556,
+      60.954722
+    ]
+  },
+  "sleepy bay": {
+    "name": "Sleepy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414784",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.836667,
+      60.070833
+    ]
+  },
+  "snug corner cove": {
+    "name": "Snug Corner Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1414837",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.640833,
+      60.732222
+    ]
+  },
+  "snug harbor": {
+    "name": "Snug Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1414840",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.726111,
+      60.251944
+    ]
+  },
+  "softuk lagoon": {
+    "name": "Softuk Lagoon",
+    "feature_class": "Bay",
+    "gnis_id": "1414849",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.668611,
+      60.219167
+    ]
+  },
+  "south arm bay of isles": {
+    "name": "South Arm Bay of Isles",
+    "feature_class": "Bay",
+    "gnis_id": "1414868",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.699167,
+      60.370278
+    ]
+  },
+  "south bay": {
+    "name": "South Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414874",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.908333,
+      60.673333
+    ]
+  },
+  "south twin bay": {
+    "name": "South Twin Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414910",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.202222,
+      59.943611
+    ]
+  },
+  "qacuuqaq bay": {
+    "name": "Qacuuqaq Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414956",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.827912,
+      60.832029
+    ]
+  },
+  "squirrel bay": {
+    "name": "Squirrel Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1414962",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.146667,
+      60.002778
+    ]
+  },
+  "squirrel cove": {
+    "name": "Squirrel Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1414963",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.467222,
+      60.806944
+    ]
+  },
+  "stockdale harbor": {
+    "name": "Stockdale Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1415014",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.190833,
+      60.314444
+    ]
+  },
+  "storey slough": {
+    "name": "Storey Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1415022",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.147222,
+      60.355278
+    ]
+  },
+  "strawberry channel": {
+    "name": "Strawberry Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1415028",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.075278,
+      60.410556
+    ]
+  },
+  "strawberry harbor": {
+    "name": "Strawberry Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1415029",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.388611,
+      60.169444
+    ]
+  },
+  "surprise cove": {
+    "name": "Surprise Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1415107",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.372222,
+      60.756389
+    ]
+  },
+  "swanson bay": {
+    "name": "Swanson Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415127",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.249722,
+      60.036944
+    ]
+  },
+  "tatitlek narrows": {
+    "name": "Tatitlek Narrows",
+    "feature_class": "Channel",
+    "gnis_id": "1415194",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.715,
+      60.8775
+    ]
+  },
+  "the lagoon": {
+    "name": "The Lagoon",
+    "feature_class": "Bay",
+    "gnis_id": "1415244",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.565278,
+      60.936944
+    ]
+  },
+  "the narrows": [
+    {
+      "name": "The Narrows",
+      "feature_class": "Channel",
+      "gnis_id": "1415247",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -145.789167,
+        60.613056
+      ]
+    },
+    {
+      "name": "The Narrows",
+      "feature_class": "Channel",
+      "gnis_id": "1415248",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.659167,
+        60.944722
+      ]
+    }
+  ],
+  "three mile bay": {
+    "name": "Three Mile Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415296",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.794444,
+      60.520556
+    ]
+  },
+  "thumb bay": {
+    "name": "Thumb Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415307",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.800556,
+      60.205833
+    ]
+  },
+  "two moon bay": {
+    "name": "Two Moon Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415481",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.543889,
+      60.751389
+    ]
+  },
+  "upper passage": {
+    "name": "Upper Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1415515",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.632778,
+      60.542222
+    ]
+  },
+  "useless cove": {
+    "name": "Useless Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1415525",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.189722,
+      60.9425
+    ]
+  },
+  "valdez arm": {
+    "name": "Valdez Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1415532",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.798611,
+      60.973611
+    ]
+  },
+  "virgin bay": {
+    "name": "Virgin Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415570",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.702778,
+      60.892222
+    ]
+  },
+  "walhalla slough": {
+    "name": "Walhalla Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1415596",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.335833,
+      60.355833
+    ]
+  },
+  "wells bay": {
+    "name": "Wells Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415659",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.47,
+      60.973056
+    ]
+  },
+  "wells passage": {
+    "name": "Wells Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1415660",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.119444,
+      60.767222
+    ]
+  },
+  "west arm bay of isles": {
+    "name": "West Arm Bay of Isles",
+    "feature_class": "Bay",
+    "gnis_id": "1415665",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.738333,
+      60.386389
+    ]
+  },
+  "west bay": {
+    "name": "West Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415670",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.761944,
+      60.862778
+    ]
+  },
+  "west finger inlet": {
+    "name": "West Finger Inlet",
+    "feature_class": "Bay",
+    "gnis_id": "1415678",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.441667,
+      60.566667
+    ]
+  },
+  "west twin bay": {
+    "name": "West Twin Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415693",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.970833,
+      60.727222
+    ]
+  },
+  "western channel": {
+    "name": "Western Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1415697",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.758889,
+      60.603056
+    ]
+  },
+  "whale bay": {
+    "name": "Whale Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415698",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.171667,
+      60.233611
+    ]
+  },
+  "whalen bay": {
+    "name": "Whalen Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415708",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.242778,
+      60.816111
+    ]
+  },
+  "whidbey bay": {
+    "name": "Whidbey Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415712",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.943056,
+      59.963333
+    ]
+  },
+  "whiskey cove": {
+    "name": "Whiskey Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1415718",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.099444,
+      60.5325
+    ]
+  },
+  "wilson bay": {
+    "name": "Wilson Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415778",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.914167,
+      60.039444
+    ]
+  },
+  "windy bay": {
+    "name": "Windy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415794",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.965556,
+      60.565
+    ]
+  },
+  "yelper cove": {
+    "name": "Yelper Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1415884",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.376944,
+      60.477222
+    ]
+  },
+  "zaikof bay": {
+    "name": "Zaikof Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1415891",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.009167,
+      60.307222
+    ]
+  },
+  "gaamaak cove": {
+    "name": "Gaamaak Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1415954",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.316667,
+      60.258333
+    ]
+  },
+  "mew cove": {
+    "name": "Mew Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1415971",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.638889,
+      60.480556
+    ]
+  },
+  "ziegler cove": {
+    "name": "Ziegler Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416486",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.316667,
+      60.834722
+    ]
+  },
+  "ingot cove": {
+    "name": "Ingot Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416489",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.616667,
+      60.530556
+    ]
+  },
+  "iktua bay": {
+    "name": "Iktua Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1416490",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.006944,
+      60.108333
+    ]
+  },
+  "fox farm bay": {
+    "name": "Fox Farm Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1416504",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.158333,
+      59.966667
+    ]
+  },
+  "picturesque cove": {
+    "name": "Picturesque Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416619",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.198611,
+      60.631944
+    ]
+  },
+  "puffin cove": {
+    "name": "Puffin Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416620",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.334722,
+      60.170833
+    ]
+  },
+  "humpback cove": {
+    "name": "Humpback Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416622",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.288889,
+      60.206944
+    ]
+  },
+  "solf cove": {
+    "name": "Solf Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416702",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.741667,
+      60.433333
+    ]
+  },
+  "otter cove": {
+    "name": "Otter Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1416703",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.125,
+      60.188333
+    ]
+  },
+  "jade harbor": {
+    "name": "Jade Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1416741",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.975,
+      60.970833
+    ]
+  },
+  "seven fathom hole": {
+    "name": "Seven Fathom Hole",
+    "feature_class": "Bay",
+    "gnis_id": "1419523",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.222222,
+      60.363889
+    ]
+  },
+  "logjam bay": {
+    "name": "Logjam Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1419526",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.433333,
+      59.8875
+    ]
+  },
+  "eleshansky cove": {
+    "name": "Eleshansky Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1419541",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.175,
+      60.173056
+    ]
+  },
+  "redwood bay": [
+    {
+      "name": "Redwood Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1419559",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -144.272778,
+        60.099444
+      ]
+    },
+    {
+      "name": "Redwood Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1424782",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -144.375,
+        60.181944
+      ]
+    }
+  ],
+  "alaganik slough": {
+    "name": "Alaganik Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1420043",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.403889,
+      60.4175
+    ]
+  },
+  "alice cove": {
+    "name": "Alice Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1420064",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.961389,
+      60.624722
+    ]
+  },
+  "aluklik bay": {
+    "name": "Aluklik Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420075",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.123889,
+      60.026667
+    ]
+  },
+  "auk bay": {
+    "name": "Auk Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420168",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.413611,
+      60.021389
+    ]
+  },
+  "bainbridge passage": {
+    "name": "Bainbridge Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1420193",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.121667,
+      60.16
+    ]
+  },
+  "barnes cove": {
+    "name": "Barnes Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1420237",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.765,
+      60.316111
+    ]
+  },
+  "bass harbor": {
+    "name": "Bass Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1420263",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.402778,
+      60.641944
+    ]
+  },
+  "bay of isles": {
+    "name": "Bay of Isles",
+    "feature_class": "Bay",
+    "gnis_id": "1420274",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.672778,
+      60.398056
+    ]
+  },
+  "beartrap bay": {
+    "name": "Beartrap Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420323",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.042222,
+      60.749167
+    ]
+  },
+  "bettles bay": {
+    "name": "Bettles Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420398",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.283889,
+      60.94
+    ]
+  },
+  "big glacier": {
+    "name": "Big Glacier",
+    "feature_class": "Gut",
+    "gnis_id": "1420424",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.557778,
+      60.449444
+    ]
+  },
+  "blackstone bay": {
+    "name": "Blackstone Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420498",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.556667,
+      60.757778
+    ]
+  },
+  "blue fiord": {
+    "name": "Blue Fiord",
+    "feature_class": "Bay",
+    "gnis_id": "1420532",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.256111,
+      60.463333
+    ]
+  },
+  "boswell bay": {
+    "name": "Boswell Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420582",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.134444,
+      60.404444
+    ]
+  },
+  "boulder bay": {
+    "name": "Boulder Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420585",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.633611,
+      60.864444
+    ]
+  },
+  "buyers cove": {
+    "name": "Buyers Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1420753",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.265278,
+      60.923889
+    ]
+  },
+  "cabin bay": {
+    "name": "Cabin Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420758",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.478889,
+      60.667222
+    ]
+  },
+  "campbell bay": {
+    "name": "Campbell Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420800",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.265833,
+      60.890278
+    ]
+  },
+  "canoe passage": {
+    "name": "Canoe Passage",
+    "feature_class": "Bay",
+    "gnis_id": "1420823",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.085833,
+      60.513611
+    ]
+  },
+  "cascade bay": {
+    "name": "Cascade Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420901",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.779444,
+      60.9125
+    ]
+  },
+  "castle island slough": {
+    "name": "Castle Island Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1420915",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.198056,
+      60.369167
+    ]
+  },
+  "cathead bay": {
+    "name": "Cathead Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420925",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.845556,
+      60.294167
+    ]
+  },
+  "cedar bay": [
+    {
+      "name": "Cedar Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1420937",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.009722,
+        60.558056
+      ]
+    },
+    {
+      "name": "Cedar Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1420938",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.401667,
+        60.962222
+      ]
+    }
+  ],
+  "center slough": {
+    "name": "Center Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1420956",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.694444,
+      60.475278
+    ]
+  },
+  "chamberlain bay": {
+    "name": "Chamberlain Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1420960",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.186944,
+      60.8725
+    ]
+  },
+  "chenega cove": {
+    "name": "Chenega Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1421002",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.080278,
+      60.278889
+    ]
+  },
+  "cloudman bay": {
+    "name": "Cloudman Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421103",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.716111,
+      60.838889
+    ]
+  },
+  "cochrane bay": {
+    "name": "Cochrane Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421125",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.335,
+      60.738333
+    ]
+  },
+  "columbia bay": {
+    "name": "Columbia Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421146",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.097222,
+      60.983611
+    ]
+  },
+  "comfort cove": {
+    "name": "Comfort Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1421151",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.093889,
+      60.713333
+    ]
+  },
+  "constantine harbor": {
+    "name": "Constantine Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1421175",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.631389,
+      60.354722
+    ]
+  },
+  "controller bay": {
+    "name": "Controller Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421181",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.239444,
+      60.083333
+    ]
+  },
+  "copper bay": {
+    "name": "Copper Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421196",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.865556,
+      60.265
+    ]
+  },
+  "crab bay": {
+    "name": "Crab Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421252",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.996944,
+      60.069722
+    ]
+  },
+  "culross bay": {
+    "name": "Culross Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421312",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.161389,
+      60.75
+    ]
+  },
+  "culross passage": {
+    "name": "Culross Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1421314",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.234167,
+      60.684722
+    ]
+  },
+  "dan bay": {
+    "name": "Dan Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421346",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.359167,
+      60.408333
+    ]
+  },
+  "dangerous passage": {
+    "name": "Dangerous Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1421357",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.105,
+      60.358611
+    ]
+  },
+  "deep bay": {
+    "name": "Deep Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421406",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.783056,
+      60.591389
+    ]
+  },
+  "deep water bay": {
+    "name": "Deep Water Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421410",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.379722,
+      60.499722
+    ]
+  },
+  "deer cove": [
+    {
+      "name": "Deer Cove",
+      "feature_class": "Bay",
+      "gnis_id": "1421413",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.899167,
+        60.245278
+      ]
+    },
+    {
+      "name": "Deer Cove",
+      "feature_class": "Bay",
+      "gnis_id": "1421414",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.714722,
+        60.392222
+      ]
+    }
+  ],
+  "derickson bay": [
+    {
+      "name": "Derickson Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1421430",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -148.332222,
+        60.485278
+      ]
+    },
+    {
+      "name": "Derickson Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1421431",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.795833,
+        60.864722
+      ]
+    }
+  ],
+  "double bay": {
+    "name": "Double Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421523",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.476944,
+      60.463611
+    ]
+  },
+  "drier bay": {
+    "name": "Drier Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421547",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.816111,
+      60.313333
+    ]
+  },
+  "eagle bay": {
+    "name": "Eagle Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421587",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.168333,
+      60.899722
+    ]
+  },
+  "eaglek bay": {
+    "name": "Eaglek Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421606",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.7425,
+      60.876111
+    ]
+  },
+  "east finger inlet": {
+    "name": "East Finger Inlet",
+    "feature_class": "Bay",
+    "gnis_id": "1421615",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.372222,
+      60.541667
+    ]
+  },
+  "east twin bay": {
+    "name": "East Twin Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421636",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.928333,
+      60.726944
+    ]
+  },
+  "eccles lagoon": {
+    "name": "Eccles Lagoon",
+    "feature_class": "Bay",
+    "gnis_id": "1421644",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.787778,
+      60.533056
+    ]
+  },
+  "egg island channel": {
+    "name": "Egg Island Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1421668",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.711111,
+      60.361667
+    ]
+  },
+  "eickelberg bay": {
+    "name": "Eickelberg Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421674",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.31,
+      60.921667
+    ]
+  },
+  "elrington passage": {
+    "name": "Elrington Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1421723",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.098333,
+      59.988611
+    ]
+  },
+  "emerald bay": {
+    "name": "Emerald Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421727",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.573056,
+      60.803889
+    ]
+  },
+  "emerald cove": {
+    "name": "Emerald Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1421728",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.026944,
+      60.952222
+    ]
+  },
+  "english bay": {
+    "name": "English Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421748",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.67,
+      60.290833
+    ]
+  },
+  "entry cove": {
+    "name": "Entry Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1421762",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.361667,
+      60.803611
+    ]
+  },
+  "eshamy bay": {
+    "name": "Eshamy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421772",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.984167,
+      60.468889
+    ]
+  },
+  "esther bay": {
+    "name": "Esther Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421785",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.975556,
+      60.8125
+    ]
+  },
+  "esther passage": {
+    "name": "Esther Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1421790",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.940833,
+      60.888889
+    ]
+  },
+  "ewan bay": {
+    "name": "Ewan Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421809",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.126389,
+      60.376111
+    ]
+  },
+  "fairmount bay": {
+    "name": "Fairmount Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421831",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.393889,
+      60.898056
+    ]
+  },
+  "falls bay": {
+    "name": "Falls Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421845",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.986944,
+      60.521389
+    ]
+  },
+  "finski bay": {
+    "name": "Finski Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1421917",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.091111,
+      60.896667
+    ]
+  },
+  "fish bay": [
+    {
+      "name": "Fish Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1421930",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.363056,
+        60.450833
+      ]
+    },
+    {
+      "name": "Fish Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1421931",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.409722,
+        60.827222
+      ]
+    }
+  ],
+  "flag point channel": {
+    "name": "Flag Point Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1421960",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.076944,
+      60.447778
+    ]
+  },
+  "foul bay": {
+    "name": "Foul Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422023",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.059444,
+      60.569722
+    ]
+  },
+  "foul pass": {
+    "name": "Foul Pass",
+    "feature_class": "Channel",
+    "gnis_id": "1422024",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.638611,
+      60.499722
+    ]
+  },
+  "galena bay": {
+    "name": "Galena Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422086",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.640278,
+      60.942778
+    ]
+  },
+  "garden cove": {
+    "name": "Garden Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422100",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.531944,
+      60.337778
+    ]
+  },
+  "gibbon anchorage": {
+    "name": "Gibbon Anchorage",
+    "feature_class": "Channel",
+    "gnis_id": "1422134",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.413056,
+      60.284167
+    ]
+  },
+  "goat harbor": {
+    "name": "Goat Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1422191",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.484444,
+      60.000278
+    ]
+  },
+  "goose bay": {
+    "name": "Goose Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422221",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.227222,
+      60.7175
+    ]
+  },
+  "granite bay": [
+    {
+      "name": "Granite Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1422262",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -148.0075,
+        60.425833
+      ]
+    },
+    {
+      "name": "Granite Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1422263",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -148.1016,
+        60.8914
+      ]
+    },
+    {
+      "name": "Granite Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1422264",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.411667,
+        60.921389
+      ]
+    }
+  ],
+  "granite cove": {
+    "name": "Granite Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422266",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.163333,
+      60.9775
+    ]
+  },
+  "greystone bay": {
+    "name": "Greystone Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422336",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.423333,
+      60.522222
+    ]
+  },
+  "growler bay": {
+    "name": "Growler Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422346",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.118889,
+      60.886667
+    ]
+  },
+  "guguak bay": {
+    "name": "Guguak Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422352",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.039167,
+      60.099722
+    ]
+  },
+  "gus steven slough": {
+    "name": "Gus Steven Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1422375",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.31,
+      60.3625
+    ]
+  },
+  "hanning bay": {
+    "name": "Hanning Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422435",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.693611,
+      59.970833
+    ]
+  },
+  "happell slough": {
+    "name": "Happell Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1422439",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.528056,
+      61.045278
+    ]
+  },
+  "harrison lagoon": {
+    "name": "Harrison Lagoon",
+    "feature_class": "Bay",
+    "gnis_id": "1422467",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.198611,
+      60.987778
+    ]
+  },
+  "hartney bay": {
+    "name": "Hartney Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422471",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.878611,
+      60.498056
+    ]
+  },
+  "hawkins island cutoff": {
+    "name": "Hawkins Island Cutoff",
+    "feature_class": "Channel",
+    "gnis_id": "1422493",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.296667,
+      60.435
+    ]
+  },
+  "hells hole": {
+    "name": "Hells Hole",
+    "feature_class": "Bay",
+    "gnis_id": "1422518",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.392778,
+      60.704444
+    ]
+  },
+  "herring bay": {
+    "name": "Herring Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422552",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.745278,
+      60.470278
+    ]
+  },
+  "hidden bay": {
+    "name": "Hidden Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422569",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.157778,
+      60.704444
+    ]
+  },
+  "hidden cove": {
+    "name": "Hidden Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422571",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.9975,
+      60.508611
+    ]
+  },
+  "hinchinbrook entrance": {
+    "name": "Hinchinbrook Entrance",
+    "feature_class": "Channel",
+    "gnis_id": "1422594",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.798333,
+      60.269167
+    ]
+  },
+  "hobo bay": {
+    "name": "Hobo Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422605",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.227222,
+      60.954444
+    ]
+  },
+  "hogan bay": {
+    "name": "Hogan Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422612",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.756944,
+      60.196667
+    ]
+  },
+  "hogg bay": {
+    "name": "Hogg Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422615",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.241667,
+      60.073333
+    ]
+  },
+  "hollow bight": {
+    "name": "Hollow Bight",
+    "feature_class": "Bay",
+    "gnis_id": "1422632",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.483333,
+      60.805833
+    ]
+  },
+  "horseshoe bay": {
+    "name": "Horseshoe Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422655",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.938611,
+      60.023056
+    ]
+  },
+  "hotcake channel": {
+    "name": "Hotcake Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1422662",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.908889,
+      60.485833
+    ]
+  },
+  "hummer bay": {
+    "name": "Hummer Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422687",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.304444,
+      60.898056
+    ]
+  },
+  "icy bay": {
+    "name": "Icy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422719",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.325043,
+      60.228221
+    ]
+  },
+  "irish cove": [
+    {
+      "name": "Irish Cove",
+      "feature_class": "Bay",
+      "gnis_id": "1422767",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -146.445556,
+        60.772222
+      ]
+    },
+    {
+      "name": "Irish Cove",
+      "feature_class": "Bay",
+      "gnis_id": "1422768",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.291111,
+        60.885556
+      ]
+    }
+  ],
+  "italian bay": {
+    "name": "Italian Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422795",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.901667,
+      60.228889
+    ]
+  },
+  "jackpot bay": {
+    "name": "Jackpot Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422806",
+    "osm_id": "relation/11650998",
+    "has_polygon": true,
+    "source": "osm_polygon",
+    "centroid": [
+      -148.224699,
+      60.339207
+    ]
+  },
+  "jackson cove": {
+    "name": "Jackson Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422811",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.219444,
+      60.8775
+    ]
+  },
+  "jackson hole": {
+    "name": "Jackson Hole",
+    "feature_class": "Bay",
+    "gnis_id": "1422813",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.210278,
+      60.896667
+    ]
+  },
+  "jeanie cove": {
+    "name": "Jeanie Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422831",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.5975,
+      59.839722
+    ]
+  },
+  "joe reeves slough": {
+    "name": "Joe Reeves Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1422853",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.652721,
+      60.47306
+    ]
+  },
+  "johnson bay": {
+    "name": "Johnson Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422864",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.834167,
+      60.346944
+    ]
+  },
+  "johnson cove": {
+    "name": "Johnson Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422868",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.974722,
+      60.065556
+    ]
+  },
+  "johnson slough": {
+    "name": "Johnson Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1422878",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.581667,
+      60.454167
+    ]
+  },
+  "johnstone bay": {
+    "name": "Johnstone Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422880",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.755556,
+      59.940278
+    ]
+  },
+  "kake cove": {
+    "name": "Kake Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1422927",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.031389,
+      60.280556
+    ]
+  },
+  "katalla bay": {
+    "name": "Katalla Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1422981",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.497222,
+      60.181944
+    ]
+  },
+  "katalla slough": {
+    "name": "Katalla Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1422984",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.468611,
+      60.194167
+    ]
+  },
+  "kenny cove": {
+    "name": "Kenny Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1423032",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.120278,
+      60.419167
+    ]
+  },
+  "kings bay": {
+    "name": "Kings Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423074",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.557222,
+      60.526389
+    ]
+  },
+  "knight island passage": {
+    "name": "Knight Island Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1423127",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.975556,
+      60.266667
+    ]
+  },
+  "knowles bay": {
+    "name": "Knowles Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423131",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.551667,
+      60.683056
+    ]
+  },
+  "kokinhenik branch": {
+    "name": "Kokinhenik Branch",
+    "feature_class": "Channel",
+    "gnis_id": "1423139",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.093333,
+      60.349167
+    ]
+  },
+  "kwinlatch slough": {
+    "name": "Kwinlatch Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1423199",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.011111,
+      60.034167
+    ]
+  },
+  "lake bay": {
+    "name": "Lake Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423214",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.086667,
+      60.796389
+    ]
+  },
+  "landlocked bay": {
+    "name": "Landlocked Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423226",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.587222,
+      60.834444
+    ]
+  },
+  "latouche passage": {
+    "name": "Latouche Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1423239",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.979167,
+      60.022222
+    ]
+  },
+  "liljegren passage": {
+    "name": "Liljegren Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1423299",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.403056,
+      60.715278
+    ]
+  },
+  "little bay": {
+    "name": "Little Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423329",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.799722,
+      60.179722
+    ]
+  },
+  "little glacier slough": {
+    "name": "Little Glacier Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1423345",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.525833,
+      60.443333
+    ]
+  },
+  "logging camp bay": {
+    "name": "Logging Camp Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423388",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.424167,
+      60.829167
+    ]
+  },
+  "lone passage": {
+    "name": "Lone Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1423394",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.804444,
+      60.676944
+    ]
+  },
+  "long bay": [
+    {
+      "name": "Long Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1423402",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -148.277778,
+        60.688333
+      ]
+    },
+    {
+      "name": "Long Bay",
+      "feature_class": "Bay",
+      "gnis_id": "1423403",
+      "osm_id": null,
+      "has_polygon": false,
+      "source": "gnis_point",
+      "centroid": [
+        -147.24,
+        60.975833
+      ]
+    }
+  ],
+  "long channel": {
+    "name": "Long Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1423404",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.911944,
+      60.256667
+    ]
+  },
+  "long island channel": {
+    "name": "Long Island Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1423410",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.045556,
+      60.457222
+    ]
+  },
+  "louis bay": {
+    "name": "Louis Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423429",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.670278,
+      60.475833
+    ]
+  },
+  "lower passage": {
+    "name": "Lower Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1423449",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.680833,
+      60.498611
+    ]
+  },
+  "lucky bay": {
+    "name": "Lucky Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423466",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.874722,
+      60.222222
+    ]
+  },
+  "macleod harbor": {
+    "name": "MacLeod Harbor",
+    "feature_class": "Bay",
+    "gnis_id": "1423498",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.762778,
+      59.881389
+    ]
+  },
+  "main bay": {
+    "name": "Main Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423509",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.058333,
+      60.539444
+    ]
+  },
+  "mallard bay": {
+    "name": "Mallard Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423518",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.815556,
+      60.296944
+    ]
+  },
+  "marsha bay": {
+    "name": "Marsha Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423560",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.685556,
+      60.337222
+    ]
+  },
+  "martin river slough": {
+    "name": "Martin River Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1423575",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.657778,
+      60.29
+    ]
+  },
+  "masked bay": {
+    "name": "Masked Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423585",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.034722,
+      60.363333
+    ]
+  },
+  "mcclure bay": {
+    "name": "McClure Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423607",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.174444,
+      60.525
+    ]
+  },
+  "mcpherson bay": {
+    "name": "McPherson Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423635",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.370833,
+      60.660833
+    ]
+  },
+  "mcpherson passage": {
+    "name": "McPherson Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1423637",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.379444,
+      60.676667
+    ]
+  },
+  "middle arm": {
+    "name": "Middle Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1423668",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.643333,
+      60.556944
+    ]
+  },
+  "mirror slough": {
+    "name": "Mirror Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1423739",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.66,
+      60.258056
+    ]
+  },
+  "montague strait": {
+    "name": "Montague Strait",
+    "feature_class": "Channel",
+    "gnis_id": "1423761",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.771389,
+      60.018889
+    ]
+  },
+  "montgomery bay": {
+    "name": "Montgomery Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423763",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.020604,
+      59.979068
+    ]
+  },
+  "mud bay": {
+    "name": "Mud Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423824",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.838889,
+      60.553611
+    ]
+  },
+  "mueller cove": {
+    "name": "Mueller Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1423830",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.614444,
+      60.888611
+    ]
+  },
+  "mummy bay": {
+    "name": "Mummy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423837",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.833333,
+      60.216944
+    ]
+  },
+  "nassau fiord": {
+    "name": "Nassau Fiord",
+    "feature_class": "Bay",
+    "gnis_id": "1423875",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.356944,
+      60.262778
+    ]
+  },
+  "nelson bay": {
+    "name": "Nelson Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1423906",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.6425,
+      60.653611
+    ]
+  },
+  "north twin bay": {
+    "name": "North Twin Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424001",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.198056,
+      59.966389
+    ]
+  },
+  "northeast arm mummy bay": {
+    "name": "Northeast Arm Mummy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424003",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.778611,
+      60.23
+    ]
+  },
+  "northeast cove": {
+    "name": "Northeast Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1424004",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.732778,
+      60.321944
+    ]
+  },
+  "northwest bay": {
+    "name": "Northwest Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424008",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.594722,
+      60.564722
+    ]
+  },
+  "odiak channel": {
+    "name": "Odiak Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1424044",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.751667,
+      60.583056
+    ]
+  },
+  "odiak slough": {
+    "name": "Odiak Slough",
+    "feature_class": "Bay",
+    "gnis_id": "1424045",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.758056,
+      60.538611
+    ]
+  },
+  "okalee channel": {
+    "name": "Okalee Channel",
+    "feature_class": "Channel",
+    "gnis_id": "1424056",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.351667,
+      60.074722
+    ]
+  },
+  "olsen bay": {
+    "name": "Olsen Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424071",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.212778,
+      60.740556
+    ]
+  },
+  "olsen cove": {
+    "name": "Olsen Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1424072",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.594722,
+      60.870278
+    ]
+  },
+  "orca bay": {
+    "name": "Orca Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424088",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.206389,
+      60.578611
+    ]
+  },
+  "outside bay": {
+    "name": "Outside Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424114",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.460833,
+      60.643889
+    ]
+  },
+  "paddy bay": {
+    "name": "Paddy Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424119",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.091389,
+      60.396667
+    ]
+  },
+  "papoose cove": {
+    "name": "Papoose Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1424132",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.837138,
+      60.836714
+    ]
+  },
+  "parshas bay": {
+    "name": "Parshas Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424151",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.142778,
+      60.736111
+    ]
+  },
+  "passage canal": {
+    "name": "Passage Canal",
+    "feature_class": "Bay",
+    "gnis_id": "1424161",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.524444,
+      60.814722
+    ]
+  },
+  "patton bay": {
+    "name": "Patton Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424178",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.440556,
+      59.939444
+    ]
+  },
+  "perry passage": {
+    "name": "Perry Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1424222",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.0475,
+      60.701944
+    ]
+  },
+  "pete dahl slough": {
+    "name": "Pete Dahl Slough",
+    "feature_class": "Gut",
+    "gnis_id": "1424227",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.282778,
+      60.392778
+    ]
+  },
+  "pigot bay": {
+    "name": "Pigot Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424251",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.348889,
+      60.837222
+    ]
+  },
+  "pirate cove": {
+    "name": "Pirate Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1424285",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.297222,
+      60.868889
+    ]
+  },
+  "poe bay": {
+    "name": "Poe Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424304",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.506944,
+      60.829722
+    ]
+  },
+  "port audrey": {
+    "name": "Port Audrey",
+    "feature_class": "Bay",
+    "gnis_id": "1424557",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.762222,
+      60.338889
+    ]
+  },
+  "port bainbridge": {
+    "name": "Port Bainbridge",
+    "feature_class": "Bay",
+    "gnis_id": "1424559",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.354722,
+      60.026944
+    ]
+  },
+  "port chalmers": {
+    "name": "Port Chalmers",
+    "feature_class": "Bay",
+    "gnis_id": "1424566",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.243333,
+      60.240833
+    ]
+  },
+  "port etches": {
+    "name": "Port Etches",
+    "feature_class": "Bay",
+    "gnis_id": "1424573",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.604444,
+      60.330278
+    ]
+  },
+  "port fidalgo": {
+    "name": "Port Fidalgo",
+    "feature_class": "Bay",
+    "gnis_id": "1424574",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.444167,
+      60.795556
+    ]
+  },
+  "port gravina": {
+    "name": "Port Gravina",
+    "feature_class": "Bay",
+    "gnis_id": "1424575",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.246389,
+      60.693056
+    ]
+  },
+  "port nellie juan": {
+    "name": "Port Nellie Juan",
+    "feature_class": "Bay",
+    "gnis_id": "1424588",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.2375,
+      60.553056
+    ]
+  },
+  "port wells": {
+    "name": "Port Wells",
+    "feature_class": "Bay",
+    "gnis_id": "1424600",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.179167,
+      60.891389
+    ]
+  },
+  "prince of wales passage": {
+    "name": "Prince of Wales Passage",
+    "feature_class": "Channel",
+    "gnis_id": "1424652",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.112778,
+      60.068333
+    ]
+  },
+  "prince william sound": {
+    "name": "Prince William Sound",
+    "feature_class": "Sea",
+    "gnis_id": "1424654",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.395929,
+      60.66892
+    ]
+  },
+  "puget bay": {
+    "name": "Puget Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424676",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.518333,
+      59.985556
+    ]
+  },
+  "quillian bay": {
+    "name": "Quillian Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424709",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.042222,
+      60.8025
+    ]
+  },
+  "rocky bay": {
+    "name": "Rocky Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424858",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.091389,
+      60.35
+    ]
+  },
+  "rua cove": {
+    "name": "Rua Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1424932",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.637778,
+      60.348611
+    ]
+  },
+  "serpentine cove": {
+    "name": "Serpentine Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1424989",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.283333,
+      61.078333
+    ]
+  },
+  "em urluq bay": {
+    "name": "Em'urluq Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1424991",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.211111,
+      60.359722
+    ]
+  },
+  "pete dahl cutoff": {
+    "name": "Pete Dahl Cutoff",
+    "feature_class": "Gut",
+    "gnis_id": "1853855",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.372778,
+      60.408333
+    ]
+  },
+  "fault cove": {
+    "name": "Fault Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1866416",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.77145,
+      59.932833
+    ]
+  },
+  "barry arm port wells": {
+    "name": "Barry Arm Port Wells",
+    "feature_class": "Bay",
+    "gnis_id": "1893513",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.133333,
+      61.0
+    ]
+  },
+  "puerto del buen abrigo": {
+    "name": "Puerto del Buen Abrigo",
+    "feature_class": "Bay",
+    "gnis_id": "1893745",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -146.569798,
+      60.323387
+    ]
+  },
+  "bahia de burgos": {
+    "name": "Bahia de Burgos",
+    "feature_class": "Bay",
+    "gnis_id": "1893752",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -144.0,
+      60.0
+    ]
+  },
+  "puerto claro": {
+    "name": "Puerto Claro",
+    "feature_class": "Bay",
+    "gnis_id": "1893949",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -145.883413,
+      60.435562
+    ]
+  },
+  "heather bay": {
+    "name": "Heather Bay",
+    "feature_class": "Bay",
+    "gnis_id": "1894687",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.015449,
+      60.972234
+    ]
+  },
+  "northeast arm": {
+    "name": "Northeast Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1895957",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.791667,
+      60.229167
+    ]
+  },
+  "shoestring cove": {
+    "name": "Shoestring Cove",
+    "feature_class": "Bay",
+    "gnis_id": "1896615",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.970623,
+      60.859065
+    ]
+  },
+  "short arm": {
+    "name": "Short Arm",
+    "feature_class": "Bay",
+    "gnis_id": "1896619",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.666667,
+      60.3875
+    ]
+  },
+  "yale arm college fiord": {
+    "name": "Yale Arm College Fiord",
+    "feature_class": "Bay",
+    "gnis_id": "1897367",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -147.766667,
+      61.2
+    ]
+  },
+  "koss cove": {
+    "name": "Koss Cove",
+    "feature_class": "Bay",
+    "gnis_id": "2058576",
+    "osm_id": null,
+    "has_polygon": false,
+    "source": "gnis_point",
+    "centroid": [
+      -148.233333,
+      59.934722
+    ]
+  },
+  "kacuuqaq bay": {
+    "name": "Kacuuqaq Bay",
+    "feature_class": null,
+    "gnis_id": null,
+    "osm_id": "node/369143164",
+    "has_polygon": false,
+    "source": "osm_only",
+    "centroid": [
+      -147.824166,
+      60.834722
+    ]
+  },
+  "safety cove": {
+    "name": "Safety Cove",
+    "feature_class": null,
+    "gnis_id": null,
+    "osm_id": "node/369148833",
+    "has_polygon": false,
+    "source": "osm_only",
+    "centroid": [
+      -148.216667,
+      59.983333
+    ]
+  },
+  "esther channel": {
+    "name": "Esther Channel",
+    "feature_class": null,
+    "gnis_id": null,
+    "osm_id": "node/653703668",
+    "has_polygon": false,
+    "source": "osm_only",
+    "centroid": [
+      -147.950077,
+      60.897261
+    ]
+  },
+  "smitty s cove": {
+    "name": "Smitty's Cove",
+    "feature_class": null,
+    "gnis_id": null,
+    "osm_id": "node/10170257744",
+    "has_polygon": false,
+    "source": "osm_only",
+    "centroid": [
+      -148.665155,
+      60.777618
+    ]
+  },
+  "turnagain arm": {
+    "name": "Turnagain Arm",
+    "feature_class": null,
+    "gnis_id": null,
+    "osm_id": "relation/8921978",
+    "has_polygon": true,
+    "source": "osm_only",
+    "centroid": [
+      -149.817769,
+      61.013769
+    ]
+  }
+}
