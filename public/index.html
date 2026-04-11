@@ -513,6 +513,18 @@ let currentHighlighted = {};    // district name → {key, color, open}
 let currentTab = 'live';
 let allResults = [];
 
+// ── Static district polygons — fetched ONCE at page load ─────────────────
+// Districts never change between announcements. Previously the full
+// FeatureCollection was inlined into every per-announcement HTML record
+// (~27 MB each), which made records slow to fetch from Postgres. Now it
+// lives at /static/districts.geojson, served by backend_v2.js, and the
+// browser caches it across all record renders.
+let STATIC_DISTRICTS_GJ = null;
+const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
+  .then(function(r) { return r.ok ? r.json() : null; })
+  .then(function(gj) { STATIC_DISTRICTS_GJ = gj; return gj; })
+  .catch(function(e) { console.warn('static districts fetch failed:', e); return null; });
+
 // ── AWC stream buffers — loaded once, persists across announcement switches ──
 (function initStreamLayer() {
   const canvasRenderer = L.canvas({ padding: 0.5 });
@@ -640,7 +652,7 @@ async function loadAndRender(result) {
     if (htmlResp.ok) result._html = await htmlResp.text();
   }
   renderPanel(result);
-  renderMap(result);
+  await renderMap(result);
 }
 
 // ── Announcement list for old tab ──
@@ -813,7 +825,7 @@ map.on('click', function(e) {
 });
 
 // ── Render map ──
-function renderMap(result) {
+async function renderMap(result) {
   activeLayers.forEach(l => map.removeLayer(l));
   activeLayers = [];
   mapDistrictLayers = {};
@@ -842,7 +854,9 @@ function renderMap(result) {
   });
 
   // ── District polygons ────────────────────────────────────────────────────
-  const districtsGJ = extractBalancedJson(scriptText, 'DISTRICTS_GJ');
+  // Districts come from the cached /static/districts.geojson fetch kicked
+  // off at page load, NOT from inlined JSON in the record's HTML blob.
+  const districtsGJ = STATIC_DISTRICTS_GJ || await STATIC_DISTRICTS_READY;
   currentDistrictsGJ = districtsGJ;
 
   // Does this HTML record have a non-empty OPEN_AREAS_GJ from Shapely?
