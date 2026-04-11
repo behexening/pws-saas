@@ -254,6 +254,22 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
     districts_gj  = json.dumps(geojson_data.get('districts',  {}), cls=_DateEncoder)
     subdistricts_gj = json.dumps(geojson_data.get('subdistricts', {}), cls=_DateEncoder)
 
+    # ── Build CLOSURE_LINES for map rendering ─────────────────────
+    closure_lines = []
+    for pdf_name, districts in all_results.items():
+        for d in districts:
+            for c in (d.get('closures') or []):
+                pts = c.get('points') or []
+                if len(pts) >= 2:
+                    coords = [[p.get('lon', 0), p.get('lat', 0)] for p in pts]
+                    closure_lines.append({
+                        'name': c.get('name', ''),
+                        'closed_side': c.get('closed_side'),
+                        'applies': c.get('applies', 'this_period'),
+                        'coords': coords,
+                    })
+    closure_lines_json = json.dumps(closure_lines, cls=_DateEncoder)
+
     # ── Build district cards ──────────────────────────────────────
     cards_html = ""
     color_idx = 0
@@ -323,10 +339,13 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             sonar = d.get('sonar_data') or {}
             sonar_html = ""
             if sonar.get('cumulative_actual') is not None:
-                exp = sonar.get('cumulative_expected') or 1
                 act = sonar.get('cumulative_actual', 0)
-                pct = round(act / exp * 100) if exp else 0
-                sonar_html = f'<div class="sonar-block"><span class="sonar-label">Sonar:</span> {act:,} cumulative ({pct}% of expected)</div>'
+                exp = sonar.get('cumulative_expected')
+                if exp and exp > 0:
+                    pct = round(act / exp * 100)
+                    sonar_html = f'<div class="sonar-block"><span class="sonar-label">Sonar:</span> {act:,} cumulative ({pct}% of expected)</div>'
+                else:
+                    sonar_html = f'<div class="sonar-block"><span class="sonar-label">Sonar:</span> {act:,} cumulative</div>'
 
             # Confidence bar
             conf = d.get('confidence', 0)
@@ -428,6 +447,7 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
 <script>
 const DISTRICTS_GJ = {districts_gj};
 const SUBDISTRICTS_GJ = {subdistricts_gj};
+const CLOSURE_LINES = {closure_lines_json};
 </script>
 </body>
 </html>"""

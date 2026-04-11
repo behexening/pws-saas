@@ -485,6 +485,8 @@
         <h4>Districts</h4>
         <div class="legend-row"><span class="legend-swatch" style="background:#27ae60"></span> Open</div>
         <div class="legend-row"><span class="legend-swatch" style="background:#e74c3c"></span> Closed</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#ff6b6b;height:2px"></span> Closure line</div>
+        <div class="legend-row"><span class="legend-swatch" style="background:#ff3333;height:2px"></span> Permanent closure</div>
       </div>
       <div class="map-note">ADF&amp;G PWS Commercial Salmon</div>
       <div class="disclaimer-bar">
@@ -522,7 +524,7 @@ function setTab(tab, btn) {
   loadTab(tab);
 }
 
-// ── GeoJSON extraction that handles nested braces ──
+// ── JSON extraction helpers ──
 function extractBalancedJson(text, varName) {
   const idx = text.indexOf(varName + ' =');
   if (idx === -1) return null;
@@ -540,13 +542,34 @@ function extractBalancedJson(text, varName) {
   return null;
 }
 
-function fmtDate(r) {
-  if (r.announcement_date) {
-    return new Date(r.announcement_date + 'T12:00:00Z')
-      .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function extractBalancedArray(text, varName) {
+  const idx = text.indexOf(varName + ' =');
+  if (idx === -1) return null;
+  const start = text.indexOf('[', idx);
+  if (start === -1) return null;
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === '[') depth++;
+    else if (text[i] === ']') {
+      if (--depth === 0) {
+        try { return JSON.parse(text.substring(start, i + 1)); } catch(_) { return null; }
+      }
+    }
   }
-  return new Date(r.parsed_at)
-    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return null;
+}
+
+function fmtDate(r) {
+  let d = null;
+  if (r.announcement_date) {
+    // pg may return DATE as 'YYYY-MM-DD' or a full ISO timestamp — take only the date part
+    const dateStr = String(r.announcement_date).substring(0, 10);
+    d = new Date(dateStr + 'T12:00:00Z');
+  } else if (r.parsed_at) {
+    d = new Date(r.parsed_at);
+  }
+  if (!d || isNaN(d.getTime())) return 'Unknown date';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 // ── Load and render for a given tab ──
@@ -696,6 +719,27 @@ function renderMap(result) {
     if (districtLayers.length) {
       map.fitBounds(L.featureGroup(districtLayers).getBounds(), { padding: [20, 20] });
     }
+  }
+
+  // ── Closure lines ──
+  const closureLines = extractBalancedArray(scriptText, 'CLOSURE_LINES');
+  if (closureLines && closureLines.length) {
+    closureLines.forEach(line => {
+      const latlngs = line.coords.map(c => [c[1], c[0]]);
+      const isPermanent = line.applies === 'all_periods';
+      const lineColor = isPermanent ? '#ff3333' : '#ff6b6b';
+      const l = L.polyline(latlngs, {
+        color: lineColor,
+        weight: isPermanent ? 3 : 2.5,
+        opacity: 0.9,
+        dashArray: isPermanent ? '8,4' : null,
+      }).addTo(map);
+      districtLayers.push(l);
+      const sideText = line.closed_side
+        ? ' — Waters ' + line.closed_side.toUpperCase() + ' are CLOSED'
+        : '';
+      l.bindTooltip('⛔ ' + line.name + sideText, { sticky: true });
+    });
   }
 }
 
