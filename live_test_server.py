@@ -156,7 +156,7 @@ def call_claude(pdf_name_or_id, text):
     system_prompt = """You are a PWS (Prince William Sound) salmon fishery parser.
 Extract all district openings/closings from the announcement text.
 
-For each district mentioned:
+For each district mentioned return one JSON object:
 {
   "district": "District Name",
   "status": "open" or "closed",
@@ -168,9 +168,9 @@ For each district mentioned:
   "closures": [
     {
       "name": "closure area name",
-      "definition": "description of closure",
-      "closed_side": "north" | "south" | "east" | "west" | null,
-      "points": [{"lat": 60.5, "lon": -145.5}, ...],
+      "definition": "exact text description of the closure boundary",
+      "closed_side": "north" | "south" | "east" | "west",
+      "points": [{"name": "Point Name", "lat": 60.5, "lon": -145.5}, ...],
       "applies": "this_period" | "all_periods"
     }
   ],
@@ -182,6 +182,11 @@ For each district mentioned:
     "daily_count": int or null
   }
 }
+
+CRITICAL rules for closures:
+- closed_side MUST always be set: use "north"/"south"/"east"/"west" based on the direction word in the text (e.g. "north of a line" → "north", "east of longitude" → "east"). Never return null for closed_side.
+- points MUST include every named coordinate point mentioned in the closure definition. If the text gives lat/lon for Entrance Point and Potato Point, include both with their exact coordinates. If a point has no explicit coordinates in the text, omit it from points rather than guessing. Extract coordinates in DMS format and convert to decimal degrees (e.g. 61° 05.00' N = 61.0833, 146° 38.00' W = -146.6333).
+- If closure is defined by a single meridian ("east of longitude 146° 32.00' W"), points should be empty and closed_side="east". The definition text will let us reconstruct the line.
 
 Return ONLY valid JSON array, no markdown, no preamble."""
 
@@ -246,24 +251,74 @@ GEAR_COLORS = {
 # SHAPELY GEOMETRY HELPERS
 # ============================================================
 
+def infer_closed_side(text):
+    """Infer which side is closed from closure name or definition text."""
+    import re
+    t = (text or '').lower()
+    if re.search(r'\bnorth\s+of\b', t): return 'north'
+    if re.search(r'\bsouth\s+of\b', t): return 'south'
+    if re.search(r'\beast\s+of\b',  t): return 'east'
+    if re.search(r'\bwest\s+of\b',  t): return 'west'
+    # fallback: bare compass word
+    if 'north' in t: return 'north'
+    if 'south' in t: return 'south'
+    if 'east'  in t: return 'east'
+    if 'west'  in t: return 'west'
+    return None
+
+
+def extract_coord_pairs(text):
+    """Extract all lat/lon pairs embedded in text.
+    Handles DMS like '61° 05.00' N, 146° 38.00' W' and decimal forms.
+    Returns list of [lon, lat] pairs (GeoJSON order).
+    """
+    import re
+    pairs = []
+
+    # DMS lat+lon together: 61° 05.00' N, 146° 38.00' W
+    dms_both = re.findall(
+        r'(\d{1,2})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*N[.,\s]+(\d{2,3})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*W',
+        text, re.IGNORECASE
+    )
+    for m in dms_both:
+        lat = float(m[0]) + float(m[1]) / 60
+        lon = -(float(m[2]) + float(m[3]) / 60)
+        pairs.append([lon, lat])
+
+    # Decimal: 61.0833 N, 146.6333 W
+    dec_both = re.findall(
+        r'(\d{2}\.\d+)\s*N[.,\s]+(\d{2,3}\.\d+)\s*W',
+        text, re.IGNORECASE
+    )
+    for m in dec_both:
+        pairs.append([-float(m[1]), float(m[0])])
+
+    return pairs
+
+
 def parse_simple_boundary(definition):
-    """Extract (lon, lat) from definitions like 'east of longitude 146° 32.00' W' or 'north of 60°50.76' N. lat'."""
+    """Extract a single pivot coordinate from text-only boundary definitions
+    that reference a single meridian or parallel ('east of longitude X').
+    Returns (lon, None) for a meridian, (None, lat) for a parallel, or (None, None).
+    """
     import re
 
-    # Longitude: 146° 32.00' W  or  146°32'W  or  146 32.00 W
+    # Longitude DMS: 146° 32.00' W
     lon_m = re.search(r'(\d{2,3})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*W', definition, re.IGNORECASE)
     if lon_m:
         return -(float(lon_m.group(1)) + float(lon_m.group(2)) / 60), None
 
-    dec_lon = re.search(r'(?:longitude\s+)(\d{2,3}\.\d+)\s*[°\s]*W', definition, re.IGNORECASE)
+    # Longitude decimal: longitude 146.533 W
+    dec_lon = re.search(r'longitude\s+(\d{2,3}\.\d+)\s*[°\s]*W', definition, re.IGNORECASE)
     if dec_lon:
         return -float(dec_lon.group(1)), None
 
-    # Latitude: 60° 50.76' N  or  60°50'N
+    # Latitude DMS: 60° 50.76' N
     lat_m = re.search(r'(\d{1,2})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*N', definition, re.IGNORECASE)
     if lat_m:
         return None, float(lat_m.group(1)) + float(lat_m.group(2)) / 60
 
+    # Latitude decimal: 60.846 N lat
     dec_lat = re.search(r'(\d{2}\.\d+)\s*[°]?\s*N\.?\s*lat', definition, re.IGNORECASE)
     if dec_lat:
         return None, float(dec_lat.group(1))
@@ -272,68 +327,100 @@ def parse_simple_boundary(definition):
 
 
 def get_closed_region(closed_side, coords, district_geom):
-    """Return a polygon covering the CLOSED half of the district given the closure line."""
+    """Return a Shapely polygon covering the CLOSED half of the district.
+
+    The closure line divides the district; we build a large half-plane on the
+    closed side and subtract it from the district polygon via .difference().
+    This is equivalent to walking the boundary and removing the portion on the
+    closed side, inserting the two exact intersection points — exactly as
+    described in geometrylogicsimple.md.
+    """
     if not coords or len(coords) < 2 or not closed_side:
         return None
 
     minx, miny, maxx, maxy = district_geom.bounds
-    B = 1.5  # degrees of buffer beyond district
+    B = 1.5  # degrees of padding beyond district bounds
 
     lons = [c[0] for c in coords]
     lats = [c[1] for c in coords]
     lon_span = max(lons) - min(lons)
     lat_span = max(lats) - min(lats)
 
-    # Vertical line → simple lon-based box
-    if lon_span < 0.01:
+    # ── Meridian (vertical line) ──────────────────────────────────────────
+    if lon_span < 0.001:
         lon = sum(lons) / len(lons)
-        if closed_side == 'east':
-            return box(lon, miny - B, maxx + B, maxy + B)
-        if closed_side == 'west':
-            return box(minx - B, miny - B, lon, maxy + B)
+        if closed_side == 'east':  return box(lon,      miny-B, maxx+B, maxy+B)
+        if closed_side == 'west':  return box(minx-B,   miny-B, lon,    maxy+B)
 
-    # Horizontal line → simple lat-based box
-    if lat_span < 0.01:
+    # ── Parallel (horizontal line) ────────────────────────────────────────
+    if lat_span < 0.001:
         lat = sum(lats) / len(lats)
-        if closed_side == 'north':
-            return box(minx - B, lat, maxx + B, maxy + B)
-        if closed_side == 'south':
-            return box(minx - B, miny - B, maxx + B, lat)
+        if closed_side == 'north': return box(minx-B, lat,    maxx+B, maxy+B)
+        if closed_side == 'south': return box(minx-B, miny-B, maxx+B, lat)
 
-    # Diagonal line: extend it and build a half-plane on the closed side
+    # ── Diagonal line — half-plane approach ───────────────────────────────
+    # Extend the line well beyond the district, then build a quadrilateral
+    # covering the closed half-plane.
     p1, p2 = coords[0], coords[-1]
-    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
-    L = (dx**2 + dy**2) ** 0.5
+    dx, dy = p2[0]-p1[0], p2[1]-p1[1]
+    L = (dx**2 + dy**2)**0.5
     if L < 1e-10:
         return None
 
-    nx, ny = dx / L, dy / L          # unit tangent
-    ext = 8.0
-    ep1 = (p1[0] - nx * ext, p1[1] - ny * ext)
-    ep2 = (p2[0] + nx * ext, p2[1] + ny * ext)
+    nx, ny = dx/L, dy/L   # unit tangent along closure line
+    ext = 10.0             # extend line well past district
+    ep1 = (p1[0]-nx*ext, p1[1]-ny*ext)
+    ep2 = (p2[0]+nx*ext, p2[1]+ny*ext)
 
-    # Left perpendicular: (-ny, nx), Right: (ny, -nx)
-    lp = (-ny, nx)
-    rp = ( ny, -nx)
+    # Two perpendicular unit vectors; pick the one pointing to closed side
+    lp = (-ny,  nx)   # left  perpendicular
+    rp = ( ny, -nx)   # right perpendicular
 
-    if closed_side == 'north':
-        perp = lp if lp[1] >= 0 else rp
-    elif closed_side == 'south':
-        perp = lp if lp[1] < 0 else rp
-    elif closed_side == 'east':
-        perp = lp if lp[0] >= 0 else rp
-    elif closed_side == 'west':
-        perp = lp if lp[0] < 0 else rp
-    else:
-        return None
+    if   closed_side == 'north': perp = lp if lp[1] >= 0 else rp
+    elif closed_side == 'south': perp = lp if lp[1] <  0 else rp
+    elif closed_side == 'east':  perp = lp if lp[0] >= 0 else rp
+    elif closed_side == 'west':  perp = lp if lp[0] <  0 else rp
+    else: return None
 
     big = 20.0
     return Polygon([
         ep1,
         ep2,
-        (ep2[0] + perp[0] * big, ep2[1] + perp[1] * big),
-        (ep1[0] + perp[0] * big, ep1[1] + perp[1] * big),
+        (ep2[0]+perp[0]*big, ep2[1]+perp[1]*big),
+        (ep1[0]+perp[0]*big, ep1[1]+perp[1]*big),
     ])
+
+
+def extract_open_geom(district_geom, closure_polys, excl_geoms):
+    """Subtract closed regions and excluded subdistricts from district_geom.
+    Returns the resulting open-water Shapely geometry, or None on failure.
+    Handles Polygon, MultiPolygon, and GeometryCollection results.
+    """
+    import shapely.geometry as _sg
+    g = district_geom
+    try:
+        if closure_polys:
+            g = g.difference(unary_union(closure_polys))
+        if excl_geoms:
+            g = g.difference(unary_union(excl_geoms))
+    except Exception as e:
+        print(f"WARNING: difference() failed: {e}", file=sys.stderr)
+        return None
+
+    if g.is_empty:
+        return None
+
+    # difference() can return GeometryCollection when the subtraction
+    # leaves disconnected fragments; keep only Polygon/MultiPolygon parts.
+    if g.geom_type == 'GeometryCollection':
+        polys = [p for p in g.geoms if p.geom_type in ('Polygon', 'MultiPolygon')]
+        if not polys:
+            return None
+        g = unary_union(polys)
+
+    if g.geom_type not in ('Polygon', 'MultiPolygon'):
+        return None
+    return g
 
 
 def build_html(all_results, geojson_data, pdf_texts, awc_points):
@@ -413,30 +500,41 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 pts = c.get('points') or []
                 coords = [[p.get('lon', 0), p.get('lat', 0)] for p in pts]
 
-                # Synthesize coords for text-only boundaries (e.g. Port Valdez)
+                # closed_side from Claude, or infer from definition/name text
+                closed_side = c.get('closed_side') or \
+                    infer_closed_side(c.get('definition', '')) or \
+                    infer_closed_side(c.get('name', ''))
+
+                # Synthesize coords when Claude returned no points
                 if len(coords) < 2 and d_geom is not None:
                     definition = c.get('definition', '')
-                    lon_val, lat_val = parse_simple_boundary(definition)
                     minx, miny, maxx, maxy = d_geom.bounds
-                    if lon_val is not None:
-                        # vertical line spanning district latitude
-                        coords = [[lon_val, miny - 0.05], [lon_val, maxy + 0.05]]
-                    elif lat_val is not None:
-                        # horizontal line spanning district longitude
-                        coords = [[minx - 0.05, lat_val], [maxx + 0.05, lat_val]]
+
+                    # Try to extract explicit lat/lon pairs from definition text
+                    extracted = extract_coord_pairs(definition)
+                    if len(extracted) >= 2:
+                        coords = extracted
+
+                    # Fall back to single meridian/parallel definition
+                    if len(coords) < 2:
+                        lon_val, lat_val = parse_simple_boundary(definition)
+                        if lon_val is not None:
+                            coords = [[lon_val, miny - 0.05], [lon_val, maxy + 0.05]]
+                        elif lat_val is not None:
+                            coords = [[minx - 0.05, lat_val], [maxx + 0.05, lat_val]]
 
                 if len(coords) >= 2:
                     closure_lines.append({
                         'name': c.get('name', ''),
-                        'closed_side': c.get('closed_side'),
+                        'closed_side': closed_side,
                         'applies': c.get('applies', 'this_period'),
                         'coords': coords,
                         'district': dk or d_name.lower().replace(' ', '_'),
                     })
 
                 # Build closed-region polygon for Shapely cutting
-                if d_geom is not None and len(coords) >= 2 and c.get('closed_side'):
-                    closed_poly = get_closed_region(c['closed_side'], coords, d_geom)
+                if d_geom is not None and len(coords) >= 2 and closed_side:
+                    closed_poly = get_closed_region(closed_side, coords, d_geom)
                     if closed_poly is not None:
                         district_closure_polys.setdefault(dk, []).append(closed_poly)
 
@@ -469,44 +567,28 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             district_key = d_name.lower().replace(' ', '_').replace('/', '_')
             color = district_colors_map.get(district_key, DISTRICT_COLORS[0])
 
-            try:
-                open_geom = d_geom
+            closed_polys = district_closure_polys.get(dk, [])
+            excl_geoms_list = []
+            for excl_name in (d.get('excluded_subdistricts') or []):
+                ek = find_subd_key(excl_name)
+                if ek and ek in subd_geoms:
+                    excl_geoms_list.append(subd_geoms[ek])
 
-                # Subtract closed regions (closure lines)
-                closed_polys = district_closure_polys.get(dk, [])
-                if closed_polys:
-                    closed_union = unary_union(closed_polys)
-                    open_geom = open_geom.difference(closed_union)
+            open_geom = extract_open_geom(d_geom, closed_polys, excl_geoms_list)
+            if open_geom is None:
+                print(f"WARNING: open area is empty/invalid for '{d_name}', skipping", file=sys.stderr)
+                continue
 
-                # Subtract excluded subdistricts
-                excl_geoms = []
-                for excl_name in (d.get('excluded_subdistricts') or []):
-                    ek = find_subd_key(excl_name)
-                    if ek and ek in subd_geoms:
-                        excl_geoms.append(subd_geoms[ek])
-                if excl_geoms:
-                    excl_union = unary_union(excl_geoms)
-                    open_geom = open_geom.difference(excl_union)
-
-                if open_geom.is_empty:
-                    continue
-
-                # Convert to GeoJSON
-                if isinstance(open_geom, (Polygon, MultiPolygon)):
-                    import shapely.geometry as _sg
-                    gj_geom = _sg.mapping(open_geom)
-                    open_areas_features.append({
-                        'type': 'Feature',
-                        'properties': {
-                            'district_key': district_key,
-                            'district_name': d_name,
-                            'color': color,
-                        },
-                        'geometry': gj_geom,
-                    })
-
-            except Exception as e:
-                print(f"WARNING: Shapely cut failed for '{d_name}': {e}", file=sys.stderr)
+            import shapely.geometry as _sg
+            open_areas_features.append({
+                'type': 'Feature',
+                'properties': {
+                    'district_key': district_key,
+                    'district_name': d_name,
+                    'color': color,
+                },
+                'geometry': _sg.mapping(open_geom),
+            })
 
     open_areas_gj_json = json.dumps(
         {'type': 'FeatureCollection', 'features': open_areas_features},
