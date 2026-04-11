@@ -510,9 +510,47 @@ let mapDistrictLayers = {};  // district_key → Leaflet layer (for card↔map s
 let openAreaLayers   = {};   // district_key → pre-clipped open area layer
 let currentDistrictsGJ = null;  // kept for PIP click handler
 let currentHighlighted = {};    // district name → {key, color, open}
-let streamToggleControl = null; // Leaflet control for stream toggle — removed on re-render
 let currentTab = 'live';
 let allResults = [];
+
+// ── AWC stream buffers — loaded once, persists across announcement switches ──
+(function initStreamLayer() {
+  const canvasRenderer = L.canvas({ padding: 0.5 });
+  const streamLayer = L.layerGroup().addTo(map);
+  let visible = true;
+
+  fetch('/awc-points.json')
+    .then(r => r.json())
+    .then(function(pts) {
+      pts.forEach(function(pt) {
+        L.circle([pt.lat, pt.lon], {
+          renderer: canvasRenderer,
+          radius: 457,
+          color: '#e67e22', weight: 1, opacity: 0.7,
+          fillColor: '#0a0c14', fillOpacity: 0.70,
+        }).bindTooltip(
+          '⛔ Anadromous Stream<br><b>' + pt.name + '</b><br>500 yd closure buffer',
+          { direction: 'top', sticky: true }
+        ).addTo(streamLayer);
+      });
+
+      const toggleBtn = L.control({ position: 'topright' });
+      toggleBtn.onAdd = function() {
+        const div = L.DomUtil.create('div', 'stream-toggle');
+        div.innerHTML = '⛔ AWC Buffers: ON';
+        div.style.cssText = 'background:rgba(15,17,23,0.9);color:#e67e22;border:1px solid #e67e22;' +
+          'padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;';
+        div.onclick = function() {
+          visible = !visible;
+          if (visible) { streamLayer.addTo(map); div.innerHTML='⛔ AWC Buffers: ON'; div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
+          else { map.removeLayer(streamLayer); div.innerHTML='○ AWC Buffers: OFF'; div.style.color='#555'; div.style.borderColor='#555'; }
+        };
+        return div;
+      };
+      toggleBtn.addTo(map);
+    })
+    .catch(function(e) { console.warn('AWC points fetch failed:', e); });
+})();
 
 // ── Tab switching ──
 function setTab(tab, btn) {
@@ -753,7 +791,6 @@ function renderMap(result) {
   openAreaLayers    = {};
   currentDistrictsGJ = null;
   currentHighlighted = {};
-  if (streamToggleControl) { streamToggleControl.remove(); streamToggleControl = null; }
 
   if (!result || !result._html) return;
 
@@ -772,15 +809,8 @@ function renderMap(result) {
     const styleStr = card.getAttribute('style') || '';
     const colorM = styleStr.match(/border-left:\s*\d+px solid ([^;]+)/);
     const color = colorM ? colorM[1].trim() : '#3498db';
-    const excluded = Array.from(card.querySelectorAll('.excl-tag.subdistrict'))
-      .map(e => e.textContent.trim().toLowerCase());
-    currentHighlighted[name] = { key, color, open: isOpen, excluded };
+    currentHighlighted[name] = { key, color, open: isOpen };
   });
-
-  const allExcluded = new Set();
-  Object.values(currentHighlighted).forEach(info =>
-    (info.excluded || []).forEach(n => allExcluded.add(n))
-  );
 
   // ── District polygons ────────────────────────────────────────────────────
   const districtsGJ = extractBalancedJson(scriptText, 'DISTRICTS_GJ');
@@ -809,83 +839,15 @@ function renderMap(result) {
     map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
   }
 
-  // ── Excluded subdistricts (hatched red) ──────────────────────────────────
-  const subdistrictsGJ = extractBalancedJson(scriptText, 'SUBDISTRICTS_GJ');
-  if (subdistrictsGJ && subdistrictsGJ.features && allExcluded.size > 0) {
-    const exclLayer = L.geoJSON(subdistrictsGJ, {
-      style: function(feature) {
-        const subdName = (feature.properties.SUBDISTRIC || '').toLowerCase().trim();
-        const shortName = subdName.replace(' subdistrict', '').trim();
-        const isExcl = allExcluded.has(subdName) || allExcluded.has(shortName)
-          || Array.from(allExcluded).some(ex => subdName.includes(ex) || ex.includes(shortName));
-        if (isExcl)
-          return { color: '#e74c3c', weight: 2, opacity: 0.9, fillColor: '#e74c3c', fillOpacity: 0.25, dashArray: '5,4' };
-        return { color: 'transparent', weight: 0, fillOpacity: 0 };
-      },
-      onEachFeature: function(feature, layer) {
-        const subdName = (feature.properties.SUBDISTRIC || '').toLowerCase().trim();
-        const shortName = subdName.replace(' subdistrict', '').trim();
-        const isExcl = allExcluded.has(subdName) || allExcluded.has(shortName)
-          || Array.from(allExcluded).some(ex => subdName.includes(ex) || ex.includes(shortName));
-        if (isExcl)
-          layer.bindTooltip('⛔ CLOSED: ' + (feature.properties.SUBDISTRIC || ''), { direction: 'center' });
-      }
-    }).addTo(map);
-    activeLayers.push(exclLayer);
-  }
-
-  // ── Closure lines (from script var if present, else extract from card DOM) ──
-  let closureLines = extractBalancedArray(scriptText, 'CLOSURE_LINES') || [];
-
-  if (!closureLines.length) {
-    doc.querySelectorAll('.district-card').forEach(card => {
-      card.querySelectorAll('.closure-entry').forEach(entry => {
-        const rows = entry.querySelectorAll('.points-table tbody tr');
-        if (rows.length < 2) return;
-        const coords = [];
-        rows.forEach(row => {
-          const cells = row.querySelectorAll('td');
-          if (cells.length >= 3) {
-            const lat = parseFloat(cells[1].textContent);
-            const lon = parseFloat(cells[2].textContent);
-            if (!isNaN(lat) && !isNaN(lon)) coords.push([lon, lat]);
-          }
-        });
-        if (coords.length >= 2) {
-          const nameEl = entry.querySelector('.closure-name');
-          const appBadge = entry.querySelector('.applies-badge');
-          closureLines.push({
-            name: nameEl ? nameEl.textContent.trim() : 'Closure',
-            coords,
-            applies: appBadge && appBadge.classList.contains('allperiods') ? 'all_periods' : 'this_period',
-            closed_side: null,
-          });
-        }
-      });
-    });
-  }
-
-  closureLines.forEach(line => {
-    const latlngs = line.coords.map(c => [c[1], c[0]]);
-    const isPermanent = line.applies === 'all_periods';
-    const l = L.polyline(latlngs, {
-      color: isPermanent ? '#ff3333' : '#ff6b6b',
-      weight: isPermanent ? 3 : 2.5,
-      opacity: 0.9,
-      dashArray: isPermanent ? '8,4' : null,
-    }).addTo(map);
-    activeLayers.push(l);
-    const sideText = line.closed_side ? ' — Waters ' + line.closed_side.toUpperCase() + ' are CLOSED' : '';
-    l.bindTooltip('⛔ ' + line.name + sideText, { sticky: true });
-  });
-
-  // ── Pre-clipped open area polygons (Shapely-cut) ──────────────────────
+  // ── Pre-clipped open area polygons — Shapely-cut, fills come from here ──
+  // Closure lines and excluded subdistricts are already subtracted from the
+  // polygon geometry by Python/Shapely. No separate overlays needed.
   const openAreasGJ = extractBalancedJson(scriptText, 'OPEN_AREAS_GJ');
   if (openAreasGJ && openAreasGJ.features && openAreasGJ.features.length) {
     const openLayer = L.geoJSON(openAreasGJ, {
       style: function(feature) {
         const color = feature.properties.color || '#27ae60';
-        return { color: color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22 };
+        return { color: color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.25 };
       },
       onEachFeature: function(feature, layer) {
         const key = feature.properties.district_key || '';
@@ -895,42 +857,6 @@ function renderMap(result) {
       }
     }).addTo(map);
     activeLayers.push(openLayer);
-  }
-
-  // ── Anadromous stream 500-yd closure buffers ──────────────────────────
-  const streamPoints = extractBalancedArray(scriptText, 'STREAM_POINTS') || [];
-  if (streamPoints.length > 0) {
-    const canvasRenderer = L.canvas({ padding: 0.5 });
-    const streamLayer = L.layerGroup();
-    streamPoints.forEach(function(pt) {
-      L.circle([pt.lat, pt.lon], {
-        renderer: canvasRenderer,
-        radius: 457,
-        color: '#e67e22', weight: 1, opacity: 0.7,
-        fillColor: '#0a0c14', fillOpacity: 0.70,
-      }).bindTooltip(
-        '⛔ Anadromous Stream Closure<br><b>' + pt.name + '</b><br>500 yd buffer — CLOSED',
-        { direction: 'top', sticky: true }
-      ).addTo(streamLayer);
-    });
-    streamLayer.addTo(map);
-
-    const toggleBtn = L.control({ position: 'topright' });
-    toggleBtn.onAdd = function() {
-      const div = L.DomUtil.create('div', 'stream-toggle');
-      div.innerHTML = '⛔ Stream Buffers: ON';
-      div.style.cssText = 'background:rgba(15,17,23,0.9);color:#e67e22;border:1px solid #e67e22;' +
-        'padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;';
-      let visible = true;
-      div.onclick = function() {
-        visible = !visible;
-        if (visible) { map.addLayer(streamLayer); div.innerHTML = '⛔ Stream Buffers: ON'; div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
-        else { map.removeLayer(streamLayer); div.innerHTML = '○ Stream Buffers: OFF'; div.style.color='#555'; div.style.borderColor='#555'; }
-      };
-      return div;
-    };
-    toggleBtn.addTo(map);
-    streamToggleControl = toggleBtn;
   }
 }
 

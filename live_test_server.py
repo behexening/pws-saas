@@ -513,10 +513,6 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
         cls=_DateEncoder
     )
 
-    # ── Build STREAM_POINTS ────────────────────────────────────────────────
-    stream_points = [{'lat': lat, 'lon': lon, 'name': name} for lat, lon, name in awc_points]
-    stream_points_json = json.dumps(stream_points, cls=_DateEncoder)
-
     # ── Build district cards ──────────────────────────────────────
     cards_html = ""
     for pdf_name, districts in all_results.items():
@@ -694,8 +690,6 @@ const DISTRICTS_GJ = {districts_gj};
 const SUBDISTRICTS_GJ = {subdistricts_gj};
 const CLOSURE_LINES = {closure_lines_json};
 const OPEN_AREAS_GJ = {open_areas_gj_json};
-const STREAM_POINTS = {stream_points_json};
-const STREAM_BUFFER_M = 457;
 </script>
 </body>
 </html>"""
