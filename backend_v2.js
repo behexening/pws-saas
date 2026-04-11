@@ -636,6 +636,87 @@ app.get('/api/result/:id/html', async (req, res) => {
 });
 
 /**
+ * POST /api/result/:id/reparse
+ * Force re-run live_test_server.py on the original PDF for this result.
+ * Updates html_content in DB with freshly generated HTML.
+ */
+app.post('/api/result/:id/reparse', express.json(), async (req, res) => {
+  try {
+    // Get the announcement_id from the parsed result
+    const prRow = await db.query(
+      `SELECT announcement_id FROM parsed_results WHERE id = $1`,
+      [req.params.id]
+    );
+    if (!prRow.rows.length) return res.status(404).json({ error: 'Result not found' });
+
+    const announcementId = prRow.rows[0].announcement_id;
+
+    // Get the PDF data from announcements table
+    const annRow = await db.query(
+      `SELECT pdf_data, pdf_filename, raw_text FROM announcements WHERE id = $1`,
+      [announcementId]
+    );
+    if (!annRow.rows.length) return res.status(404).json({ error: 'Announcement not found' });
+
+    const ann = annRow.rows[0];
+    let pdfPath = null;
+
+    if (ann.pdf_data) {
+      // Write PDF to temp file
+      pdfPath = path.join('/tmp', `reparse_${announcementId}_${Date.now()}.pdf`);
+      await fs.writeFile(pdfPath, ann.pdf_data);
+    } else if (ann.raw_text) {
+      // Use raw text directly via --input-text
+      pdfPath = null;
+    } else {
+      return res.status(400).json({ error: 'No PDF or text available for this announcement' });
+    }
+
+    res.json({ ok: true, message: `Reparsing announcement #${announcementId} in background...` });
+
+    // Run reparse async
+    (async () => {
+      try {
+        const timestamp = Date.now();
+        const outputFilename = `announcement_${announcementId}_${timestamp}.html`;
+        const outputPath = path.join(__dirname, 'public', 'results', outputFilename);
+        await fs.mkdir(path.dirname(outputPath), { recursive: true }).catch(() => {});
+
+        const args = ['live_test_server.py', '--announcement-id', announcementId.toString(), '--output', outputPath];
+        if (pdfPath) {
+          args.push('--pdf-path', pdfPath);
+        } else {
+          args.push('--input-text', ann.raw_text);
+        }
+
+        const { execFile: ef } = require('child_process');
+        await new Promise((resolve, reject) => {
+          ef('python3', args, { cwd: __dirname, timeout: 180000, maxBuffer: 1024 * 1024 * 20 },
+            async (error, stdout, stderr) => {
+              console.log(`reparse stderr: ${stderr}`);
+              if (error) { console.error(`reparse failed: ${stderr}`); return reject(error); }
+              try {
+                const htmlContent = await fs.readFile(outputPath, 'utf8');
+                await db.query(
+                  `UPDATE parsed_results SET html_content = $1, html_filename = $2, html_url = $3 WHERE id = $4`,
+                  [htmlContent, outputFilename, `/results/${outputFilename}`, req.params.id]
+                );
+                console.log(`✓ Reparse complete for result #${req.params.id}`);
+              } catch (e) { console.error('reparse DB update failed:', e); }
+              resolve();
+            }
+          );
+        });
+        if (pdfPath) await fs.unlink(pdfPath).catch(() => {});
+      } catch (e) { console.error('Reparse error:', e); }
+    })();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /results/:filename
  * Serve generated HTML artifacts
  */

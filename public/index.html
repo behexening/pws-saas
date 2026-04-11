@@ -669,6 +669,23 @@ function selectAnnouncement(id, el) {
   if (result) loadAndRender(result);
 }
 
+async function reparseResult(id) {
+  const btn = document.querySelector(`button[onclick="reparseResult(${id})"]`);
+  if (btn) { btn.textContent = '↻ Reparsing…'; btn.disabled = true; }
+  try {
+    const resp = await fetch(`/api/result/${id}/reparse`, { method: 'POST' });
+    if (resp.ok) {
+      if (btn) btn.textContent = '✓ Queued — reload in ~30s';
+      // Reload after 35s to pick up fresh HTML
+      setTimeout(() => loadTab(currentTab), 35000);
+    } else {
+      if (btn) { btn.textContent = '✗ Failed'; btn.disabled = false; }
+    }
+  } catch(e) {
+    if (btn) { btn.textContent = '✗ Error'; btn.disabled = false; }
+  }
+}
+
 // ── Render district cards ──
 function renderPanel(result) {
   const container = document.getElementById('cards-container');
@@ -717,9 +734,21 @@ function renderPanel(result) {
 
   header.style.display = 'block';
   meta.textContent = `${fmtDate(result)} — ADF&G PWS Commercial Salmon`;
+
+  // Show reparse button if OPEN_AREAS_GJ is absent (old record)
+  const hasOAGJ = result._html && /OPEN_AREAS_GJ\s*=\s*\{/.test(result._html) &&
+    /"features"\s*:\s*\[\s*\{/.test(result._html);
+  const reparseBtn = hasOAGJ ? '' :
+    `<button onclick="reparseResult(${result.id})" style="
+      margin-left:8px;padding:3px 10px;font-size:10px;font-weight:700;
+      background:rgba(91,141,238,0.15);color:#5b8dee;border:1px solid rgba(91,141,238,0.4);
+      border-radius:5px;cursor:pointer;letter-spacing:.3px;
+    " title="Re-run parser to get clipped geometry">↻ Reparse</button>`;
+
   stats.innerHTML = `
     <span class="stat-pill open-pill">${openCount} Open</span>
     ${closedCount ? `<span class="stat-pill closed-pill">${closedCount} Closed</span>` : ''}
+    ${reparseBtn}
   `;
 
   const grid = document.createElement('div');
@@ -816,15 +845,19 @@ function renderMap(result) {
   const districtsGJ = extractBalancedJson(scriptText, 'DISTRICTS_GJ');
   currentDistrictsGJ = districtsGJ;
 
+  // Does this HTML record have a non-empty OPEN_AREAS_GJ from Shapely?
+  const hasOpenAreas = /OPEN_AREAS_GJ\s*=\s*\{/.test(scriptText) &&
+    /"features"\s*:\s*\[\s*\{/.test(scriptText);
+
   if (districtsGJ && districtsGJ.features) {
     const geoLayer = L.geoJSON(districtsGJ, {
-      // District outlines only — fills come from OPEN_AREAS_GJ below.
-      // fillOpacity:0.001 (not 0) keeps the polygon hit-testable in Leaflet SVG renderer.
       style: function(feature) {
         const name = feature.properties.DISTRICT_N || '';
         const info = currentHighlighted[name];
+        // Use near-zero fill when Shapely-cut OPEN_AREAS_GJ will provide the visible fill.
+        // Fall back to solid fill for old DB records that predate OPEN_AREAS_GJ.
         if (info && info.open)
-          return { color: info.color, weight: 2, opacity: 0.8, fillColor: info.color, fillOpacity: 0.001 };
+          return { color: info.color, weight: 2, opacity: 0.8, fillColor: info.color, fillOpacity: hasOpenAreas ? 0.001 : 0.20 };
         return { color: '#3a3f5c', weight: 1, opacity: 0.35, fillColor: '#000', fillOpacity: 0.001 };
       },
       onEachFeature: function(feature, layer) {
