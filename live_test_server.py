@@ -26,7 +26,8 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 import shapefile
-from shapely.geometry import Point, shape
+from shapely.geometry import Point, shape, Polygon, box, MultiPolygon
+from shapely.ops import unary_union
 
 import pdfplumber
 from anthropic import Anthropic
@@ -241,6 +242,100 @@ GEAR_COLORS = {
     'set_gillnet':   '#27ae60',
 }
 
+# ============================================================
+# SHAPELY GEOMETRY HELPERS
+# ============================================================
+
+def parse_simple_boundary(definition):
+    """Extract (lon, lat) from definitions like 'east of longitude 146° 32.00' W' or 'north of 60°50.76' N. lat'."""
+    import re
+
+    # Longitude: 146° 32.00' W  or  146°32'W  or  146 32.00 W
+    lon_m = re.search(r'(\d{2,3})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*W', definition, re.IGNORECASE)
+    if lon_m:
+        return -(float(lon_m.group(1)) + float(lon_m.group(2)) / 60), None
+
+    dec_lon = re.search(r'(?:longitude\s+)(\d{2,3}\.\d+)\s*[°\s]*W', definition, re.IGNORECASE)
+    if dec_lon:
+        return -float(dec_lon.group(1)), None
+
+    # Latitude: 60° 50.76' N  or  60°50'N
+    lat_m = re.search(r'(\d{1,2})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*N', definition, re.IGNORECASE)
+    if lat_m:
+        return None, float(lat_m.group(1)) + float(lat_m.group(2)) / 60
+
+    dec_lat = re.search(r'(\d{2}\.\d+)\s*[°]?\s*N\.?\s*lat', definition, re.IGNORECASE)
+    if dec_lat:
+        return None, float(dec_lat.group(1))
+
+    return None, None
+
+
+def get_closed_region(closed_side, coords, district_geom):
+    """Return a polygon covering the CLOSED half of the district given the closure line."""
+    if not coords or len(coords) < 2 or not closed_side:
+        return None
+
+    minx, miny, maxx, maxy = district_geom.bounds
+    B = 1.5  # degrees of buffer beyond district
+
+    lons = [c[0] for c in coords]
+    lats = [c[1] for c in coords]
+    lon_span = max(lons) - min(lons)
+    lat_span = max(lats) - min(lats)
+
+    # Vertical line → simple lon-based box
+    if lon_span < 0.01:
+        lon = sum(lons) / len(lons)
+        if closed_side == 'east':
+            return box(lon, miny - B, maxx + B, maxy + B)
+        if closed_side == 'west':
+            return box(minx - B, miny - B, lon, maxy + B)
+
+    # Horizontal line → simple lat-based box
+    if lat_span < 0.01:
+        lat = sum(lats) / len(lats)
+        if closed_side == 'north':
+            return box(minx - B, lat, maxx + B, maxy + B)
+        if closed_side == 'south':
+            return box(minx - B, miny - B, maxx + B, lat)
+
+    # Diagonal line: extend it and build a half-plane on the closed side
+    p1, p2 = coords[0], coords[-1]
+    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+    L = (dx**2 + dy**2) ** 0.5
+    if L < 1e-10:
+        return None
+
+    nx, ny = dx / L, dy / L          # unit tangent
+    ext = 8.0
+    ep1 = (p1[0] - nx * ext, p1[1] - ny * ext)
+    ep2 = (p2[0] + nx * ext, p2[1] + ny * ext)
+
+    # Left perpendicular: (-ny, nx), Right: (ny, -nx)
+    lp = (-ny, nx)
+    rp = ( ny, -nx)
+
+    if closed_side == 'north':
+        perp = lp if lp[1] >= 0 else rp
+    elif closed_side == 'south':
+        perp = lp if lp[1] < 0 else rp
+    elif closed_side == 'east':
+        perp = lp if lp[0] >= 0 else rp
+    elif closed_side == 'west':
+        perp = lp if lp[0] < 0 else rp
+    else:
+        return None
+
+    big = 20.0
+    return Polygon([
+        ep1,
+        ep2,
+        (ep2[0] + perp[0] * big, ep2[1] + perp[1] * big),
+        (ep1[0] + perp[0] * big, ep1[1] + perp[1] * big),
+    ])
+
+
 def build_html(all_results, geojson_data, pdf_texts, awc_points):
     """Generate rich interactive HTML matching live_output3 style."""
 
@@ -251,35 +346,185 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 return obj.isoformat()
             return super().default(obj)
 
-    districts_gj  = json.dumps(geojson_data.get('districts',  {}), cls=_DateEncoder)
+    districts_gj    = json.dumps(geojson_data.get('districts',    {}), cls=_DateEncoder)
     subdistricts_gj = json.dumps(geojson_data.get('subdistricts', {}), cls=_DateEncoder)
 
-    # ── Build CLOSURE_LINES for map rendering ─────────────────────
+    # ── Build Shapely geometry dicts from shapefiles ───────────────────────
+    district_geoms = {}   # lower-stripped DISTRICT_N → Shapely geom
+    for feat in geojson_data.get('districts', {}).get('features', []):
+        name = (feat['properties'].get('DISTRICT_N') or '').strip()
+        if name and feat.get('geometry'):
+            try:
+                district_geoms[name.lower()] = shape(feat['geometry'])
+            except Exception as e:
+                print(f"WARNING: shapely parse district '{name}': {e}", file=sys.stderr)
+
+    subd_geoms = {}       # lower-stripped SUBDISTRIC → Shapely geom
+    for feat in geojson_data.get('subdistricts', {}).get('features', []):
+        name = (feat['properties'].get('SUBDISTRIC') or '').strip()
+        if name and feat.get('geometry'):
+            try:
+                subd_geoms[name.lower()] = shape(feat['geometry'])
+            except Exception as e:
+                print(f"WARNING: shapely parse subd '{name}': {e}", file=sys.stderr)
+
+    # ── Helper: fuzzy-match a district name to shapefile key ──────────────
+    def find_district_key(d_name):
+        """Return the matching key in district_geoms or None."""
+        n = d_name.lower().strip()
+        if n in district_geoms:
+            return n
+        # Try with/without " district" suffix
+        if n + ' district' in district_geoms:
+            return n + ' district'
+        for k in district_geoms:
+            if k.startswith(n) or n.startswith(k):
+                return k
+        return None
+
+    def find_subd_key(subd_name):
+        """Return the matching key in subd_geoms or None."""
+        n = subd_name.lower().strip()
+        if n in subd_geoms:
+            return n
+        # Try with/without " subdistrict" suffix
+        if n + ' subdistrict' in subd_geoms:
+            return n + ' subdistrict'
+        short = n.replace(' subdistrict', '').strip()
+        if short in subd_geoms:
+            return short
+        for k in subd_geoms:
+            if k.startswith(short) or short.startswith(k.replace(' subdistrict', '')):
+                return k
+        return None
+
+    # ── Build CLOSURE_LINES + collect per-district closure geoms ──────────
     closure_lines = []
+    # Maps district_key → list of closed-region Shapely polygons
+    district_closure_polys = {}
+
     for pdf_name, districts in all_results.items():
         for d in districts:
+            d_name = d.get('district', '')
+            dk = find_district_key(d_name)
+            d_geom = district_geoms.get(dk) if dk else None
+
             for c in (d.get('closures') or []):
                 pts = c.get('points') or []
-                if len(pts) >= 2:
-                    coords = [[p.get('lon', 0), p.get('lat', 0)] for p in pts]
+                coords = [[p.get('lon', 0), p.get('lat', 0)] for p in pts]
+
+                # Synthesize coords for text-only boundaries (e.g. Port Valdez)
+                if len(coords) < 2 and d_geom is not None:
+                    definition = c.get('definition', '')
+                    lon_val, lat_val = parse_simple_boundary(definition)
+                    minx, miny, maxx, maxy = d_geom.bounds
+                    if lon_val is not None:
+                        # vertical line spanning district latitude
+                        coords = [[lon_val, miny - 0.05], [lon_val, maxy + 0.05]]
+                    elif lat_val is not None:
+                        # horizontal line spanning district longitude
+                        coords = [[minx - 0.05, lat_val], [maxx + 0.05, lat_val]]
+
+                if len(coords) >= 2:
                     closure_lines.append({
                         'name': c.get('name', ''),
                         'closed_side': c.get('closed_side'),
                         'applies': c.get('applies', 'this_period'),
                         'coords': coords,
+                        'district': dk or d_name.lower().replace(' ', '_'),
                     })
+
+                # Build closed-region polygon for Shapely cutting
+                if d_geom is not None and len(coords) >= 2 and c.get('closed_side'):
+                    closed_poly = get_closed_region(c['closed_side'], coords, d_geom)
+                    if closed_poly is not None:
+                        district_closure_polys.setdefault(dk, []).append(closed_poly)
+
     closure_lines_json = json.dumps(closure_lines, cls=_DateEncoder)
+
+    # ── Pre-compute per-district colors (same order as cards loop) ────────
+    district_colors_map = {}  # district_key → color hex
+    _ci = 0
+    for _pdf, _dists in all_results.items():
+        for _d in _dists:
+            _key = (_d.get('district', '') or '').lower().replace(' ', '_').replace('/', '_')
+            district_colors_map[_key] = DISTRICT_COLORS[_ci % len(DISTRICT_COLORS)]
+            _ci += 1
+
+    # ── Compute OPEN_AREAS_GJ via Shapely polygon cutting ─────────────────
+    open_areas_features = []
+
+    for pdf_name, districts in all_results.items():
+        for d in districts:
+            if d.get('status') != 'open':
+                continue
+            d_name = d.get('district', '')
+            dk = find_district_key(d_name)
+            if not dk:
+                continue
+            d_geom = district_geoms.get(dk)
+            if not d_geom or not d_geom.is_valid:
+                continue
+
+            district_key = d_name.lower().replace(' ', '_').replace('/', '_')
+            color = district_colors_map.get(district_key, DISTRICT_COLORS[0])
+
+            try:
+                open_geom = d_geom
+
+                # Subtract closed regions (closure lines)
+                closed_polys = district_closure_polys.get(dk, [])
+                if closed_polys:
+                    closed_union = unary_union(closed_polys)
+                    open_geom = open_geom.difference(closed_union)
+
+                # Subtract excluded subdistricts
+                excl_geoms = []
+                for excl_name in (d.get('excluded_subdistricts') or []):
+                    ek = find_subd_key(excl_name)
+                    if ek and ek in subd_geoms:
+                        excl_geoms.append(subd_geoms[ek])
+                if excl_geoms:
+                    excl_union = unary_union(excl_geoms)
+                    open_geom = open_geom.difference(excl_union)
+
+                if open_geom.is_empty:
+                    continue
+
+                # Convert to GeoJSON
+                if isinstance(open_geom, (Polygon, MultiPolygon)):
+                    import shapely.geometry as _sg
+                    gj_geom = _sg.mapping(open_geom)
+                    open_areas_features.append({
+                        'type': 'Feature',
+                        'properties': {
+                            'district_key': district_key,
+                            'district_name': d_name,
+                            'color': color,
+                        },
+                        'geometry': gj_geom,
+                    })
+
+            except Exception as e:
+                print(f"WARNING: Shapely cut failed for '{d_name}': {e}", file=sys.stderr)
+
+    open_areas_gj_json = json.dumps(
+        {'type': 'FeatureCollection', 'features': open_areas_features},
+        cls=_DateEncoder
+    )
+
+    # ── Build STREAM_POINTS ────────────────────────────────────────────────
+    stream_points = [{'lat': lat, 'lon': lon, 'name': name} for lat, lon, name in awc_points]
+    stream_points_json = json.dumps(stream_points, cls=_DateEncoder)
 
     # ── Build district cards ──────────────────────────────────────
     cards_html = ""
-    color_idx = 0
     for pdf_name, districts in all_results.items():
         if not districts:
             continue
         for d in districts:
-            color = DISTRICT_COLORS[color_idx % len(DISTRICT_COLORS)]
-            color_idx += 1
             district_id = d.get('district', 'unknown').lower().replace(' ', '_').replace('/', '_')
+            color = district_colors_map.get(district_id, DISTRICT_COLORS[0])
             status = d.get('status', 'unknown')
             status_html = (
                 '<span class="status-open">OPEN</span>' if status == 'open'
@@ -448,6 +693,9 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
 const DISTRICTS_GJ = {districts_gj};
 const SUBDISTRICTS_GJ = {subdistricts_gj};
 const CLOSURE_LINES = {closure_lines_json};
+const OPEN_AREAS_GJ = {open_areas_gj_json};
+const STREAM_POINTS = {stream_points_json};
+const STREAM_BUFFER_M = 457;
 </script>
 </body>
 </html>"""
