@@ -326,101 +326,145 @@ def parse_simple_boundary(definition):
     return None, None
 
 
-def get_closed_region(closed_side, coords, district_geom):
-    """Return a Shapely polygon covering the CLOSED half of the district.
-
-    The closure line divides the district; we build a large half-plane on the
-    closed side and subtract it from the district polygon via .difference().
-    This is equivalent to walking the boundary and removing the portion on the
-    closed side, inserting the two exact intersection points — exactly as
-    described in geometrylogicsimple.md.
-    """
-    if not coords or len(coords) < 2 or not closed_side:
-        return None
-
+def _build_half_plane(closed_side, coords, district_geom):
+    """Build a large half-plane polygon on the closed side of the closure line."""
     minx, miny, maxx, maxy = district_geom.bounds
-    B = 1.5  # degrees of padding beyond district bounds
+    B = 1.5
 
     lons = [c[0] for c in coords]
     lats = [c[1] for c in coords]
     lon_span = max(lons) - min(lons)
     lat_span = max(lats) - min(lats)
 
-    # ── Meridian (vertical line) ──────────────────────────────────────────
-    if lon_span < 0.001:
+    if lon_span < 0.001:  # meridian
         lon = sum(lons) / len(lons)
-        if closed_side == 'east':  return box(lon,      miny-B, maxx+B, maxy+B)
-        if closed_side == 'west':  return box(minx-B,   miny-B, lon,    maxy+B)
+        if closed_side == 'east':  return box(lon,    miny-B, maxx+B, maxy+B)
+        if closed_side == 'west':  return box(minx-B, miny-B, lon,    maxy+B)
 
-    # ── Parallel (horizontal line) ────────────────────────────────────────
-    if lat_span < 0.001:
+    if lat_span < 0.001:  # parallel
         lat = sum(lats) / len(lats)
         if closed_side == 'north': return box(minx-B, lat,    maxx+B, maxy+B)
         if closed_side == 'south': return box(minx-B, miny-B, maxx+B, lat)
 
-    # ── Diagonal line — half-plane approach ───────────────────────────────
-    # Extend the line well beyond the district, then build a quadrilateral
-    # covering the closed half-plane.
+    # Diagonal: half-plane quadrilateral
     p1, p2 = coords[0], coords[-1]
     dx, dy = p2[0]-p1[0], p2[1]-p1[1]
-    L = (dx**2 + dy**2)**0.5
-    if L < 1e-10:
-        return None
-
-    nx, ny = dx/L, dy/L   # unit tangent along closure line
-    ext = 10.0             # extend line well past district
+    L = (dx**2+dy**2)**0.5
+    if L < 1e-10: return None
+    nx, ny = dx/L, dy/L
+    ext = 10.0
     ep1 = (p1[0]-nx*ext, p1[1]-ny*ext)
     ep2 = (p2[0]+nx*ext, p2[1]+ny*ext)
-
-    # Two perpendicular unit vectors; pick the one pointing to closed side
-    lp = (-ny,  nx)   # left  perpendicular
-    rp = ( ny, -nx)   # right perpendicular
-
+    lp = (-ny, nx); rp = (ny, -nx)
     if   closed_side == 'north': perp = lp if lp[1] >= 0 else rp
     elif closed_side == 'south': perp = lp if lp[1] <  0 else rp
     elif closed_side == 'east':  perp = lp if lp[0] >= 0 else rp
     elif closed_side == 'west':  perp = lp if lp[0] <  0 else rp
     else: return None
-
     big = 20.0
-    return Polygon([
-        ep1,
-        ep2,
-        (ep2[0]+perp[0]*big, ep2[1]+perp[1]*big),
-        (ep1[0]+perp[0]*big, ep1[1]+perp[1]*big),
-    ])
+    return Polygon([ep1, ep2,
+                    (ep2[0]+perp[0]*big, ep2[1]+perp[1]*big),
+                    (ep1[0]+perp[0]*big, ep1[1]+perp[1]*big)])
 
 
-def extract_open_geom(district_geom, closure_polys, excl_geoms):
-    """Subtract closed regions and excluded subdistricts from district_geom.
-    Returns the resulting open-water Shapely geometry, or None on failure.
-    Handles Polygon, MultiPolygon, and GeometryCollection results.
+def get_closed_area(closed_side, coords, district_geom):
+    """Return the actual closed water area within the district for one closure.
+
+    Two cases:
+    A) District-spanning cut (Port Valdez meridian, Landlocked Bay parallel):
+       The synthesized line spans the full district. Use the full half-plane —
+       the intersection correctly gives only the closed portion.
+
+    B) Bay closure (SHTF shore markers, e.g. Jack Bay):
+       The closure line is SHORT (shore-to-shore across a bay mouth, ~1-10km).
+       The bay water and the main district water are CONNECTED on the closed
+       side, so the full half-plane wrongly closes most of the district.
+       Fix: limit the closed area to a buffer around the closure line itself,
+       so only the bay pocket (within ~15km of the line) is subtracted.
     """
+    from shapely.geometry import LineString
     import shapely.geometry as _sg
-    g = district_geom
-    try:
-        if closure_polys:
-            g = g.difference(unary_union(closure_polys))
-        if excl_geoms:
-            g = g.difference(unary_union(excl_geoms))
-    except Exception as e:
-        print(f"WARNING: difference() failed: {e}", file=sys.stderr)
+
+    if not coords or len(coords) < 2 or not closed_side:
         return None
+
+    half_plane = _build_half_plane(closed_side, coords, district_geom)
+    if half_plane is None:
+        return None
+
+    closure_line = LineString(coords)
+    line_len = closure_line.length  # degrees (~111km per degree lat)
+
+    # Threshold: synthesized district-spanning lines are always > 0.4° long.
+    # Real bay closure lines (shore markers) are < 0.2° (~22km).
+    BAY_LINE_THRESHOLD = 0.20   # degrees
+    BAY_BUFFER_DEG    = 0.14    # ~15km — enough to capture bay interior
+
+    if line_len < BAY_LINE_THRESHOLD:
+        # Bay closure: limit to a buffer zone around the closure line so we
+        # only subtract the bay pocket, not the entire half of the district.
+        search_zone = closure_line.buffer(BAY_BUFFER_DEG)
+        clip_region = half_plane.intersection(search_zone)
+    else:
+        # District-spanning cut: use the full half-plane.
+        clip_region = half_plane
+
+    try:
+        result = district_geom.intersection(clip_region)
+    except Exception as e:
+        print(f"WARNING: intersection failed: {e}", file=sys.stderr)
+        return None
+
+    if result is None or result.is_empty:
+        return None
+
+    # Normalize to polygon types only
+    if result.geom_type == 'GeometryCollection':
+        polys = [g for g in result.geoms if g.geom_type in ('Polygon', 'MultiPolygon')]
+        if not polys:
+            return None
+        result = unary_union(polys)
+
+    return result if result.geom_type in ('Polygon', 'MultiPolygon') else None
+
+
+def extract_open_geom(district_geom, closures_with_coords, excl_geoms):
+    """Subtract closed areas and excluded subdistricts from the district polygon.
+
+    closures_with_coords: list of (closed_side, coords) tuples.
+    Each closure is applied individually so bay-closures don't compound into
+    covering the whole district.
+    """
+    g = district_geom
+    for (closed_side, coords) in closures_with_coords:
+        try:
+            closed_area = get_closed_area(closed_side, coords, g)
+            if closed_area and not closed_area.is_empty:
+                g = g.difference(closed_area)
+                if g.is_empty:
+                    print(f"WARNING: district became empty after closure side={closed_side} "
+                          f"coords={coords[:2]}", file=sys.stderr)
+                    return None
+        except Exception as e:
+            print(f"WARNING: closure subtraction failed ({closed_side}): {e}", file=sys.stderr)
+
+    for excl in excl_geoms:
+        try:
+            g = g.difference(excl)
+        except Exception as e:
+            print(f"WARNING: excluded subd subtraction failed: {e}", file=sys.stderr)
 
     if g.is_empty:
         return None
 
-    # difference() can return GeometryCollection when the subtraction
-    # leaves disconnected fragments; keep only Polygon/MultiPolygon parts.
+    # Normalize GeometryCollection → keep only polygon types
     if g.geom_type == 'GeometryCollection':
         polys = [p for p in g.geoms if p.geom_type in ('Polygon', 'MultiPolygon')]
         if not polys:
             return None
         g = unary_union(polys)
 
-    if g.geom_type not in ('Polygon', 'MultiPolygon'):
-        return None
-    return g
+    return g if g.geom_type in ('Polygon', 'MultiPolygon') else None
 
 
 def build_html(all_results, geojson_data, pdf_texts, awc_points):
@@ -485,10 +529,11 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 return k
         return None
 
-    # ── Build CLOSURE_LINES + collect per-district closure geoms ──────────
+    # ── Build CLOSURE_LINES + collect per-district closure specs ──────────
     closure_lines = []
-    # Maps district_key → list of closed-region Shapely polygons
-    district_closure_polys = {}
+    # Maps district_key → list of (closed_side, coords) tuples
+    # (NOT pre-built half-planes — bay-aware subtraction needs the raw specs)
+    district_closure_specs = {}
 
     for pdf_name, districts in all_results.items():
         for d in districts:
@@ -532,11 +577,8 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                         'district': dk or d_name.lower().replace(' ', '_'),
                     })
 
-                # Build closed-region polygon for Shapely cutting
-                if d_geom is not None and len(coords) >= 2 and closed_side:
-                    closed_poly = get_closed_region(closed_side, coords, d_geom)
-                    if closed_poly is not None:
-                        district_closure_polys.setdefault(dk, []).append(closed_poly)
+                if dk and len(coords) >= 2 and closed_side:
+                    district_closure_specs.setdefault(dk, []).append((closed_side, coords))
 
     closure_lines_json = json.dumps(closure_lines, cls=_DateEncoder)
 
@@ -567,14 +609,14 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             district_key = d_name.lower().replace(' ', '_').replace('/', '_')
             color = district_colors_map.get(district_key, DISTRICT_COLORS[0])
 
-            closed_polys = district_closure_polys.get(dk, [])
+            closure_specs = district_closure_specs.get(dk, [])
             excl_geoms_list = []
             for excl_name in (d.get('excluded_subdistricts') or []):
                 ek = find_subd_key(excl_name)
                 if ek and ek in subd_geoms:
                     excl_geoms_list.append(subd_geoms[ek])
 
-            open_geom = extract_open_geom(d_geom, closed_polys, excl_geoms_list)
+            open_geom = extract_open_geom(d_geom, closure_specs, excl_geoms_list)
             if open_geom is None:
                 print(f"WARNING: open area is empty/invalid for '{d_name}', skipping", file=sys.stderr)
                 continue
