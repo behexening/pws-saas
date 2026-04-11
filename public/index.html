@@ -347,6 +347,44 @@
     .conf-notes { font-size: 9px; color: var(--warn); font-style: italic; }
     .card-notes { font-size: 9px; color: var(--muted); font-style: italic; }
 
+    /* ── Status badge ── */
+    .status-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .status-badge.live-now  { background: rgba(39,174,96,0.18);  color: var(--open);   border: 1px solid rgba(39,174,96,0.4); }
+    .status-badge.upcoming  { background: rgba(243,156,18,0.15); color: var(--warn);   border: 1px solid rgba(243,156,18,0.35); }
+    .status-badge.ended     { background: rgba(136,144,176,0.1); color: var(--muted);  border: 1px solid rgba(136,144,176,0.2); }
+
+    /* ── Announcement picker (old tab) ── */
+    .ann-picker {
+      border-bottom: 1px solid var(--border);
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .ann-picker::-webkit-scrollbar { width: 4px; }
+    .ann-picker::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .ann-row {
+      padding: 8px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .ann-row:last-child { border-bottom: none; }
+    .ann-row:hover { background: var(--surface); }
+    .ann-row.ann-active { background: var(--surface); border-left: 3px solid #5b8dee; padding-left: 11px; }
+    .ann-date { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .ann-meta { font-size: 10px; color: var(--muted); }
+
     /* ── Map ── */
     .map-panel { position: relative; }
     #map { width: 100%; height: 100%; background: #0a0c12; }
@@ -426,7 +464,9 @@
 
     <!-- Left panel -->
     <div class="left-panel" id="left-panel">
+      <div class="ann-picker" id="ann-picker" style="display:none"></div>
       <div class="panel-header" id="panel-header" style="display:none">
+        <div id="panel-status-badge"></div>
         <div class="panel-meta" id="panel-meta"></div>
         <div class="panel-stats" id="panel-stats"></div>
       </div>
@@ -457,28 +497,15 @@
 
 <script>
 // ── Map init ──
-const map = L.map('map', {
-  center: [60.5, -147.5],
-  zoom: 8,
-  zoomControl: true,
-});
-
+const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
-  subdomains: 'abcd',
-  maxZoom: 17,
+  subdomains: 'abcd', maxZoom: 17,
 }).addTo(map);
 
 let districtLayers = [];
-let latestData = null;
 let currentTab = 'live';
-
-function setTab(tab, btn) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  loadLatest();
-}
+let allResults = [];
 
 const DISTRICT_COLORS = [
   '#3498db','#e74c3c','#27ae60','#f39c12','#9b59b6',
@@ -486,44 +513,118 @@ const DISTRICT_COLORS = [
   '#ff9800','#607d8b','#795548',
 ];
 
-function colorForIndex(i) {
-  return DISTRICT_COLORS[i % DISTRICT_COLORS.length];
+// ── Tab switching ──
+function setTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ann-picker').style.display = tab === 'old' ? 'block' : 'none';
+  loadTab(tab);
 }
 
-async function loadLatest() {
-  try {
-    const resp = await fetch('/api/latest');
-    const data = await resp.json();
-    latestData = data.latest;
-    if (data.latest) {
-      // Fetch HTML from DB endpoint
-      const htmlResp = await fetch(`/api/result/${data.latest.id}/html`);
-      if (htmlResp.ok) {
-        data.latest._html = await htmlResp.text();
+// ── GeoJSON extraction that handles nested braces ──
+function extractBalancedJson(text, varName) {
+  const idx = text.indexOf(varName + ' =');
+  if (idx === -1) return null;
+  const start = text.indexOf('{', idx);
+  if (start === -1) return null;
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}') {
+      if (--depth === 0) {
+        try { return JSON.parse(text.substring(start, i + 1)); } catch(_) { return null; }
       }
     }
-    renderPanel(data.latest);
-    renderMap(data.latest);
-  } catch (err) {
+  }
+  return null;
+}
+
+function fmtDate(r) {
+  if (r.announcement_date) {
+    return new Date(r.announcement_date + 'T12:00:00Z')
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  return new Date(r.parsed_at)
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ── Load and render for a given tab ──
+async function loadTab(tab) {
+  try {
+    const endpoint = tab === 'live' ? '/api/results/live' : '/api/results/all';
+    const resp = await fetch(endpoint);
+    const data = await resp.json();
+    allResults = data.results || [];
+
+    if (tab === 'old') {
+      renderAnnouncementList(allResults);
+    }
+
+    if (allResults.length) {
+      await loadAndRender(allResults[0]);
+    } else {
+      renderPanel(null);
+      renderMap(null);
+    }
+  } catch(err) {
     document.getElementById('cards-container').innerHTML =
       '<div class="no-data"><strong>Connection error</strong>Could not load announcement data.</div>';
   }
 }
 
-function renderPanel(latest) {
+async function loadAndRender(result) {
+  if (!result._html) {
+    const htmlResp = await fetch(`/api/result/${result.id}/html`);
+    if (htmlResp.ok) result._html = await htmlResp.text();
+  }
+  renderPanel(result);
+  renderMap(result);
+}
+
+// ── Announcement list for old tab ──
+function renderAnnouncementList(results) {
+  const picker = document.getElementById('ann-picker');
+  if (!results.length) {
+    picker.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
+    return;
+  }
+  picker.innerHTML = results.map((r, i) => {
+    const cnt = (r.districts || []).length;
+    const openLabel = r.has_open_districts
+      ? '<span style="color:var(--open);font-weight:700">open</span>'
+      : '<span style="color:var(--muted)">closed</span>';
+    return `<div class="ann-row${i === 0 ? ' ann-active' : ''}" onclick="selectAnnouncement(${r.id}, this)">
+      <span class="ann-date">${fmtDate(r)}</span>
+      <span class="ann-meta">${cnt} dist &middot; ${openLabel}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectAnnouncement(id, el) {
+  document.querySelectorAll('.ann-row').forEach(r => r.classList.remove('ann-active'));
+  el.classList.add('ann-active');
+  const result = allResults.find(r => r.id === id);
+  if (result) loadAndRender(result);
+}
+
+// ── Render district cards ──
+function renderPanel(result) {
   const container = document.getElementById('cards-container');
   const header = document.getElementById('panel-header');
   const meta = document.getElementById('panel-meta');
   const stats = document.getElementById('panel-stats');
 
-  if (!latest || !latest._html) {
+  if (!result || !result._html) {
     header.style.display = 'none';
-    container.innerHTML = '<div class="no-data"><strong>No announcements yet</strong>Waiting for ADF&amp;G to publish.</div>';
+    container.innerHTML = currentTab === 'live'
+      ? '<div class="no-data"><strong>No live announcements</strong>No openings match today\'s date in AKDT.</div>'
+      : '<div class="no-data"><strong>No past announcements</strong>Send a PDF email to get started.</div>';
     return;
   }
 
   const parser = new DOMParser();
-  const doc = parser.parseFromString(latest._html, 'text/html');
+  const doc = parser.parseFromString(result._html, 'text/html');
   const cards = doc.querySelectorAll('.district-card');
 
   let openCount = 0, closedCount = 0;
@@ -532,8 +633,29 @@ function renderPanel(latest) {
     else closedCount++;
   });
 
+  // Status badge based on opening window
+  const badgeEl = document.getElementById('panel-status-badge');
+  const now = new Date();
+  if (result.earliest_opens_at) {
+    const opensAt  = new Date(result.earliest_opens_at);
+    const closesAt = result.latest_closes_at ? new Date(result.latest_closes_at) : null;
+    if (now < opensAt) {
+      const opStr = opensAt.toLocaleString('en-US', {
+        timeZone: 'America/Anchorage', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+      });
+      badgeEl.innerHTML = `<span class="status-badge upcoming">Opens ${opStr}</span>`;
+    } else if (!closesAt || now <= closesAt) {
+      badgeEl.innerHTML = `<span class="status-badge live-now">Live Now</span>`;
+    } else {
+      badgeEl.innerHTML = `<span class="status-badge ended">Period Ended</span>`;
+    }
+  } else {
+    badgeEl.innerHTML = '';
+  }
+
   header.style.display = 'block';
-  meta.textContent = `${new Date(latest.parsed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — ADF&G PWS Commercial Salmon`;
+  meta.textContent = `${fmtDate(result)} — ADF&G PWS Commercial Salmon`;
   stats.innerHTML = `
     <span class="stat-pill open-pill">${openCount} Open</span>
     ${closedCount ? `<span class="stat-pill closed-pill">${closedCount} Closed</span>` : ''}
@@ -550,39 +672,30 @@ function renderPanel(latest) {
   });
 }
 
-function renderMap(latest) {
+// ── Render map ──
+function renderMap(result) {
   districtLayers.forEach(l => map.removeLayer(l));
   districtLayers = [];
 
-  if (!latest || !latest._html) return;
+  if (!result || !result._html) return;
 
   const parser = new DOMParser();
-  const doc = parser.parseFromString(latest._html, 'text/html');
+  const doc = parser.parseFromString(result._html, 'text/html');
+  let scriptText = '';
+  doc.querySelectorAll('script').forEach(s => { scriptText += s.textContent; });
 
-  let geojsonData = null;
-  doc.querySelectorAll('script').forEach(s => {
-    const m = s.textContent.match(/(?:const|var)\s+DISTRICTS_GJ\s*=\s*(\{[\s\S]*?\});\s*(?:const|var)/);
-    if (m) {
-      try { geojsonData = JSON.parse(m[1]); } catch(_) {}
-    }
-    if (!geojsonData) {
-      const m2 = s.textContent.match(/(?:const|var)\s+districtData\s*=\s*(\{[\s\S]*?\});\s/);
-      if (m2) { try { geojsonData = JSON.parse(m2[1]); } catch(_) {} }
-    }
-  });
-
+  const geojsonData = extractBalancedJson(scriptText, 'DISTRICTS_GJ');
   if (geojsonData && geojsonData.features) {
-    let i = 0;
-    geojsonData.features.forEach(feature => {
-      const color = colorForIndex(i++);
-      L.geoJSON(feature, {
+    geojsonData.features.forEach((feature, i) => {
+      const color = DISTRICT_COLORS[i % DISTRICT_COLORS.length];
+      const layer = L.geoJSON(feature, {
         style: { color, weight: 2, fillColor: color, fillOpacity: 0.15, opacity: 0.8 }
       }).addTo(map);
-      districtLayers.push(L.geoJSON(feature));
+      districtLayers.push(layer);
     });
-    // Fit map to districts
-    const group = L.featureGroup(districtLayers.map(l => l));
-    if (group.getLayers().length) map.fitBounds(group.getBounds(), { padding: [20, 20] });
+    if (districtLayers.length) {
+      map.fitBounds(L.featureGroup(districtLayers).getBounds(), { padding: [20, 20] });
+    }
   }
 }
 
@@ -596,8 +709,8 @@ function highlightDistrict(id) {
 }
 
 // Init
-loadLatest();
-setInterval(loadLatest, 60000);
+loadTab('live');
+setInterval(() => loadTab(currentTab), 60000);
 </script>
 </body>
 </html>

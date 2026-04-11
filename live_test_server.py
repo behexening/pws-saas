@@ -433,6 +433,38 @@ const SUBDISTRICTS_GJ = {subdistricts_gj};
 </html>"""
 
 # ============================================================
+# DATE EXTRACTION
+# ============================================================
+
+def extract_announcement_date(text):
+    """Extract the announcement date from text using regex."""
+    import re
+    from datetime import datetime as _datetime
+
+    # "July 19, 2023" or "July 19 2023"
+    m = re.search(
+        r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b',
+        text, re.IGNORECASE
+    )
+    if m:
+        try:
+            dt = _datetime.strptime(f"{m.group(1)} {m.group(2)} {m.group(3)}", '%B %d %Y')
+            return dt.strftime('%Y-%m-%d')
+        except Exception:
+            pass
+
+    # MM/DD/YYYY or M/D/YYYY
+    m = re.search(r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b', text)
+    if m:
+        try:
+            dt = _datetime.strptime(f"{m.group(1)}/{m.group(2)}/{m.group(3)}", '%m/%d/%Y')
+            return dt.strftime('%Y-%m-%d')
+        except Exception:
+            pass
+
+    return None
+
+# ============================================================
 # MAIN
 # ============================================================
 
@@ -494,9 +526,25 @@ def main():
 
     print(f"✓ Saved to {output_path}", file=sys.stderr)
 
-    # Print district names to stdout for the Node.js backend to read
+    # Extract announcement date from text
+    announcement_date = extract_announcement_date(text)
+    has_open = any(d.get('status') == 'open' for d in districts)
     district_names = [d.get('district', '') for d in districts if d.get('district')]
-    print(json.dumps(district_names))
+
+    # Extract opening window from parsed districts
+    opens_times  = [d['opens_at']  for d in districts if d.get('opens_at')]
+    closes_times = [d['closes_at'] for d in districts if d.get('closes_at')]
+    earliest_opens_at = min(opens_times)  if opens_times  else None
+    latest_closes_at  = max(closes_times) if closes_times else None
+
+    # Print structured JSON to stdout for the Node.js backend to read
+    print(json.dumps({
+        "districts": district_names,
+        "announcement_date": announcement_date,
+        "has_open": has_open,
+        "earliest_opens_at": earliest_opens_at,
+        "latest_closes_at": latest_closes_at,
+    }))
     sys.exit(0)
 
 if __name__ == '__main__':

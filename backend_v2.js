@@ -102,8 +102,12 @@ async function initDatabase() {
       );
       CREATE INDEX IF NOT EXISTS idx_parsed_results_announcement ON parsed_results(announcement_id);
     `);
-    // Add html_content column if it doesn't exist (for existing DBs)
+    // Add columns for existing DBs
     await db.query(`ALTER TABLE parsed_results ADD COLUMN IF NOT EXISTS html_content TEXT;`);
+    await db.query(`ALTER TABLE parsed_results ADD COLUMN IF NOT EXISTS announcement_date DATE;`);
+    await db.query(`ALTER TABLE parsed_results ADD COLUMN IF NOT EXISTS has_open_districts BOOLEAN DEFAULT false;`);
+    await db.query(`ALTER TABLE parsed_results ADD COLUMN IF NOT EXISTS earliest_opens_at TIMESTAMPTZ;`);
+    await db.query(`ALTER TABLE parsed_results ADD COLUMN IF NOT EXISTS latest_closes_at TIMESTAMPTZ;`);
 
     // Users
     await db.query(`
@@ -227,7 +231,7 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
   console.log(`🔄 Parsing announcement #${announcementId} from ${pdfPath}...`);
 
   try {
-    const { htmlPath, districts } = await runLiveTest(announcementId, pdfPath);
+    const { htmlPath, districts, announcement_date, has_open, earliest_opens_at, latest_closes_at } = await runLiveTest(announcementId, pdfPath);
 
     // Read HTML content to store in DB (Railway filesystem is ephemeral)
     const htmlContent = await fs.readFile(htmlPath, 'utf8');
@@ -235,9 +239,12 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
     const htmlUrl = `/results/${htmlFilename}`;
 
     await db.query(
-      `INSERT INTO parsed_results (announcement_id, html_filename, html_path, html_url, districts, html_content)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [announcementId, htmlFilename, htmlPath, htmlUrl, districts, htmlContent]
+      `INSERT INTO parsed_results
+         (announcement_id, html_filename, html_path, html_url, districts, html_content,
+          announcement_date, has_open_districts, earliest_opens_at, latest_closes_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [announcementId, htmlFilename, htmlPath, htmlUrl, districts, htmlContent,
+       announcement_date, has_open, earliest_opens_at, latest_closes_at]
     );
 
     console.log(`✓ Announcement #${announcementId} parsed → ${htmlUrl}`);
@@ -283,10 +290,25 @@ async function runLiveTest(announcementId, pdfPath) {
         console.error(`live_test_server.py failed (exit ${error.code}): ${stderr}`);
         return reject(error);
       }
-      let districts = [];
-      try { districts = JSON.parse(stdout.trim()); } catch (_) {}
-      console.log(`Districts from parser: ${districts.join(', ')}`);
-      fs.stat(outputPath).then(() => resolve({ htmlPath: outputPath, districts })).catch(reject);
+      let parsed = { districts: [], announcement_date: null, has_open: false, earliest_opens_at: null, latest_closes_at: null };
+      try {
+        const raw = JSON.parse(stdout.trim());
+        if (Array.isArray(raw)) {
+          parsed.districts = raw;
+        } else {
+          parsed = {
+            districts:          raw.districts           || [],
+            announcement_date:  raw.announcement_date   || null,
+            has_open:           raw.has_open            || false,
+            earliest_opens_at:  raw.earliest_opens_at   || null,
+            latest_closes_at:   raw.latest_closes_at    || null,
+          };
+        }
+      } catch (_) {}
+      console.log(`Districts: ${parsed.districts.join(', ')} | Date: ${parsed.announcement_date} | Opens: ${parsed.earliest_opens_at}`);
+      fs.stat(outputPath)
+        .then(() => resolve({ htmlPath: outputPath, ...parsed }))
+        .catch(reject);
     });
   });
 }
@@ -536,6 +558,57 @@ app.get('/api/latest', async (req, res) => {
     }
 
     res.json({ latest: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/results/live
+ * Currently active, today's, or upcoming (within 48h) announcements.
+ * - Openings that close within the last 12h (still relevant)
+ * - Openings that haven't started yet but start within 48h
+ * - Fallback: announcement_date = today or tomorrow (AKDT)
+ */
+app.get('/api/results/live', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT id, announcement_id, html_url, districts, parsed_at,
+              announcement_date, has_open_districts, earliest_opens_at, latest_closes_at
+       FROM parsed_results
+       WHERE
+         -- Opening window not yet fully past (allow 12h grace after close)
+         (latest_closes_at IS NOT NULL AND latest_closes_at >= NOW() - INTERVAL '12 hours')
+         -- Upcoming with known open time (within 48h)
+         OR (earliest_opens_at IS NOT NULL AND earliest_opens_at <= NOW() + INTERVAL '48 hours' AND (latest_closes_at IS NULL OR latest_closes_at >= NOW()))
+         -- Fallback: announcement date is today or tomorrow in AKDT
+         OR announcement_date = (NOW() AT TIME ZONE 'America/Anchorage')::date
+         OR announcement_date = ((NOW() AT TIME ZONE 'America/Anchorage') + INTERVAL '1 day')::date
+       ORDER BY
+         COALESCE(earliest_opens_at, parsed_at) DESC
+       LIMIT 10`
+    );
+    res.json({ results: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/results/all
+ * All results sorted by announcement_date DESC (for old tab)
+ */
+app.get('/api/results/all', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT id, announcement_id, html_url, districts, parsed_at,
+              announcement_date, has_open_districts, earliest_opens_at, latest_closes_at
+       FROM parsed_results
+       ORDER BY announcement_date DESC NULLS LAST, parsed_at DESC`
+    );
+    res.json({ results: result.rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
