@@ -229,80 +229,20 @@ Return ONLY valid JSON array, no markdown, no preamble."""
 # HTML GENERATION (from original live_test.py)
 # ============================================================
 
+DISTRICT_COLORS = [
+    '#3498db','#e74c3c','#27ae60','#f39c12','#9b59b6',
+    '#1abc9c','#e91e63','#ff5722','#00bcd4','#8bc34a',
+    '#ff9800','#607d8b','#795548',
+]
+
+GEAR_COLORS = {
+    'drift_gillnet': '#2980b9',
+    'purse_seine':   '#8e44ad',
+    'set_gillnet':   '#27ae60',
+}
+
 def build_html(all_results, geojson_data, pdf_texts, awc_points):
-    """Generate the interactive HTML map (simplified here, use original template)."""
-    
-    # This is where you'd include the full HTML template from the original live_test.py
-    # For brevity, returning a minimal version
-    
-    html_template = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWS Salmon Announcement Parser</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        body {{ font-family: sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
-        .container {{ max-width: 1200px; margin: 0 auto; }}
-        h1 {{ color: #333; }}
-        .result {{ background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-        .district {{ padding: 10px; background: #f9f9f9; border-left: 4px solid #667eea; margin: 10px 0; }}
-        .open {{ border-left-color: #27ae60; }}
-        .closed {{ border-left-color: #e74c3c; }}
-        #map {{ width: 100%; height: 400px; border-radius: 8px; margin: 20px 0; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>⚓ PWS Salmon Fishery Announcement Parser</h1>
-        <p>Generated: {timestamp}</p>
-        
-        <div id="results">
-        {results_html}
-        </div>
-        
-        <div id="map"></div>
-    </div>
-
-    <script>
-        var map = L.map('map').setView([60.8, -146.5], 7);
-        L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }}).addTo(map);
-        
-        // Add districts if geojson available
-        var districtData = {district_geojson};
-        if (districtData && districtData.features) {{
-            L.geoJSON(districtData, {{
-                style: {{ color: '#667eea', weight: 2, opacity: 0.7, fillOpacity: 0.2 }}
-            }}).addTo(map);
-        }}
-    </script>
-</body>
-</html>"""
-
-    # Build results HTML
-    results_html = ""
-    for pdf_name, districts in all_results.items():
-        if not districts:
-            results_html += f'<div class="result"><h2>{pdf_name}</h2><p>No districts parsed</p></div>'
-            continue
-        
-        for d in districts:
-            status_class = 'open' if d.get('status') == 'open' else 'closed'
-            results_html += f"""
-            <div class="result">
-                <h2>{d.get('district', 'Unknown')}</h2>
-                <div class="district {status_class}">
-                    <strong>Status:</strong> {d.get('status', 'unknown').upper()}<br>
-                    <strong>Gear Types:</strong> {', '.join(d.get('gear_types', []))}<br>
-                    <strong>Confidence:</strong> {d.get('confidence', 0):.0%}<br>
-                </div>
-            </div>
-            """
+    """Generate rich interactive HTML matching live_output3 style."""
 
     import datetime as _dt
     class _DateEncoder(json.JSONEncoder):
@@ -311,13 +251,186 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 return obj.isoformat()
             return super().default(obj)
 
-    district_geojson = json.dumps(geojson_data.get('districts', {}), cls=_DateEncoder)
+    districts_gj  = json.dumps(geojson_data.get('districts',  {}), cls=_DateEncoder)
+    subdistricts_gj = json.dumps(geojson_data.get('subdistricts', {}), cls=_DateEncoder)
 
-    return html_template.format(
-        timestamp=datetime.now().isoformat(),
-        results_html=results_html,
-        district_geojson=district_geojson
-    )
+    # ── Build district cards ──────────────────────────────────────
+    cards_html = ""
+    color_idx = 0
+    for pdf_name, districts in all_results.items():
+        if not districts:
+            continue
+        for d in districts:
+            color = DISTRICT_COLORS[color_idx % len(DISTRICT_COLORS)]
+            color_idx += 1
+            district_id = d.get('district', 'unknown').lower().replace(' ', '_').replace('/', '_')
+            status = d.get('status', 'unknown')
+            status_html = (
+                '<span class="status-open">OPEN</span>' if status == 'open'
+                else '<span class="status-closed">CLOSED</span>'
+            )
+
+            # Gear badges
+            gear_html = ""
+            for g in (d.get('gear_types') or []):
+                gc = GEAR_COLORS.get(g, '#555')
+                label = g.replace('_', ' ').title()
+                gear_html += f'<span class="badge" style="background:{gc}">{label}</span>'
+            if not gear_html:
+                gear_html = '<span class="no-gear">No gear mentioned</span>'
+
+            # Time block
+            opens  = d.get('opens_at')  or '—'
+            closes = d.get('closes_at') or '—'
+            dur    = d.get('duration_hours')
+            dur_html = f'<div class="duration-tag">{dur}-hour period</div>' if dur else ''
+            time_html = f"""<div class="time-block">
+              <div class="time-row"><span class="time-label">Opens:</span><span class="time-val">{opens}</span></div>
+              <div class="time-row"><span class="time-label">Closes:</span><span class="time-val">{closes}</span></div>
+              {dur_html}
+            </div>"""
+
+            # Closures
+            closures_html = ""
+            for c in (d.get('closures') or []):
+                applies_cls = 'allperiods' if c.get('applies') == 'all_periods' else 'period'
+                applies_lbl = 'All Periods (Permanent)' if c.get('applies') == 'all_periods' else 'This Period Only'
+                side = c.get('closed_side')
+                side_html = f'<div class="closed-side-warning">Waters {side.upper()} of this line are CLOSED</div>' if side else ''
+                pts = c.get('points') or []
+                pts_rows = ''.join(f'<tr><td>{p.get("name","")}</td><td>{p.get("lat","")}</td><td>{p.get("lon","")}</td></tr>' for p in pts)
+                pts_html = f'<table class="points-table"><thead><tr><th>Point</th><th>Lat</th><th>Lon</th></tr></thead><tbody>{pts_rows}</tbody></table>' if pts_rows else ''
+                closures_html += f"""<div class="closure-entry">
+                  <div class="closure-header">
+                    <span class="closure-name">{c.get('name','')}</span>
+                    <span class="applies-badge {applies_cls}">{applies_lbl}</span>
+                  </div>
+                  {side_html}
+                  <div class="closure-desc">{c.get('definition','')}</div>
+                  {pts_html}
+                </div>"""
+            if closures_html:
+                closures_html = f'<div class="closures-section"><div class="closures-label">Internal Closure Areas</div>{closures_html}</div>'
+
+            # Excluded subdistricts
+            excl = d.get('excluded_subdistricts') or []
+            excl_html = ""
+            if excl:
+                tags = ''.join(f'<span class="excl-tag subdistrict">{e}</span>' for e in excl)
+                excl_html = f'<div class="excl-section"><div class="excl-label">Excluded from this opening:</div><div class="excl-list">{tags}</div></div>'
+
+            # Sonar
+            sonar = d.get('sonar_data') or {}
+            sonar_html = ""
+            if sonar.get('cumulative_actual') is not None:
+                exp = sonar.get('cumulative_expected') or 1
+                act = sonar.get('cumulative_actual', 0)
+                pct = round(act / exp * 100) if exp else 0
+                sonar_html = f'<div class="sonar-block"><span class="sonar-label">Sonar:</span> {act:,} cumulative ({pct}% of expected)</div>'
+
+            # Confidence bar
+            conf = d.get('confidence', 0)
+            conf_pct = int(conf * 100)
+            bar_color = '#27ae60' if conf >= 0.8 else ('#f39c12' if conf >= 0.6 else '#e74c3c')
+            conf_html = f"""<div class="conf-row">
+              <span class="conf-text">Parse confidence</span>
+              <div class="conf-bar-wrap"><div class="conf-bar" style="width:{conf_pct}%;background:{bar_color}"></div>
+              <span class="conf-label">{conf_pct}%</span></div>
+            </div>"""
+
+            notes = d.get('notes') or d.get('raw_text') or ''
+            notes_html = f'<div class="card-notes">{notes}</div>' if notes else ''
+
+            cards_html += f"""<div class="district-card" id="card-{district_id}" data-district="{district_id}" style="border-left:4px solid {color}">
+              <div class="card-header">
+                <div class="card-title-row">
+                  <span class="district-dot" style="background:{color}"></span>
+                  <h3 class="district-name">{d.get('district','Unknown')}</h3>
+                </div>
+                {status_html}
+              </div>
+              <div class="card-body">
+                <div class="gear-row">{gear_html}</div>
+                {time_html}
+                {excl_html}
+                {sonar_html}
+                {closures_html}
+                {conf_html}
+                {notes_html}
+              </div>
+            </div>"""
+
+    timestamp = datetime.now().strftime('%b %d, %Y %H:%M')
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADF&G PWS Commercial Salmon</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+  :root{{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3250;--text:#e8eaf6;--muted:#8890b0;--open:#27ae60;--closed:#e74c3c;--warn:#f39c12;--radius:8px}}
+  body{{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px}}
+  .cards-grid{{display:flex;flex-direction:column;gap:8px;padding:12px}}
+  .district-card{{background:var(--surface);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:background 0.15s}}
+  .district-card:hover{{background:var(--surface2)}}
+  .district-card.highlighted{{background:var(--surface2);outline:1px solid var(--border)}}
+  .card-header{{display:flex;justify-content:space-between;align-items:center;padding:10px 12px 6px}}
+  .card-title-row{{display:flex;align-items:center;gap:8px}}
+  .district-dot{{width:10px;height:10px;border-radius:50%;flex-shrink:0}}
+  .district-name{{font-size:13px;font-weight:600}}
+  .status-open{{color:var(--open);font-size:11px;font-weight:700}}
+  .status-closed{{color:var(--closed);font-size:11px;font-weight:700}}
+  .card-body{{padding:0 12px 12px;display:flex;flex-direction:column;gap:7px}}
+  .gear-row{{display:flex;flex-wrap:wrap;gap:4px}}
+  .badge{{color:white;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:.3px}}
+  .no-gear{{font-size:11px;color:var(--muted);font-style:italic}}
+  .time-block{{background:var(--surface2);border-radius:6px;padding:7px 10px;display:flex;flex-direction:column;gap:3px}}
+  .time-row{{display:flex;gap:6px;font-size:11px}}
+  .time-label{{color:var(--muted);min-width:36px}}
+  .time-val{{color:var(--text)}}
+  .duration-tag{{font-size:10px;color:var(--warn);font-weight:600;margin-top:2px}}
+  .excl-section{{display:flex;flex-direction:column;gap:4px}}
+  .excl-label{{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}}
+  .excl-list{{display:flex;flex-wrap:wrap;gap:4px}}
+  .excl-tag{{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}}
+  .excl-tag.subdistrict{{background:rgba(52,152,219,.15);color:#74b9e0;border:1px solid rgba(52,152,219,.3)}}
+  .sonar-block{{font-size:11px;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:5px}}
+  .closures-section{{border-top:1px solid var(--border);padding-top:7px}}
+  .closures-label{{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}}
+  .closure-entry{{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);border-radius:5px;padding:7px 9px;margin-bottom:5px}}
+  .closure-header{{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}}
+  .closure-name{{font-size:11px;font-weight:700;color:#ff9999}}
+  .closed-side-warning{{font-size:11px;font-weight:700;color:#e74c3c;background:rgba(231,76,60,.15);padding:4px 8px;border-radius:4px;border-left:3px solid #e74c3c;margin-bottom:4px}}
+  .closure-desc{{font-size:11px;color:var(--muted);margin-bottom:4px}}
+  .applies-badge{{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}}
+  .applies-badge.period{{background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.3)}}
+  .applies-badge.allperiods{{background:rgba(231,76,60,.3);color:#ff4444;border:1px solid rgba(231,76,60,.5)}}
+  .points-table{{width:100%;border-collapse:collapse;font-size:10px}}
+  .points-table th{{color:var(--muted);font-weight:600;text-align:left;padding:2px 6px;border-bottom:1px solid var(--border)}}
+  .points-table td{{padding:2px 6px;color:#a0b0d0;font-family:monospace}}
+  .conf-row{{display:flex;align-items:center;gap:8px}}
+  .conf-text{{font-size:10px;color:var(--muted);min-width:64px}}
+  .conf-bar-wrap{{flex:1;background:var(--surface2);border-radius:3px;height:6px;display:flex;align-items:center}}
+  .conf-bar{{height:6px;border-radius:3px}}
+  .conf-label{{font-size:10px;color:var(--muted);margin-left:6px;min-width:28px}}
+  .card-notes{{font-size:10px;color:var(--muted);font-style:italic;padding-top:2px}}
+  #map{{width:100%;height:100vh}}
+</style>
+</head>
+<body>
+<div class="cards-grid" id="cards">
+{cards_html}
+</div>
+<script>
+const DISTRICTS_GJ = {districts_gj};
+const SUBDISTRICTS_GJ = {subdistricts_gj};
+</script>
+</body>
+</html>"""
 
 # ============================================================
 # MAIN
