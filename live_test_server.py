@@ -193,11 +193,10 @@ CRITICAL rules for closures:
 - If a subdistrict is being EXCLUDED from an opening (e.g. "Waters of Montague District, excluding the Port Chalmers Subdistrict, will open"), put it in "excluded_subdistricts" — NOT in "closures". Again, use the exact "<Name> Subdistrict" form.
 
 CRITICAL rules for compound boundary clauses:
-- An opening like "Waters of the Southwestern District, south of the latitude of 60° 11.50' N and east of Point Helen (147° 46.27' W), will open..." is a COMPOUND cut — it has BOTH a latitude boundary AND a longitude boundary, joined by "and". Waters that are open must satisfy BOTH constraints. Emit this as TWO SEPARATE closure entries in "closures", one per boundary:
-    1. {"name": "Waters north of 60° 11.50' N", "definition": "north of 60° 11.50' N", "closed_side": "north", "points": []}
-    2. {"name": "Waters west of Point Helen", "definition": "west of Point Helen (147° 46.27' W)", "closed_side": "west", "points": [{"name":"Point Helen","lat":60.1917,"lon":-147.7712}]}
-  Never try to combine multiple directional boundaries in one closure entry.
-- Each individual closure entry must have exactly ONE direction.
+- An opening like "Waters of the Southwestern District, south of the latitude of 60° 11.50' N and east of Point Helen (147° 46.27' W), will open..." is a COMPOUND cut — it has BOTH a latitude boundary AND a longitude boundary, joined by "and". The open area must satisfy BOTH constraints simultaneously. The closed area is ONLY the corner where BOTH conditions fail (north of the latitude AND west of the longitude). Emit this as a SINGLE compound closure entry:
+    {"name": "Waters north of 60° 11.50' N and west of Point Helen", "definition": "north of 60° 11.50' N and west of Point Helen (147° 46.27' W)", "closed_side_lat": "north", "closed_side_lon": "west", "compound": true, "points": [{"name":"Point Helen","lat":60.1917,"lon":-147.7712}]}
+  The downstream code will intersect the two half-planes to produce the single rectangular closed region.
+- For simple (non-compound) closures, each entry must have exactly ONE direction via "closed_side".
 
 CRITICAL rules for hatchery areas (THA/SHA/THR):
 - PWS hatchery Terminal Harvest Areas (THAs), Special Harvest Areas (SHAs) and Terminal Harvest Regions are named after the hatcheries: AFK (Armin F. Koernig, at Sawmill Bay / Evans Island), WNH (Wally Noerenberg Hatchery, at Esther Island/Lake Bay), CCH (Cannery Creek Hatchery, at Unakwik Inlet), SGH (Solomon Gulch Hatchery, at Port Valdez).
@@ -347,16 +346,25 @@ def parse_simple_boundary(definition):
     return None, None
 
 
-def split_compound_closure(closure):
+def normalize_compound_closure(closure):
     """If a closure definition contains BOTH a latitude and a longitude
     boundary joined by 'and' (e.g. 'south of 60° 11.50' N and east of
-    Point Helen (147° 46.27' W)'), return two simpler closure dicts — one
-    for the latitude cut, one for the longitude cut. Otherwise return None.
+    Point Helen (147° 46.27' W)'), return a single compound closure dict
+    with both closed sides. The closed area is the INTERSECTION of the
+    two half-planes (the corner rectangle), NOT their union.
 
-    Claude is asked to split these in the prompt, but we also split on
-    the Python side as a safety net for announcements where the model
-    emits them as a single compound entry."""
+    Returns None if the closure is not compound.
+
+    Claude is asked to emit compound closures with the 'compound' flag,
+    but this also serves as a safety net for older-format entries that
+    have two directions in the definition text."""
     import re
+
+    # Already tagged as compound by Claude — just validate/backfill
+    if closure.get('compound'):
+        if closure.get('closed_side_lat') and closure.get('closed_side_lon'):
+            return closure
+        # compound=true but missing the split sides — fall through to parse
 
     definition = closure.get('definition') or closure.get('name') or ''
     if not definition:
@@ -372,21 +380,14 @@ def split_compound_closure(closure):
     lon_dir = lon_dir_m.group(1).lower()
 
     # When the announcement says "waters SOUTH of X and EAST of Y will open",
-    # the CLOSED side is the complement: NORTH of X and WEST of Y (either
-    # condition makes a spot closed). Flip whichever direction matches the
-    # original closed_side to stay consistent; if the closure dict already
-    # represents the closed side, keep it as-is.
-    # The incoming closure.closed_side may have been inferred from the text
-    # — but for compound cuts it's ambiguous. The text uses "will open south
-    # of X and east of Y", so the closed side is the opposite.
-    # We detect the "will open" direction in the definition and invert.
+    # the CLOSED region is the corner where BOTH conditions fail:
+    # NORTH of X AND WEST of Y. The closed area is the intersection of the
+    # two half-planes, producing a single rectangular region — NOT the union.
     will_open_m = re.search(r'will\s+open', definition, re.IGNORECASE)
     if will_open_m:
-        # text is phrased as "open south of X and east of Y" → closed is N/W
         lat_closed = 'north' if lat_dir == 'south' else 'south'
         lon_closed = 'west'  if lon_dir == 'east'  else 'east'
     else:
-        # text is phrased as a closed-side description directly
         lat_closed = lat_dir
         lon_closed = lon_dir
 
@@ -405,8 +406,6 @@ def split_compound_closure(closure):
     if lon_m:
         lon_val = -(float(lon_m.group(1)) + float(lon_m.group(2)) / 60)
     if lon_val is None:
-        # Try to pull the longitude from the closure's named points list
-        # (e.g. {"name":"Point Helen","lon":-147.7712})
         for p in (closure.get('points') or []):
             plon = p.get('lon')
             if plon is not None and -180 <= float(plon) <= 0:
@@ -416,23 +415,82 @@ def split_compound_closure(closure):
     if lat_val is None or lon_val is None:
         return None
 
-    lat_closure = {
-        'name': f"Waters {lat_closed} of latitude {lat_val:.4f}° N",
-        'definition': f"{lat_closed} of latitude {lat_val:.4f}° N",
-        'closed_side': lat_closed,
-        'points': [],
+    return {
+        'name': closure.get('name') or f"Waters {lat_closed} of {lat_val:.4f}° N and {lon_closed} of {abs(lon_val):.4f}° W",
+        'definition': definition,
+        'closed_side_lat': lat_closed,
+        'closed_side_lon': lon_closed,
+        'compound': True,
+        'points': closure.get('points') or [],
         'applies': closure.get('applies', 'this_period'),
         '_synth_lat': lat_val,
-    }
-    lon_closure = {
-        'name': f"Waters {lon_closed} of longitude {abs(lon_val):.4f}° W",
-        'definition': f"{lon_closed} of longitude {abs(lon_val):.4f}° W",
-        'closed_side': lon_closed,
-        'points': [],
-        'applies': closure.get('applies', 'this_period'),
         '_synth_lon': lon_val,
     }
-    return [lat_closure, lon_closure]
+
+
+def _merge_paired_closures(closures):
+    """Detect paired lat-only + lon-only closures and merge them into a
+    single compound closure. This catches the case where Claude emits two
+    separate entries (one 'north'/'south', one 'east'/'west') instead of
+    a single compound entry."""
+    import re
+
+    lat_indices = []  # (index, closed_side, lat_val)
+    lon_indices = []  # (index, closed_side, lon_val)
+
+    for i, c in enumerate(closures):
+        if c.get('compound'):
+            continue
+        side = (c.get('closed_side') or '').lower()
+        defn = c.get('definition') or c.get('name') or ''
+
+        if side in ('north', 'south'):
+            lat_m = re.search(r'(\d{1,2})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*N', defn, re.IGNORECASE)
+            if lat_m:
+                lat_val = float(lat_m.group(1)) + float(lat_m.group(2)) / 60
+                lat_indices.append((i, side, lat_val))
+                continue
+            dec_m = re.search(r'(\d{2}\.\d+)\s*[°]?\s*N\b', defn, re.IGNORECASE)
+            if dec_m:
+                lat_indices.append((i, side, float(dec_m.group(1))))
+
+        elif side in ('east', 'west'):
+            lon_m = re.search(r'(\d{2,3})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*W', defn, re.IGNORECASE)
+            if lon_m:
+                lon_val = -(float(lon_m.group(1)) + float(lon_m.group(2)) / 60)
+                lon_indices.append((i, side, lon_val))
+                continue
+            for p in (c.get('points') or []):
+                plon = p.get('lon')
+                if plon is not None and -180 <= float(plon) <= 0:
+                    lon_indices.append((i, side, float(plon)))
+                    break
+
+    # If we found exactly one lat and one lon, merge them
+    if len(lat_indices) == 1 and len(lon_indices) == 1:
+        li, lat_side, lat_val = lat_indices[0]
+        lo, lon_side, lon_val = lon_indices[0]
+        merged = {
+            'name': f"Waters {lat_side} of {lat_val:.4f}° N and {lon_side} of {abs(lon_val):.4f}° W",
+            'definition': f"{lat_side} of {lat_val:.4f}° N and {lon_side} of {abs(lon_val):.4f}° W",
+            'closed_side_lat': lat_side,
+            'closed_side_lon': lon_side,
+            'compound': True,
+            'points': (closures[li].get('points') or []) + (closures[lo].get('points') or []),
+            'applies': closures[li].get('applies', 'this_period'),
+            '_synth_lat': lat_val,
+            '_synth_lon': lon_val,
+        }
+        result = []
+        consumed = {li, lo}
+        for i, c in enumerate(closures):
+            if i in consumed:
+                continue
+            result.append(c)
+        result.append(merged)
+        return result
+
+    return closures
 
 
 def _build_half_plane(closed_side, coords, district_geom):
@@ -770,6 +828,45 @@ def _pick_pieces_on_side(pieces, coords, closed_side):
     return keep
 
 
+def get_compound_closed_area(closed_side_lat, closed_side_lon, lat_val, lon_val, district_geom):
+    """Return the closed area for a COMPOUND closure (lat + lon boundary).
+
+    The closed region is the INTERSECTION of the two half-planes — i.e. the
+    single corner rectangle where BOTH conditions hold. For example, if
+    closed_side_lat='north' and closed_side_lon='west', the closed area is
+    the rectangle north of the latitude AND west of the longitude (top-left
+    corner of the district).
+
+    This produces one rectangular cut, NOT two independent half-cuts.
+    """
+    if district_geom is None or district_geom.is_empty:
+        return None
+
+    minx, miny, maxx, maxy = district_geom.bounds
+    B = 1.5  # buffer beyond district bounds
+
+    # Build lat half-plane (a horizontal band on the closed side)
+    lat_coords_for_hp = [[minx - B, lat_val], [maxx + B, lat_val]]
+    lat_hp = _build_half_plane(closed_side_lat, lat_coords_for_hp, district_geom)
+
+    # Build lon half-plane (a vertical band on the closed side)
+    lon_coords_for_hp = [[lon_val, miny - B], [lon_val, maxy + B]]
+    lon_hp = _build_half_plane(closed_side_lon, lon_coords_for_hp, district_geom)
+
+    if lat_hp is None or lon_hp is None:
+        return None
+
+    try:
+        # INTERSECT the two half-planes → single corner rectangle
+        corner = lat_hp.intersection(lon_hp)
+        # Then intersect with the district to get the actual closed water area
+        closed = district_geom.intersection(corner)
+        return _polys_only(closed)
+    except Exception as e:
+        print(f"WARNING: compound closure intersection failed: {e}", file=sys.stderr)
+        return None
+
+
 def get_closed_area(closed_side, coords, district_geom, bay_scope=False, synthesized=False, scope_geom=None):
     """Return the closed water area within `district_geom` for ONE closure.
 
@@ -924,20 +1021,31 @@ def extract_open_geom(district_geom, closures, excl_geoms):
 
     for c in closures:
         try:
-            closed_area = get_closed_area(
-                c.get('closed_side'),
-                c.get('coords'),
-                g,
-                bay_scope=c.get('bay_scope', False),
-                synthesized=c.get('synthesized', False),
-                scope_geom=c.get('scope_geom'),
-            )
+            if c.get('compound'):
+                # Compound closure: intersect two half-planes to get the
+                # single corner rectangle, then subtract it.
+                closed_area = get_compound_closed_area(
+                    c.get('closed_side_lat'),
+                    c.get('closed_side_lon'),
+                    c.get('_synth_lat'),
+                    c.get('_synth_lon'),
+                    g,
+                )
+            else:
+                closed_area = get_closed_area(
+                    c.get('closed_side'),
+                    c.get('coords'),
+                    g,
+                    bay_scope=c.get('bay_scope', False),
+                    synthesized=c.get('synthesized', False),
+                    scope_geom=c.get('scope_geom'),
+                )
             if closed_area is not None and not closed_area.is_empty:
                 g = g.difference(closed_area)
                 if g.is_empty:
                     print(
                         f"WARNING: district became empty after closure "
-                        f"name={c.get('name')} side={c.get('closed_side')}",
+                        f"name={c.get('name')} side={c.get('closed_side', c.get('closed_side_lat'))}",
                         file=sys.stderr,
                     )
                     return None
@@ -1162,19 +1270,27 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                     district_hatchery_missing.setdefault(
                         (pdf_name, d_key_for_card), []).append(hatch_name)
 
-            # Pre-pass: split any compound (lat+lon) closures into two
-            # simpler entries. Claude is instructed to do this itself, but
-            # this is the safety net for when it emits a single compound
-            # entry (e.g. Southwestern District 2025-08-25).
+            # Pre-pass: detect compound (lat+lon) closures and normalize
+            # them into a single compound dict. Whether Claude emits them
+            # as one entry with compound=true or as a legacy two-direction
+            # definition, normalize_compound_closure() produces a dict with
+            # closed_side_lat + closed_side_lon + compound=True so that
+            # extract_open_geom can intersect the two half-planes into one
+            # corner rectangle (instead of the old buggy union approach).
             raw_closures = list(d.get('closures') or [])
-            expanded_closures = []
+            normalized_closures = []
+            # First pass: try normalizing each entry individually
             for c in raw_closures:
-                split = split_compound_closure(c)
-                if split:
-                    expanded_closures.extend(split)
+                compound = normalize_compound_closure(c)
+                if compound:
+                    normalized_closures.append(compound)
                 else:
-                    expanded_closures.append(c)
-            for c in expanded_closures:
+                    normalized_closures.append(c)
+            # Second pass: detect paired lat-only + lon-only closures that
+            # Claude may have split into two separate entries (legacy format).
+            # Merge them into one compound closure.
+            normalized_closures = _merge_paired_closures(normalized_closures)
+            for c in normalized_closures:
                 c_name = c.get('name', '') or ''
 
                 # STEP 1 — subdistrict name match: if the closure is named after
@@ -1198,7 +1314,43 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                         })
                     continue  # done with this closure — skip lat/long parsing
 
-                # STEP 2 — parse lat/long definition
+                # STEP 2 — compound closures get fast-tracked: they already
+                # carry _synth_lat/_synth_lon and closed_side_lat/lon from
+                # normalize_compound_closure(). We build visual closure lines
+                # for both axes and pass through to extract_open_geom which
+                # intersects the two half-planes into one corner rectangle.
+                if c.get('compound'):
+                    lat_val = c.get('_synth_lat')
+                    lon_val = c.get('_synth_lon')
+                    if lat_val is not None and lon_val is not None and d_geom is not None:
+                        minx, miny, maxx, maxy = d_geom.bounds
+                        # Visual closure lines for the map (two lines forming a cross)
+                        closure_lines.append({
+                            'name': f"Latitude {lat_val:.4f}° N",
+                            'closed_side': c.get('closed_side_lat'),
+                            'applies': c.get('applies', 'this_period'),
+                            'coords': [[minx - 0.05, lat_val], [maxx + 0.05, lat_val]],
+                            'district': dk or d_name.lower().replace(' ', '_'),
+                        })
+                        closure_lines.append({
+                            'name': f"Longitude {abs(lon_val):.4f}° W",
+                            'closed_side': c.get('closed_side_lon'),
+                            'applies': c.get('applies', 'this_period'),
+                            'coords': [[lon_val, miny - 0.05], [lon_val, maxy + 0.05]],
+                            'district': dk or d_name.lower().replace(' ', '_'),
+                        })
+                        if dk:
+                            district_closure_specs.setdefault(dk, []).append({
+                                'name': c_name,
+                                'compound': True,
+                                'closed_side_lat': c.get('closed_side_lat'),
+                                'closed_side_lon': c.get('closed_side_lon'),
+                                '_synth_lat': lat_val,
+                                '_synth_lon': lon_val,
+                            })
+                    continue
+
+                # STEP 2b — parse lat/long definition (simple single-direction closures)
                 pts = c.get('points') or []
                 coords = [[p.get('lon', 0), p.get('lat', 0)] for p in pts]
                 synthesized = False
