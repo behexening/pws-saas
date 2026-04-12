@@ -176,6 +176,7 @@ For each district mentioned return one JSON object:
     }
   ],
   "excluded_subdistricts": ["name1", "name2"],
+  "excluded_hatchery_areas": ["AFK THA", "WNH SHA", ...],
   "unscheduled_possible": true/false,
   "sonar_data": {
     "cumulative_actual": int or null,
@@ -190,6 +191,23 @@ CRITICAL rules for closures:
 - If closure is defined by a single meridian ("east of longitude 146° 32.00' W"), points should be empty and closed_side="east". The definition text will let us reconstruct the line.
 - If a closure's "name" is a registered subdistrict (e.g. "Port Fidalgo Subdistrict", "Port Chalmers Subdistrict", "Bettles Bay Subdistrict", "Perry Island Subdistrict", "Cannery Creek Subdistrict", "Valdez Narrows Subdistrict", "Main Bay Subdistrict", etc.), write the name EXACTLY as "<Name> Subdistrict" so the downstream code can match it to the shapefile and remove the whole subdistrict polygon.
 - If a subdistrict is being EXCLUDED from an opening (e.g. "Waters of Montague District, excluding the Port Chalmers Subdistrict, will open"), put it in "excluded_subdistricts" — NOT in "closures". Again, use the exact "<Name> Subdistrict" form.
+
+CRITICAL rules for compound boundary clauses:
+- An opening like "Waters of the Southwestern District, south of the latitude of 60° 11.50' N and east of Point Helen (147° 46.27' W), will open..." is a COMPOUND cut — it has BOTH a latitude boundary AND a longitude boundary, joined by "and". Waters that are open must satisfy BOTH constraints. Emit this as TWO SEPARATE closure entries in "closures", one per boundary:
+    1. {"name": "Waters north of 60° 11.50' N", "definition": "north of 60° 11.50' N", "closed_side": "north", "points": []}
+    2. {"name": "Waters west of Point Helen", "definition": "west of Point Helen (147° 46.27' W)", "closed_side": "west", "points": [{"name":"Point Helen","lat":60.1917,"lon":-147.7712}]}
+  Never try to combine multiple directional boundaries in one closure entry.
+- Each individual closure entry must have exactly ONE direction.
+
+CRITICAL rules for hatchery areas (THA/SHA/THR):
+- PWS hatchery Terminal Harvest Areas (THAs), Special Harvest Areas (SHAs) and Terminal Harvest Regions are named after the hatcheries: AFK (Armin F. Koernig, at Sawmill Bay / Evans Island), WNH (Wally Noerenberg Hatchery, at Esther Island/Lake Bay), CCH (Cannery Creek Hatchery, at Unakwik Inlet), SGH (Solomon Gulch Hatchery, at Port Valdez).
+- When the text mentions that a THA/SHA is EXCLUDED from an opening (e.g. "excluding the AFK THA and SHA" or "excluding WNH SHA inside a line of buoys"), list each one by name in "excluded_hatchery_areas": ["AFK THA", "AFK SHA"] or ["WNH SHA"]. Always split THA and SHA into separate entries even when the text joins them with "and" — e.g. "AFK THA and SHA" → ["AFK THA", "AFK SHA"]. Do NOT put hatchery areas in "closures".
+- Do NOT invent hatchery exclusions. Only extract hatchery areas that are literally named in the text.
+
+CRITICAL rules for redundant restatements:
+- Sometimes an announcement restates a closure that is already implied by an earlier cut. Example: "Waters of the Eastern District, south of a latitude of 60° 55.10' N, will open... Waters of Valdez Arm will remain closed to minimize incidental harvest." Here "Waters of Valdez Arm will remain closed" is redundant because Valdez Arm already sits north of the 60° 55.10' N cut and is therefore already closed.
+- If a subsequent "remain closed" sentence is entirely enveloped by the main opening's boundary cuts, DO NOT emit it as a separate closure entry. Trust the first cut and move on.
+- Only emit such restatements as closures when they describe a NEW closed area that is NOT already covered by the main cut.
 
 Return ONLY valid JSON array, no markdown, no preamble."""
 
@@ -311,8 +329,8 @@ def parse_simple_boundary(definition):
     if lon_m:
         return -(float(lon_m.group(1)) + float(lon_m.group(2)) / 60), None
 
-    # Longitude decimal: longitude 146.533 W
-    dec_lon = re.search(r'longitude\s+(\d{2,3}\.\d+)\s*[°\s]*W', definition, re.IGNORECASE)
+    # Longitude decimal: longitude 146.533 W  OR  "west of 147.7712° W"
+    dec_lon = re.search(r'(\d{2,3}\.\d+)\s*[°\s]*W', definition, re.IGNORECASE)
     if dec_lon:
         return -float(dec_lon.group(1)), None
 
@@ -321,12 +339,100 @@ def parse_simple_boundary(definition):
     if lat_m:
         return None, float(lat_m.group(1)) + float(lat_m.group(2)) / 60
 
-    # Latitude decimal: 60.846 N lat
-    dec_lat = re.search(r'(\d{2}\.\d+)\s*[°]?\s*N\.?\s*lat', definition, re.IGNORECASE)
+    # Latitude decimal: 60.846 N lat  OR  "north of 60.1917° N"
+    dec_lat = re.search(r'(\d{2}\.\d+)\s*[°]?\s*N\b', definition, re.IGNORECASE)
     if dec_lat:
         return None, float(dec_lat.group(1))
 
     return None, None
+
+
+def split_compound_closure(closure):
+    """If a closure definition contains BOTH a latitude and a longitude
+    boundary joined by 'and' (e.g. 'south of 60° 11.50' N and east of
+    Point Helen (147° 46.27' W)'), return two simpler closure dicts — one
+    for the latitude cut, one for the longitude cut. Otherwise return None.
+
+    Claude is asked to split these in the prompt, but we also split on
+    the Python side as a safety net for announcements where the model
+    emits them as a single compound entry."""
+    import re
+
+    definition = closure.get('definition') or closure.get('name') or ''
+    if not definition:
+        return None
+
+    # Need both "{north,south} of" AND "{east,west} of" in the same clause
+    lat_dir_m = re.search(r'\b(north|south)\s+of\b', definition, re.IGNORECASE)
+    lon_dir_m = re.search(r'\b(east|west)\s+of\b', definition, re.IGNORECASE)
+    if not (lat_dir_m and lon_dir_m):
+        return None
+
+    lat_dir = lat_dir_m.group(1).lower()
+    lon_dir = lon_dir_m.group(1).lower()
+
+    # When the announcement says "waters SOUTH of X and EAST of Y will open",
+    # the CLOSED side is the complement: NORTH of X and WEST of Y (either
+    # condition makes a spot closed). Flip whichever direction matches the
+    # original closed_side to stay consistent; if the closure dict already
+    # represents the closed side, keep it as-is.
+    # The incoming closure.closed_side may have been inferred from the text
+    # — but for compound cuts it's ambiguous. The text uses "will open south
+    # of X and east of Y", so the closed side is the opposite.
+    # We detect the "will open" direction in the definition and invert.
+    will_open_m = re.search(r'will\s+open', definition, re.IGNORECASE)
+    if will_open_m:
+        # text is phrased as "open south of X and east of Y" → closed is N/W
+        lat_closed = 'north' if lat_dir == 'south' else 'south'
+        lon_closed = 'west'  if lon_dir == 'east'  else 'east'
+    else:
+        # text is phrased as a closed-side description directly
+        lat_closed = lat_dir
+        lon_closed = lon_dir
+
+    # Extract the latitude and longitude values from the definition.
+    lat_val = None
+    lat_m = re.search(r'(\d{1,2})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*N', definition, re.IGNORECASE)
+    if lat_m:
+        lat_val = float(lat_m.group(1)) + float(lat_m.group(2)) / 60
+    if lat_val is None:
+        dec_lat_m = re.search(r'(\d{2}\.\d+)\s*[°]?\s*N\b', definition, re.IGNORECASE)
+        if dec_lat_m:
+            lat_val = float(dec_lat_m.group(1))
+
+    lon_val = None
+    lon_m = re.search(r'(\d{2,3})\s*[°º]\s*(\d+(?:\.\d+)?)[\'′]?\s*W', definition, re.IGNORECASE)
+    if lon_m:
+        lon_val = -(float(lon_m.group(1)) + float(lon_m.group(2)) / 60)
+    if lon_val is None:
+        # Try to pull the longitude from the closure's named points list
+        # (e.g. {"name":"Point Helen","lon":-147.7712})
+        for p in (closure.get('points') or []):
+            plon = p.get('lon')
+            if plon is not None and -180 <= float(plon) <= 0:
+                lon_val = float(plon)
+                break
+
+    if lat_val is None or lon_val is None:
+        return None
+
+    lat_closure = {
+        'name': f"Waters {lat_closed} of latitude {lat_val:.4f}° N",
+        'definition': f"{lat_closed} of latitude {lat_val:.4f}° N",
+        'closed_side': lat_closed,
+        'points': [],
+        'applies': closure.get('applies', 'this_period'),
+        '_synth_lat': lat_val,
+    }
+    lon_closure = {
+        'name': f"Waters {lon_closed} of longitude {abs(lon_val):.4f}° W",
+        'definition': f"{lon_closed} of longitude {abs(lon_val):.4f}° W",
+        'closed_side': lon_closed,
+        'points': [],
+        'applies': closure.get('applies', 'this_period'),
+        '_synth_lon': lon_val,
+    }
+    return [lat_closure, lon_closure]
 
 
 def _build_half_plane(closed_side, coords, district_geom):
@@ -575,6 +681,35 @@ def find_bbox_polygon(name, district_geom=None):
                 continue
     # Can't disambiguate — refuse the lookup rather than return the wrong one
     return None
+
+
+def find_named_feature_polygon(name, district_geom=None):
+    """Best-effort polygon lookup for a named feature. Tries the hand-drawn
+    bbox layer first, then falls back to a circular buffer around the
+    gazetteer centroid. Returns None if nothing matches. Used for
+    redundancy-detection and hatchery-area subtraction."""
+    bbox = find_bbox_polygon(name, district_geom)
+    if bbox is not None:
+        return bbox
+    entry = find_gazetteer_feature(name, district_geom)
+    if entry is None:
+        return None
+    centroid = entry.get('centroid')
+    if not centroid:
+        return None
+    # 0.08° ≈ 9km radius — generous enough to capture a whole bay/arm.
+    try:
+        buf = Point(float(centroid[0]), float(centroid[1])).buffer(0.08)
+    except Exception:
+        return None
+    if district_geom is not None:
+        try:
+            inter = buf.intersection(district_geom)
+            if not inter.is_empty:
+                return inter
+        except Exception:
+            pass
+    return buf
 
 
 def _polys_only(geom):
@@ -978,6 +1113,8 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
     closure_lines = []
     district_closure_specs = {}   # dk → list of closure dicts for extract_open_geom
     district_direct_subtract = {} # dk → list of (name, shapely geom) to subtract
+    district_hatchery_tags = {}   # (pdf, district_id) → list of hatchery names (for card rendering)
+    district_hatchery_missing = {} # (pdf, district_id) → list of hatchery names with no geometry
 
     for pdf_name, districts in all_results.items():
         for d in districts:
@@ -985,14 +1122,59 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             dk = find_district_key(d_name)
             d_geom = district_geoms.get(dk) if dk else None
 
-            # Excluded subdistricts → always direct-subtract
+            # Excluded subdistricts → direct-subtract the subdistrict polygon,
+            # optionally UNIONed with a hand-drawn bbox of the same name so
+            # the cut follows the user's preferred boundary when one exists.
             for excl_name in (d.get('excluded_subdistricts') or []):
                 ek = find_subd_key(excl_name)
-                if ek and ek in subd_geoms:
+                subd_geom = subd_geoms.get(ek) if ek else None
+                bbox_geom = find_bbox_polygon(excl_name, d_geom)
+                if subd_geom is not None and bbox_geom is not None:
+                    try:
+                        merged = unary_union([subd_geom, bbox_geom])
+                    except Exception:
+                        merged = subd_geom
+                elif subd_geom is not None:
+                    merged = subd_geom
+                elif bbox_geom is not None:
+                    merged = bbox_geom
+                else:
+                    merged = None
+                if merged is not None and dk:
                     district_direct_subtract.setdefault(dk, []).append(
-                        (excl_name, subd_geoms[ek]))
+                        (excl_name, merged))
 
-            for c in (d.get('closures') or []):
+            # Excluded hatchery areas (AFK THA/SHA, WNH THA/SHA, CCH, SGH) →
+            # try to look up a bbox or gazetteer polygon; if found subtract it
+            # the same way subdistricts are subtracted. Either way the
+            # hatchery name is tagged on the card so the user sees it.
+            d_key_for_card = d_name.lower().replace(' ', '_').replace('/', '_')
+            hatchery_names = d.get('excluded_hatchery_areas') or []
+            if hatchery_names:
+                district_hatchery_tags[(pdf_name, d_key_for_card)] = list(hatchery_names)
+            for hatch_name in hatchery_names:
+                hatch_geom = find_named_feature_polygon(hatch_name, d_geom)
+                if hatch_geom is not None and dk:
+                    district_direct_subtract.setdefault(dk, []).append(
+                        (hatch_name, hatch_geom))
+                else:
+                    # No geometry available — record so the card can flag it
+                    district_hatchery_missing.setdefault(
+                        (pdf_name, d_key_for_card), []).append(hatch_name)
+
+            # Pre-pass: split any compound (lat+lon) closures into two
+            # simpler entries. Claude is instructed to do this itself, but
+            # this is the safety net for when it emits a single compound
+            # entry (e.g. Southwestern District 2025-08-25).
+            raw_closures = list(d.get('closures') or [])
+            expanded_closures = []
+            for c in raw_closures:
+                split = split_compound_closure(c)
+                if split:
+                    expanded_closures.extend(split)
+                else:
+                    expanded_closures.append(c)
+            for c in expanded_closures:
                 c_name = c.get('name', '') or ''
 
                 # STEP 1 — subdistrict name match: if the closure is named after
@@ -1106,6 +1288,7 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
     # ── Compute OPEN_AREAS_GJ via Shapely polygon cutting ─────────────────
     open_areas_features = []
     seen_district_keys = set()
+    district_open_geoms = {}  # district_id → shapely open_geom (for redundancy check)
 
     for pdf_name, districts in all_results.items():
         for d in districts:
@@ -1136,6 +1319,8 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 print(f"WARNING: open area is empty/invalid for '{d_name}', skipping", file=sys.stderr)
                 continue
 
+            district_open_geoms[district_key] = open_geom
+
             import shapely.geometry as _sg
             open_areas_features.append({
                 'type': 'Feature',
@@ -1146,6 +1331,59 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 },
                 'geometry': _sg.mapping(open_geom),
             })
+
+    # ── Redundancy pass: mark closures whose named feature lies almost
+    # entirely outside the computed open area. Example: "Waters of Valdez
+    # Arm will remain closed" in an Eastern District opening where the
+    # 60° 55.10' N latitude cut already excludes Valdez Arm. Such entries
+    # get a "redundant" flag and are demoted in the card.
+    #
+    # We use an 85% threshold (feature area outside open_geom / total
+    # feature area) because gazetteer centroids are buffered to ~9km
+    # circles and a boundary cut can clip the very edge of a feature.
+    # A redundant restatement is one whose feature is essentially gone.
+    redundant_closures = {}  # (pdf_name, district_id, closure_name_lower) → True
+    for pdf_name, districts in all_results.items():
+        for d in districts:
+            d_name = d.get('district', '')
+            district_id = d_name.lower().replace(' ', '_').replace('/', '_')
+            open_geom = district_open_geoms.get(district_id)
+            if open_geom is None or open_geom.is_empty:
+                continue
+            dk = find_district_key(d_name)
+            d_geom = district_geoms.get(dk) if dk else None
+            for c in (d.get('closures') or []):
+                c_name = (c.get('name') or '').strip()
+                if not c_name:
+                    continue
+                # Skip closures that have an explicit lat/lon definition —
+                # those are rendered as polylines, not named features, and
+                # shouldn't be second-guessed.
+                pts = c.get('points') or []
+                definition = (c.get('definition') or '').strip()
+                # If definition explicitly mentions a lat/lon boundary,
+                # it's a real cut and must render normally
+                import re as _re
+                if _re.search(r"\d\s*[°º]\s*\d", definition):
+                    continue
+                if pts:
+                    continue
+                # Only redundancy-check closures that reference a named
+                # feature. If we can't look up a polygon for the name, skip.
+                feature_geom = find_named_feature_polygon(c_name, d_geom)
+                if feature_geom is None or feature_geom.is_empty:
+                    continue
+                try:
+                    inside = feature_geom.intersection(open_geom)
+                    total_area = feature_geom.area
+                    if total_area <= 0:
+                        continue
+                    inside_frac = (inside.area / total_area) if not inside.is_empty else 0.0
+                except Exception:
+                    continue
+                # Feature is ≥85% outside the open area → restatement is redundant
+                if inside_frac < 0.15:
+                    redundant_closures[(pdf_name, district_id, c_name.lower())] = True
 
     open_areas_gj_json = json.dumps(
         _round_coords(
@@ -1193,30 +1431,47 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             # Closures
             closures_html = ""
             for c in (d.get('closures') or []):
+                c_name = c.get('name', '') or ''
+                key = (pdf_name, district_id, c_name.strip().lower())
+                is_redundant = redundant_closures.get(key, False)
                 applies_cls = 'allperiods' if c.get('applies') == 'all_periods' else 'period'
                 applies_lbl = 'All Periods (Permanent)' if c.get('applies') == 'all_periods' else 'This Period Only'
                 side = c.get('closed_side')
-                side_html = f'<div class="closed-side-warning">Waters {side.upper()} of this line are CLOSED</div>' if side else ''
+                side_html = f'<div class="closed-side-warning">Waters {side.upper()} of this line are CLOSED</div>' if side and not is_redundant else ''
                 pts = c.get('points') or []
                 pts_rows = ''.join(f'<tr><td>{p.get("name","")}</td><td>{p.get("lat","")}</td><td>{p.get("lon","")}</td></tr>' for p in pts)
                 pts_html = f'<table class="points-table"><thead><tr><th>Point</th><th>Lat</th><th>Lon</th></tr></thead><tbody>{pts_rows}</tbody></table>' if pts_rows else ''
-                closures_html += f"""<div class="closure-entry">
-                  <div class="closure-header">
-                    <span class="closure-name">{c.get('name','')}</span>
-                    <span class="applies-badge {applies_cls}">{applies_lbl}</span>
-                  </div>
-                  {side_html}
-                  <div class="closure-desc">{c.get('definition','')}</div>
-                  {pts_html}
-                </div>"""
+                if is_redundant:
+                    closures_html += f"""<div class="closure-entry redundant">
+                      <div class="closure-header">
+                        <span class="closure-name">{c_name}</span>
+                        <span class="applies-badge redundant">Already closed by boundary cut</span>
+                      </div>
+                      <div class="closure-desc">{c.get('definition','')}</div>
+                    </div>"""
+                else:
+                    closures_html += f"""<div class="closure-entry">
+                      <div class="closure-header">
+                        <span class="closure-name">{c_name}</span>
+                        <span class="applies-badge {applies_cls}">{applies_lbl}</span>
+                      </div>
+                      {side_html}
+                      <div class="closure-desc">{c.get('definition','')}</div>
+                      {pts_html}
+                    </div>"""
             if closures_html:
                 closures_html = f'<div class="closures-section"><div class="closures-label">Internal Closure Areas</div>{closures_html}</div>'
 
-            # Excluded subdistricts
+            # Excluded subdistricts + hatchery areas
             excl = d.get('excluded_subdistricts') or []
+            hatch = d.get('excluded_hatchery_areas') or []
             excl_html = ""
-            if excl:
+            if excl or hatch:
                 tags = ''.join(f'<span class="excl-tag subdistrict">{e}</span>' for e in excl)
+                missing = set(district_hatchery_missing.get((pdf_name, district_id), []))
+                for h in hatch:
+                    missing_flag = ' (no geometry)' if h in missing else ''
+                    tags += f'<span class="excl-tag hatchery">{h}{missing_flag}</span>'
                 excl_html = f'<div class="excl-section"><div class="excl-label">Excluded from this opening:</div><div class="excl-list">{tags}</div></div>'
 
             # Sonar
@@ -1301,6 +1556,9 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
   .excl-list{{display:flex;flex-wrap:wrap;gap:4px}}
   .excl-tag{{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}}
   .excl-tag.subdistrict{{background:rgba(52,152,219,.15);color:#74b9e0;border:1px solid rgba(52,152,219,.3)}}
+  .excl-tag.hatchery{{background:rgba(155,89,182,.15);color:#c39bd3;border:1px solid rgba(155,89,182,.35)}}
+  .closure-entry.redundant{{opacity:0.55;border-style:dashed}}
+  .applies-badge.redundant{{background:rgba(127,140,141,.2);color:#95a5a6;border:1px solid rgba(127,140,141,.4)}}
   .sonar-block{{font-size:11px;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:5px}}
   .closures-section{{border-top:1px solid var(--border);padding-top:7px}}
   .closures-label{{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}}
