@@ -1,939 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>akFISHinfo.</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3250;
-      --text: #e8eaf6;
-      --muted: #8890b0;
-      --open: #27ae60;
-      --closed: #e74c3c;
-      --warn: #f39c12;
-      --radius: 6px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>akFISHinfo — Prince William Sound Salmon Alerts</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --border: #2e3250;
+            --text: #e8eaf6;
+            --muted: #8890b0;
+            --blue: #5b8dee;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+        }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 13px;
-      letter-spacing: -0.01em;
-      height: 100vh;
-      overflow: hidden;
-    }
+        /* Nav */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            height: 52px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+        .wordmark {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+        .wordmark span { color: var(--blue); }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+        .nav-link:hover { color: var(--text); }
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+            padding: 7px 16px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .btn-primary:hover { opacity: 0.85; }
 
-    /* ── Layout ── */
-    .app-layout {
-      display: grid;
-      grid-template-rows: 48px 1fr;
-      height: 100vh;
-    }
-
-    /* ── Topbar ── */
-    .topbar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-    }
-
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .wordmark {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      color: var(--text);
-    }
-    .wordmark span {
-      color: #5b8dee;
-    }
-
-    .live-badge {
-      background: #e74c3c;
-      color: white;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .topbar-tabs {
-      display: flex;
-      gap: 4px;
-    }
-
-    .tab-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      padding: 4px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .tab-btn.active {
-      background: var(--surface2);
-      color: var(--text);
-      border-color: #5b8dee;
-    }
-    .tab-btn:hover:not(.active) {
-      color: var(--text);
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .nav-link {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 500;
-      text-decoration: none;
-      letter-spacing: -0.01em;
-      transition: color 0.15s;
-    }
-    .nav-link:hover { color: var(--text); }
-
-    /* ── Main split ── */
-    .main-split {
-      display: grid;
-      grid-template-columns: 400px 1fr;
-      overflow: hidden;
-    }
-
-    /* ── Left panel ── */
-    .left-panel {
-      overflow-y: auto;
-      background: var(--bg);
-      border-right: 1px solid var(--border);
-    }
-
-    .left-panel::-webkit-scrollbar { width: 4px; }
-    .left-panel::-webkit-scrollbar-track { background: transparent; }
-    .left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    /* ── Panel header ── */
-    .panel-header {
-      padding: 14px 16px 10px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 10;
-    }
-
-    .panel-meta {
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: -0.01em;
-      margin-bottom: 8px;
-    }
-
-    .panel-stats {
-      display: flex;
-      gap: 6px;
-    }
-
-    .stat-pill {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 10px;
-      letter-spacing: -0.01em;
-    }
-    .open-pill { background: rgba(39,174,96,0.15); color: var(--open); border: 1px solid rgba(39,174,96,0.3); }
-    .closed-pill { background: rgba(231,76,60,0.1); color: #c0392b; border: 1px solid rgba(231,76,60,0.2); }
-
-    /* ── No data state ── */
-    .no-data {
-      padding: 40px 20px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-    }
-    .no-data strong {
-      display: block;
-      font-size: 13px;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
-    /* ── Cards ── */
-    .cards-grid {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .district-card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      overflow: hidden;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .district-card:hover { background: var(--surface2); }
-    .district-card.highlighted { background: var(--surface2); outline: 1px solid #5b8dee44; }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 9px 11px 5px;
-    }
-    .card-title-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-    .district-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .district-name {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .status-open { color: var(--open); font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
-    .status-closed { color: var(--closed); font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
-
-    .card-body {
-      padding: 0 11px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .gear-row { display: flex; flex-wrap: wrap; gap: 4px; }
-    .badge {
-      color: white;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 10px;
-      letter-spacing: 0.01em;
-    }
-    .no-gear { font-size: 10px; color: var(--muted); font-style: italic; }
-
-    .time-block {
-      background: var(--surface2);
-      border-radius: 5px;
-      padding: 6px 9px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .time-row { display: flex; gap: 6px; font-size: 10px; }
-    .time-label { color: var(--muted); min-width: 36px; }
-    .time-val { color: var(--text); }
-    .duration-tag { font-size: 9px; color: var(--warn); font-weight: 700; margin-top: 2px; letter-spacing: 0.01em; }
-
-    .constraint-row {
-      font-size: 10px;
-      color: var(--text);
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .constraint-label { color: var(--muted); flex-shrink: 0; }
-    .constraint-item {
-      background: rgba(52,152,219,0.12);
-      color: #74b9e0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid rgba(52,152,219,0.25);
-      font-size: 10px;
-    }
-
-    .excl-list { display: flex; flex-wrap: wrap; gap: 3px; }
-    .excl-tag {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-    .excl-tag.subdistrict { background: rgba(52,152,219,0.15); color: #74b9e0; border: 1px solid rgba(52,152,219,0.3); }
-    .excl-tag.gen { background: rgba(231,76,60,0.1); color: #e88; border: 1px solid rgba(231,76,60,0.2); }
-
-    .sonar-block {
-      font-size: 10px;
-      color: var(--muted);
-      background: var(--surface2);
-      padding: 5px 9px;
-      border-radius: 5px;
-    }
-    .sonar-label { font-weight: 700; color: var(--text); }
-
-    .streams-active { font-size: 9px; color: var(--warn); font-weight: 700; letter-spacing: 0.01em; }
-
-    .closures-section { border-top: 1px solid var(--border); padding-top: 6px; }
-    .closures-label {
-      font-size: 9px;
-      color: var(--muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 4px;
-    }
-    .closure-entry {
-      background: rgba(231,76,60,0.06);
-      border: 1px solid rgba(231,76,60,0.2);
-      border-radius: 4px;
-      padding: 6px 8px;
-      margin-bottom: 4px;
-    }
-    .closure-name { font-size: 10px; font-weight: 700; color: #ff9999; }
-    .closed-side-warning {
-      font-size: 10px;
-      font-weight: 700;
-      color: #e74c3c;
-      background: rgba(231,76,60,0.12);
-      padding: 3px 7px;
-      border-radius: 3px;
-      border-left: 2px solid #e74c3c;
-      margin: 3px 0;
-    }
-    .closure-desc { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
-    .applies-badge {
-      font-size: 8px;
-      padding: 1px 5px;
-      border-radius: 3px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .applies-badge.period { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
-    .applies-badge.allperiods { background: rgba(231,76,60,0.3); color: #ff4444; border: 1px solid rgba(231,76,60,0.5); }
-
-    .points-table { width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 4px; }
-    .points-table th { color: var(--muted); font-weight: 700; text-align: left; padding: 2px 5px; border-bottom: 1px solid var(--border); }
-    .points-table td { padding: 2px 5px; color: #a0b0d0; font-family: monospace; }
-
-    .conf-row { display: flex; align-items: center; gap: 7px; }
-    .conf-text { font-size: 9px; color: var(--muted); min-width: 60px; }
-    .conf-bar-wrap { flex: 1; background: var(--surface2); border-radius: 3px; height: 5px; display: flex; align-items: center; }
-    .conf-bar { height: 5px; border-radius: 3px; }
-    .conf-label { font-size: 9px; color: var(--muted); margin-left: 5px; min-width: 24px; }
-    .conf-notes { font-size: 9px; color: var(--warn); font-style: italic; }
-    .card-notes { font-size: 9px; color: var(--muted); font-style: italic; }
-
-    /* ── Status badge ── */
-    .status-badge {
-      display: inline-block;
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .status-badge.live-now  { background: rgba(39,174,96,0.18);  color: var(--open);   border: 1px solid rgba(39,174,96,0.4); }
-    .status-badge.upcoming  { background: rgba(243,156,18,0.15); color: var(--warn);   border: 1px solid rgba(243,156,18,0.35); }
-    .status-badge.ended     { background: rgba(136,144,176,0.1); color: var(--muted);  border: 1px solid rgba(136,144,176,0.2); }
-
-    /* ── Announcement picker (old tab) ── */
-    .ann-picker {
-      border-bottom: 1px solid var(--border);
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    .ann-picker::-webkit-scrollbar { width: 4px; }
-    .ann-picker::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .ann-row {
-      padding: 8px 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.1s;
-    }
-    .ann-row:last-child { border-bottom: none; }
-    .ann-row:hover { background: var(--surface); }
-    .ann-row.ann-active { background: var(--surface); border-left: 3px solid #5b8dee; padding-left: 11px; }
-    .ann-date { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
-    .ann-meta { font-size: 10px; color: var(--muted); }
-
-    /* ── Map ── */
-    .map-panel { position: relative; }
-    #map { width: 100%; height: 100%; background: #0a0c12; }
-
-    .map-legend {
-      position: absolute;
-      bottom: 20px;
-      left: 10px;
-      z-index: 1000;
-      background: rgba(15,17,23,0.92);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 9px 13px;
-      font-size: 10px;
-    }
-    .map-legend h4 {
-      color: var(--muted);
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-    .legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: var(--text); letter-spacing: -0.01em; }
-    .legend-swatch { width: 12px; height: 3px; border-radius: 2px; }
-
-    .map-note {
-      position: absolute;
-      bottom: 8px;
-      right: 10px;
-      z-index: 1000;
-      font-size: 9px;
-      color: var(--muted);
-      background: rgba(15,17,23,0.75);
-      padding: 2px 6px;
-      border-radius: 4px;
-      letter-spacing: -0.01em;
-    }
-
-    .disclaimer-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      background: rgba(15,17,23,0.85);
-      border-top: 1px solid var(--border);
-      padding: 5px 14px;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: -0.01em;
-    }
-    .disclaimer-bar strong { color: var(--warn); }
-  </style>
+        /* Hero — placeholder until user fills in content */
+        .hero {
+            max-width: 760px;
+            margin: 120px auto;
+            padding: 0 32px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 1.2rem;
+        }
+        .hero h1 span { color: var(--blue); }
+        .hero p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 540px;
+            margin: 0 auto 2.5rem;
+        }
+        .cta-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-lg {
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .btn-lg-primary { background: var(--blue); color: white; }
+        .btn-lg-primary:hover { opacity: 0.85; }
+        .btn-lg-ghost {
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+        .btn-lg-ghost:hover { color: var(--text); border-color: var(--muted); }
+    </style>
 </head>
 <body>
-<div class="app-layout">
-
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="wordmark">ak<span>FISH</span>info.</div>
-      <span class="live-badge">live</span>
-      <div class="topbar-tabs">
-        <button class="tab-btn active" onclick="setTab('live', this)">live</button>
-        <button class="tab-btn" onclick="setTab('old', this)">old</button>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <a href="#" class="nav-link">login</a>
-      <a href="#" class="nav-link">sign up</a>
-    </div>
-  </div>
-
-  <!-- Main -->
-  <div class="main-split">
-
-    <!-- Left panel -->
-    <div class="left-panel" id="left-panel">
-      <div class="ann-picker" id="ann-picker" style="display:none"></div>
-      <div class="panel-header" id="panel-header" style="display:none">
-        <div id="panel-status-badge"></div>
-        <div class="panel-meta" id="panel-meta"></div>
-        <div class="panel-stats" id="panel-stats"></div>
-      </div>
-      <div id="cards-container">
-        <div class="no-data">
-          <strong>No announcement loaded</strong>
-          Loading latest PWS announcement...
+    <nav>
+        <div class="wordmark">akFISH<span>info.</span></div>
+        <div class="nav-links">
+            <a href="/login" class="nav-link" id="app-link">sign in</a>
+            <a href="/login" class="btn-primary">Get started</a>
         </div>
-      </div>
+    </nav>
+
+    <!-- Hero — fill in your copy here -->
+    <div class="hero">
+        <h1>Real-time <span>salmon alerts</span> for Prince William Sound</h1>
+        <p>Instant SMS notifications the moment ADF&amp;G opens a district. Know before you go.</p>
+        <div class="cta-group">
+            <a href="/login" class="btn-lg btn-lg-primary">Start free trial</a>
+            <a href="/app" class="btn-lg btn-lg-ghost">View map →</a>
+        </div>
     </div>
 
-    <!-- Map -->
-    <div class="map-panel">
-      <div id="map"></div>
-      <div class="map-legend">
-        <h4>Map Legend</h4>
-        <div class="legend-row"><span class="legend-swatch" style="background:rgba(39,174,96,0.4);border:2px solid #27ae60;height:10px;border-radius:2px"></span> Open District</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#ff6b6b;height:2px"></span> Closure line (this period)</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#ff3333;height:2px"></span> Closure line (permanent)</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:rgba(231,76,60,0.4);border:1px dashed #e74c3c;height:10px;border-radius:2px"></span> Excluded subdistrict</div>
-      </div>
-      <div class="map-note">ADF&amp;G PWS Commercial Salmon</div>
-      <div class="disclaimer-bar">
-        <strong>Notice:</strong> Not legal advice. Always verify openings with ADF&amp;G at (907) 424-3212 or adfg.alaska.gov before fishing.
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-// ── Map init ──
-const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap &copy; CARTO',
-  subdomains: 'abcd', maxZoom: 17,
-}).addTo(map);
-
-let activeLayers = [];       // all Leaflet layers — cleared on each reload
-let mapDistrictLayers = {};  // district_key → Leaflet layer (for card↔map sync)
-let openAreaLayers   = {};   // district_key → pre-clipped open area layer
-let currentDistrictsGJ = null;  // kept for PIP click handler
-let currentHighlighted = {};    // district name → {key, color, open}
-let currentTab = 'live';
-let allResults = [];
-
-// ── Static district polygons — fetched ONCE at page load ─────────────────
-// Districts never change between announcements. Previously the full
-// FeatureCollection was inlined into every per-announcement HTML record
-// (~27 MB each), which made records slow to fetch from Postgres. Now it
-// lives at /static/districts.geojson, served by backend_v2.js, and the
-// browser caches it across all record renders.
-let STATIC_DISTRICTS_GJ = null;
-const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
-  .then(function(r) { return r.ok ? r.json() : null; })
-  .then(function(gj) { STATIC_DISTRICTS_GJ = gj; return gj; })
-  .catch(function(e) { console.warn('static districts fetch failed:', e); return null; });
-
-// ── AWC stream buffers — loaded once, persists across announcement switches ──
-(function initStreamLayer() {
-  const canvasRenderer = L.canvas({ padding: 0.5 });
-  const streamLayer = L.layerGroup().addTo(map);
-  let visible = true;
-
-  fetch('/awc-points.json')
-    .then(r => r.json())
-    .then(function(pts) {
-      pts.forEach(function(pt) {
-        L.circle([pt.lat, pt.lon], {
-          renderer: canvasRenderer,
-          radius: 457,
-          color: '#e67e22', weight: 1, opacity: 0.7,
-          fillColor: '#0a0c14', fillOpacity: 0.70,
-        }).bindTooltip(
-          '⛔ Anadromous Stream<br><b>' + pt.name + '</b><br>500 yd closure buffer',
-          { direction: 'top', sticky: true }
-        ).addTo(streamLayer);
-      });
-
-      const toggleBtn = L.control({ position: 'topright' });
-      toggleBtn.onAdd = function() {
-        const div = L.DomUtil.create('div', 'stream-toggle');
-        div.innerHTML = '⛔ AWC Buffers: ON';
-        div.style.cssText = 'background:rgba(15,17,23,0.9);color:#e67e22;border:1px solid #e67e22;' +
-          'padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;';
-        div.onclick = function() {
-          visible = !visible;
-          if (visible) { streamLayer.addTo(map); div.innerHTML='⛔ AWC Buffers: ON'; div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
-          else { map.removeLayer(streamLayer); div.innerHTML='○ AWC Buffers: OFF'; div.style.color='#555'; div.style.borderColor='#555'; }
-        };
-        return div;
-      };
-      toggleBtn.addTo(map);
-    })
-    .catch(function(e) { console.warn('AWC points fetch failed:', e); });
-})();
-
-// ── Tab switching ──
-function setTab(tab, btn) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('ann-picker').style.display = tab === 'old' ? 'block' : 'none';
-  loadTab(tab);
-}
-
-// ── JSON extraction helpers ──
-function extractBalancedJson(text, varName) {
-  const m = text.match(new RegExp(varName + '\\s*=\\s*\\{'));
-  if (!m) return null;
-  const idx = m.index + m[0].length - 1; // position of '{'
-  const start = idx;
-  if (start === -1) return null;
-  let depth = 0;
-  for (let i = start; i < text.length; i++) {
-    if (text[i] === '{') depth++;
-    else if (text[i] === '}') {
-      if (--depth === 0) {
-        try { return JSON.parse(text.substring(start, i + 1)); } catch(_) { return null; }
-      }
-    }
-  }
-  return null;
-}
-
-function extractBalancedArray(text, varName) {
-  const m = text.match(new RegExp(varName + '\\s*=\\s*\\['));
-  if (!m) return null;
-  const start = m.index + m[0].length - 1; // position of '['
-  if (start === -1) return null;
-  let depth = 0;
-  for (let i = start; i < text.length; i++) {
-    if (text[i] === '[') depth++;
-    else if (text[i] === ']') {
-      if (--depth === 0) {
-        try { return JSON.parse(text.substring(start, i + 1)); } catch(_) { return null; }
-      }
-    }
-  }
-  return null;
-}
-
-function fmtDate(r) {
-  let d = null;
-  if (r.announcement_date) {
-    // pg may return DATE as 'YYYY-MM-DD' or a full ISO timestamp — take only the date part
-    const dateStr = String(r.announcement_date).substring(0, 10);
-    d = new Date(dateStr + 'T12:00:00Z');
-  } else if (r.parsed_at) {
-    d = new Date(r.parsed_at);
-  }
-  if (!d || isNaN(d.getTime())) return 'Unknown date';
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-}
-
-// ── Load and render for a given tab ──
-async function loadTab(tab) {
-  try {
-    const endpoint = tab === 'live' ? '/api/results/live' : '/api/results/all';
-    const resp = await fetch(endpoint);
-    const data = await resp.json();
-    allResults = data.results || [];
-
-    if (tab === 'old') {
-      renderAnnouncementList(allResults);
-    }
-
-    if (allResults.length) {
-      await loadAndRender(allResults[0]);
-    } else {
-      renderPanel(null);
-      renderMap(null);
-    }
-  } catch(err) {
-    document.getElementById('cards-container').innerHTML =
-      '<div class="no-data"><strong>Connection error</strong>Could not load announcement data.</div>';
-  }
-}
-
-async function loadAndRender(result) {
-  if (!result._html) {
-    const htmlResp = await fetch(`/api/result/${result.id}/html`);
-    if (htmlResp.ok) result._html = await htmlResp.text();
-  }
-  renderPanel(result);
-  await renderMap(result);
-}
-
-// ── Announcement list for old tab ──
-function renderAnnouncementList(results) {
-  const picker = document.getElementById('ann-picker');
-  if (!results.length) {
-    picker.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
-    return;
-  }
-  picker.innerHTML = results.map((r, i) => {
-    const cnt = (r.districts || []).length;
-    const openLabel = r.has_open_districts
-      ? '<span style="color:var(--open);font-weight:700">open</span>'
-      : '<span style="color:var(--muted)">closed</span>';
-    return `<div class="ann-row${i === 0 ? ' ann-active' : ''}" onclick="selectAnnouncement(${r.id}, this)">
-      <span class="ann-date">${fmtDate(r)}</span>
-      <span class="ann-meta">${cnt} dist &middot; ${openLabel}</span>
-    </div>`;
-  }).join('');
-}
-
-function selectAnnouncement(id, el) {
-  document.querySelectorAll('.ann-row').forEach(r => r.classList.remove('ann-active'));
-  el.classList.add('ann-active');
-  const result = allResults.find(r => r.id === id);
-  if (result) loadAndRender(result);
-}
-
-async function reparseResult(id) {
-  const btn = document.querySelector(`button[onclick="reparseResult(${id})"]`);
-  if (btn) { btn.textContent = '↻ Reparsing…'; btn.disabled = true; }
-  try {
-    const resp = await fetch(`/api/result/${id}/reparse`, { method: 'POST' });
-    if (resp.ok) {
-      if (btn) btn.textContent = '✓ Queued — reload in ~30s';
-      // Reload after 35s to pick up fresh HTML
-      setTimeout(() => loadTab(currentTab), 35000);
-    } else {
-      if (btn) { btn.textContent = '✗ Failed'; btn.disabled = false; }
-    }
-  } catch(e) {
-    if (btn) { btn.textContent = '✗ Error'; btn.disabled = false; }
-  }
-}
-
-// ── Render district cards ──
-function renderPanel(result) {
-  const container = document.getElementById('cards-container');
-  const header = document.getElementById('panel-header');
-  const meta = document.getElementById('panel-meta');
-  const stats = document.getElementById('panel-stats');
-
-  if (!result || !result._html) {
-    header.style.display = 'none';
-    container.innerHTML = currentTab === 'live'
-      ? '<div class="no-data"><strong>No live announcements</strong>No openings match today\'s date in AKDT.</div>'
-      : '<div class="no-data"><strong>No past announcements</strong>Send a PDF email to get started.</div>';
-    return;
-  }
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(result._html, 'text/html');
-  const cards = doc.querySelectorAll('.district-card');
-
-  let openCount = 0, closedCount = 0;
-  cards.forEach(card => {
-    if (card.querySelector('.status-open')) openCount++;
-    else closedCount++;
-  });
-
-  // Status badge based on opening window
-  const badgeEl = document.getElementById('panel-status-badge');
-  const now = new Date();
-  if (result.earliest_opens_at) {
-    const opensAt  = new Date(result.earliest_opens_at);
-    const closesAt = result.latest_closes_at ? new Date(result.latest_closes_at) : null;
-    if (now < opensAt) {
-      const opStr = opensAt.toLocaleString('en-US', {
-        timeZone: 'America/Anchorage', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-      });
-      badgeEl.innerHTML = `<span class="status-badge upcoming">Opens ${opStr}</span>`;
-    } else if (!closesAt || now <= closesAt) {
-      badgeEl.innerHTML = `<span class="status-badge live-now">Live Now</span>`;
-    } else {
-      badgeEl.innerHTML = `<span class="status-badge ended">Period Ended</span>`;
-    }
-  } else {
-    badgeEl.innerHTML = '';
-  }
-
-  header.style.display = 'block';
-  meta.textContent = `${fmtDate(result)} — ADF&G PWS Commercial Salmon`;
-
-  // Show reparse button if OPEN_AREAS_GJ is absent (old record)
-  const hasOAGJ = result._html && /OPEN_AREAS_GJ\s*=\s*\{/.test(result._html) &&
-    /"features"\s*:\s*\[\s*\{/.test(result._html);
-  const reparseBtn = hasOAGJ ? '' :
-    `<button onclick="reparseResult(${result.id})" style="
-      margin-left:8px;padding:3px 10px;font-size:10px;font-weight:700;
-      background:rgba(91,141,238,0.15);color:#5b8dee;border:1px solid rgba(91,141,238,0.4);
-      border-radius:5px;cursor:pointer;letter-spacing:.3px;
-    " title="Re-run parser to get clipped geometry">↻ Reparse</button>`;
-
-  stats.innerHTML = `
-    <span class="stat-pill open-pill">${openCount} Open</span>
-    ${closedCount ? `<span class="stat-pill closed-pill">${closedCount} Closed</span>` : ''}
-    ${reparseBtn}
-  `;
-
-  const grid = document.createElement('div');
-  grid.className = 'cards-grid';
-  cards.forEach(card => grid.appendChild(card.cloneNode(true)));
-  container.innerHTML = '';
-  container.appendChild(grid);
-
-  container.querySelectorAll('.district-card').forEach(card => {
-    card.addEventListener('click', () => highlightDistrict(card.dataset.district));
-  });
-}
-
-// ── Point-in-polygon (for map→card click) ──
-function _pip(ring, lng, lat) {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0], yi = ring[i][1];
-    const xj = ring[j][0], yj = ring[j][1];
-    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
-  }
-  return inside;
-}
-
-function districtAtLatLng(latlng) {
-  if (!currentDistrictsGJ) return null;
-  const lng = latlng.lng, lat = latlng.lat;
-  for (const feature of currentDistrictsGJ.features) {
-    const name = feature.properties.DISTRICT_N || '';
-    const info = currentHighlighted[name];
-    if (!info) continue;
-    const geom = feature.geometry;
-    const rings = geom.type === 'Polygon'
-      ? [geom.coordinates[0]]
-      : geom.type === 'MultiPolygon'
-        ? geom.coordinates.map(p => p[0])
-        : [];
-    if (rings.some(r => _pip(r, lng, lat))) return info;
-  }
-  return null;
-}
-
-// Single map-level click → find district via PIP → scroll card
-map.on('click', function(e) {
-  const info = districtAtLatLng(e.latlng);
-  if (!info) return;
-  const card = document.getElementById('card-' + info.key);
-  if (card) {
-    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    card.classList.add('highlighted');
-    setTimeout(() => card.classList.remove('highlighted'), 2000);
-  }
-  const openLayer = openAreaLayers[info.key];
-  const distLayer = mapDistrictLayers[info.key];
-  if (openLayer) {
-    openLayer.setStyle({ fillOpacity: 0.45, weight: 3 });
-    setTimeout(() => openLayer.setStyle({ fillOpacity: 0.22, weight: 2 }), 1500);
-  } else if (distLayer) {
-    distLayer.setStyle({ fillOpacity: 0.4, weight: 3 });
-    setTimeout(() => distLayer.setStyle({ fillOpacity: 0.15, weight: 2 }), 1500);
-  }
-});
-
-// ── Render map ──
-async function renderMap(result) {
-  activeLayers.forEach(l => map.removeLayer(l));
-  activeLayers = [];
-  mapDistrictLayers = {};
-  openAreaLayers    = {};
-  currentDistrictsGJ = null;
-  currentHighlighted = {};
-
-  if (!result || !result._html) return;
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(result._html, 'text/html');
-  let scriptText = '';
-  doc.querySelectorAll('script').forEach(s => { scriptText += s.textContent; });
-
-  // ── Build HIGHLIGHTED from card DOM ──────────────────────────────────────
-  doc.querySelectorAll('.district-card').forEach(card => {
-    const key = card.dataset.district;
-    const nameEl = card.querySelector('.district-name');
-    const name = nameEl ? nameEl.textContent.trim() : '';
-    if (!key || !name) return;
-    const isOpen = !!card.querySelector('.status-open');
-    const styleStr = card.getAttribute('style') || '';
-    const colorM = styleStr.match(/border-left:\s*\d+px solid ([^;]+)/);
-    const color = colorM ? colorM[1].trim() : '#3498db';
-    currentHighlighted[name] = { key, color, open: isOpen };
-  });
-
-  // ── District polygons ────────────────────────────────────────────────────
-  // Districts come from the cached /static/districts.geojson fetch kicked
-  // off at page load, NOT from inlined JSON in the record's HTML blob.
-  const districtsGJ = STATIC_DISTRICTS_GJ || await STATIC_DISTRICTS_READY;
-  currentDistrictsGJ = districtsGJ;
-
-  // Does this HTML record have a non-empty OPEN_AREAS_GJ from Shapely?
-  const hasOpenAreas = /OPEN_AREAS_GJ\s*=\s*\{/.test(scriptText) &&
-    /"features"\s*:\s*\[\s*\{/.test(scriptText);
-
-  if (districtsGJ && districtsGJ.features) {
-    const geoLayer = L.geoJSON(districtsGJ, {
-      style: function(feature) {
-        const name = feature.properties.DISTRICT_N || '';
-        const info = currentHighlighted[name];
-        // Use near-zero fill when Shapely-cut OPEN_AREAS_GJ will provide the visible fill.
-        // Fall back to solid fill for old DB records that predate OPEN_AREAS_GJ.
-        if (info && info.open)
-          return { color: info.color, weight: 2, opacity: 0.8, fillColor: info.color, fillOpacity: hasOpenAreas ? 0.001 : 0.20 };
-        return { color: '#3a3f5c', weight: 1, opacity: 0.35, fillColor: '#000', fillOpacity: 0.001 };
-      },
-      onEachFeature: function(feature, layer) {
-        const name = feature.properties.DISTRICT_N || '';
-        const info = currentHighlighted[name];
-        if (!info) return;
-        mapDistrictLayers[info.key] = layer;
-        layer.bindTooltip(name + (info.open ? ' — Open' : ' — Closed'), { direction: 'center' });
-      }
-    }).addTo(map);
-    activeLayers.push(geoLayer);
-    map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
-  }
-
-  // ── Pre-clipped open area polygons — Shapely-cut, fills come from here ──
-  // Closure lines and excluded subdistricts are already subtracted from the
-  // polygon geometry by Python/Shapely. No separate overlays needed.
-  const openAreasGJ = extractBalancedJson(scriptText, 'OPEN_AREAS_GJ');
-  if (openAreasGJ && openAreasGJ.features && openAreasGJ.features.length) {
-    const openLayer = L.geoJSON(openAreasGJ, {
-      style: function(feature) {
-        const color = feature.properties.color || '#27ae60';
-        return { color: color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.25 };
-      },
-      onEachFeature: function(feature, layer) {
-        const key = feature.properties.district_key || '';
-        openAreaLayers[key] = layer;
-        const label = (feature.properties.district_name || key) + ' — Open Fishing Area';
-        layer.bindTooltip(label, { direction: 'center' });
-      }
-    }).addTo(map);
-    activeLayers.push(openLayer);
-  }
-}
-
-// ── Card → map ──
-function highlightDistrict(key) {
-  document.querySelectorAll('.district-card').forEach(c => c.classList.remove('highlighted'));
-  const card = document.getElementById('card-' + key);
-  if (card) {
-    card.classList.add('highlighted');
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-  // Prefer open-area layer (clipped polygon) for fitBounds; fall back to full district
-  const openLayer = openAreaLayers[key];
-  const distLayer = mapDistrictLayers[key];
-  const boundsLayer = openLayer || distLayer;
-  if (boundsLayer) {
-    map.fitBounds(boundsLayer.getBounds(), { padding: [40, 40] });
-  }
-  if (openLayer) {
-    openLayer.setStyle({ fillOpacity: 0.45, weight: 3 });
-    setTimeout(() => openLayer.setStyle({ fillOpacity: 0.22, weight: 2 }), 1500);
-  } else if (distLayer) {
-    distLayer.setStyle({ fillOpacity: 0.4, weight: 3 });
-    setTimeout(() => distLayer.setStyle({ fillOpacity: 0.15, weight: 2 }), 1500);
-  }
-}
-
-// Init
-loadTab('live');
-setInterval(() => loadTab(currentTab), 60000);
-</script>
+    <script>
+        // If already logged in, swap "sign in" for "open app"
+        fetch('/api/me').then(r => r.json()).then(({ user }) => {
+            if (!user) return;
+            const link = document.getElementById('app-link');
+            link.href = user.has_access ? '/app' : '/pricing';
+            link.textContent = 'open app';
+        });
+    </script>
 </body>
 </html>

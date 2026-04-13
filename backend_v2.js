@@ -26,6 +26,9 @@ const { promisify } = require('util');
 const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer');
+const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const upload = multer({ dest: '/tmp/mailgun-uploads/' });
 
@@ -34,6 +37,31 @@ const upload = multer({ dest: '/tmp/mailgun-uploads/' });
 // ============================================================
 
 const app = express();
+
+// Sessions — must be before passport.initialize()
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'dev-secret-change-in-prod',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  },
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Passport: serialize/deserialize by captain id
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser(async (id, done) => {
+  try {
+    const result = await db.query('SELECT * FROM captains WHERE id = $1', [id]);
+    done(null, result.rows[0] || false);
+  } catch (err) {
+    done(err);
+  }
+});
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
@@ -52,6 +80,167 @@ const twilio = require('twilio')(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
+
+// ============================================================
+// GOOGLE OAUTH
+// ============================================================
+
+passport.use(new GoogleStrategy({
+  clientID:     process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL:  `${process.env.BASE_URL || 'http://localhost:3000'}/auth/google/callback`,
+}, async (_accessToken, _refreshToken, profile, done) => {
+  try {
+    const email    = profile.emails?.[0]?.value;
+    const name     = profile.displayName;
+    const googleId = profile.id;
+
+    if (!email) return done(new Error('Google account has no email'));
+
+    const admin = isAdminEmail(email);
+
+    // 1. Look up by google_id (returning user)
+    let result = await db.query('SELECT * FROM captains WHERE google_id = $1', [googleId]);
+
+    if (result.rows.length === 0) {
+      // 2. Existing account signed up manually — link it
+      result = await db.query('SELECT * FROM captains WHERE email = $1', [email]);
+      if (result.rows.length > 0) {
+        await db.query(
+          'UPDATE captains SET google_id = $1, is_admin = $2, updated_at = NOW() WHERE id = $3',
+          [googleId, admin, result.rows[0].id]
+        );
+        result.rows[0].google_id = googleId;
+        result.rows[0].is_admin  = admin;
+      } else {
+        // 3. Brand-new user — create free-tier record
+        result = await db.query(
+          `INSERT INTO captains (email, name, google_id, tier, is_admin)
+           VALUES ($1, $2, $3, 'free', $4) RETURNING *`,
+          [email, name, googleId, admin]
+        );
+      }
+    } else if (admin && !result.rows[0].is_admin) {
+      // Sync admin flag if env var was added after account creation
+      await db.query('UPDATE captains SET is_admin = true WHERE id = $1', [result.rows[0].id]);
+      result.rows[0].is_admin = true;
+    }
+
+    return done(null, result.rows[0]);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
+// ── Helpers ──────────────────────────────────────────────────
+
+function isAdminEmail(email) {
+  const admins = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+  return admins.includes(email.toLowerCase());
+}
+
+/** True if this captain has active access (admin, pro, or in-trial) */
+function hasAccess(user) {
+  if (!user) return false;
+  if (user.is_admin) return true;
+  if (user.tier === 'pro' && user.subscription_active) return true;
+  if (user.trial_ends_at && new Date(user.trial_ends_at) > new Date()) return true;
+  return false;
+}
+
+// Start Google OAuth flow
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+// Google redirects here after login
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login?error=1' }),
+  (req, res) => {
+    if (!req.user.phone_number) return res.redirect('/setup');
+    if (hasAccess(req.user)) return res.redirect('/app');
+    res.redirect('/pricing');
+  }
+);
+
+app.get('/auth/logout', (req, res, next) => {
+  req.logout(err => {
+    if (err) return next(err);
+    res.redirect('/');
+  });
+});
+
+// Current session user (used by frontend to show login state)
+app.get('/api/me', (req, res) => {
+  if (!req.user) return res.json({ user: null });
+  const { id, email, name, tier, subscription_active, phone_number, trial_ends_at, is_admin } = req.user;
+  const trialActive = trial_ends_at && new Date(trial_ends_at) > new Date();
+  const trialDaysLeft = trialActive
+    ? Math.ceil((new Date(trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24))
+    : 0;
+  res.json({ user: { id, email, name, tier, subscription_active, phone_number,
+                     trial_ends_at, trial_active: trialActive, trial_days_left: trialDaysLeft,
+                     is_admin, has_access: hasAccess(req.user) } });
+});
+
+// POST /api/setup — called from /setup page to save phone + determine next step
+app.post('/api/setup', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+
+  const { phone_number } = req.body;
+  if (!phone_number) return res.status(400).json({ error: 'Phone number required' });
+
+  const phone = phone_number.trim();
+
+  // Admin or already subscribed → skip everything
+  if (req.user.is_admin || (req.user.tier === 'pro' && req.user.subscription_active)) {
+    await db.query('UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2',
+      [phone, req.user.id]);
+    return res.json({ redirect: '/app' });
+  }
+
+  // Check if this phone number has already been used for a trial on ANY account
+  const priorTrial = await db.query(
+    'SELECT id FROM captains WHERE phone_number = $1 AND trial_ends_at IS NOT NULL AND id != $2',
+    [phone, req.user.id]
+  );
+  const phoneAlreadyTrialed = priorTrial.rows.length > 0;
+
+  let trialEndsAt = null;
+  if (!phoneAlreadyTrialed) {
+    trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  }
+
+  await db.query(
+    `UPDATE captains SET phone_number = $1, trial_ends_at = $2, updated_at = NOW() WHERE id = $3`,
+    [phone, trialEndsAt, req.user.id]
+  );
+
+  // Trial granted → go straight to the app
+  if (trialEndsAt) {
+    return res.json({
+      redirect: '/app',
+      trial: true,
+      trial_days: 7,
+    });
+  }
+
+  // No trial available → go to Stripe
+  const stripeSession = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+    mode: 'subscription',
+    customer_email: req.user.email,
+    success_url: `${BASE_URL}/success?captain_id=${req.user.id}`,
+    cancel_url:  `${BASE_URL}/pricing`,
+    metadata: { captain_id: req.user.id.toString() },
+  });
+
+  res.json({ redirect: stripeSession.url, trial: false });
+});
 
 // ============================================================
 // DATABASE INIT
@@ -132,6 +321,15 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_captains_email ON captains(email);
       CREATE INDEX IF NOT EXISTS idx_captains_tier ON captains(tier);
     `);
+
+    // Google OAuth + trial + admin columns
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);`);
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_captains_google_id
+      ON captains(google_id) WHERE google_id IS NOT NULL;
+    `);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
 
     // SMS log
     await db.query(`
@@ -721,6 +919,37 @@ app.post('/api/result/:id/reparse', express.json(), async (req, res) => {
  * Serve generated HTML artifacts
  */
 app.use('/results', express.static(path.join(__dirname, 'public', 'results')));
+
+/**
+ * GET /app
+ * The main map/results interface — requires login + active access
+ */
+app.get('/app', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (!hasAccess(req.user)) return res.redirect('/pricing');
+  res.sendFile(path.join(__dirname, 'public', 'app.html'));
+});
+
+/**
+ * GET /setup
+ * Only accessible when logged in — redirect to login otherwise
+ */
+app.get('/setup', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (req.user.phone_number) {
+    return res.redirect(hasAccess(req.user) ? '/app' : '/pricing');
+  }
+  res.sendFile(path.join(__dirname, 'public', 'setup.html'));
+});
+
+/**
+ * GET /pricing
+ * Redirect unauthenticated users to login first
+ */
+app.get('/pricing', (req, res, next) => {
+  if (!req.user) return res.redirect('/login');
+  next(); // serve pricing.html if it exists
+});
 
 /**
  * GET /health
