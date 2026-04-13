@@ -438,6 +438,74 @@
       letter-spacing: -0.01em;
     }
     .disclaimer-bar strong { color: var(--warn); }
+
+    /* ── Mobile layout ────────────────────────────────────────────────────── */
+    @media (max-width: 767px) {
+      /* Allow the page to scroll on mobile */
+      body { height: auto; overflow: auto; }
+
+      .app-layout {
+        grid-template-rows: 44px 1fr;
+        height: auto;
+        min-height: 100dvh;
+      }
+
+      /* Topbar: tighten spacing, hide nav text links */
+      .topbar { padding: 0 12px; }
+      .wordmark { font-size: 15px; }
+      .live-badge { display: none; }
+      .topbar-right { gap: 8px; }
+      #trial-badge { display: none !important; } /* shown in map overlay instead */
+      .nav-link { font-size: 11px; }
+
+      /* Stack map on top, cards below */
+      .main-split {
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+        height: auto;
+      }
+
+      /* Map: full width, fixed height so it's always visible */
+      .map-panel {
+        width: 100%;
+        height: 52vw;
+        min-height: 220px;
+        max-height: 360px;
+        flex-shrink: 0;
+        position: relative;
+      }
+      #map { height: 100%; width: 100%; }
+
+      /* Collapse map overlays on mobile so they don't eat screen space */
+      .map-legend { display: none; }
+      .map-note   { display: none; }
+      .disclaimer-bar {
+        font-size: 8px;
+        padding: 3px 10px;
+        position: static; /* flow below map rather than overlay */
+      }
+
+      /* Cards panel: scrollable below the map */
+      .left-panel {
+        order: 2;
+        width: 100%;
+        height: auto;
+        overflow-y: visible;
+        border-right: none;
+        border-top: 1px solid var(--border);
+      }
+
+      /* Slightly bigger touch targets on cards */
+      .district-card { cursor: default; }
+      .card-header   { padding: 10px 12px 6px; }
+      .card-body     { padding: 0 12px 12px; }
+      .district-name { font-size: 13px; }
+      .time-row, .constraint-row { font-size: 11px; }
+
+      /* Ann picker needs horizontal scroll on mobile, not fixed height */
+      .ann-picker { max-height: 120px; }
+    }
   </style>
 </head>
 <body>
@@ -916,6 +984,10 @@ function highlightDistrict(key) {
     card.classList.add('highlighted');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+  // On mobile the map is above the cards — scroll to top so the user sees it
+  if (window.innerWidth < 768) {
+    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   // Prefer open-area layer (clipped polygon) for fitBounds; fall back to full district
   const openLayer = openAreaLayers[key];
   const distLayer = mapDistrictLayers[key];
@@ -935,6 +1007,11 @@ function highlightDistrict(key) {
 // Init
 loadTab('live');
 setInterval(() => loadTab(currentTab), 60000);
+
+// Leaflet needs to know the real container size after layout settles.
+// On mobile the grid reflows after DOMContentLoaded, so we wait a tick.
+setTimeout(() => map.invalidateSize(), 50);
+window.addEventListener('resize', () => map.invalidateSize());
 
 // Session: show/hide nav links + trial badge
 fetch('/api/me').then(r => r.json()).then(({ user }) => {
