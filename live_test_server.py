@@ -556,6 +556,85 @@ def _is_bay_named(closure_name):
     return any(w in n for w in BAY_KEYWORDS)
 
 
+# ── PWS hatchery area alias → stat area ID mapping ──────────────────────
+# Announcements use abbreviations (AFK THA, WNH SHA, etc.) but the stat
+# areas shapefile stores the full names (Armin F. Koernig THA, etc.).
+# STAT_AREA (numeric ID) is the reliable join key.
+HATCHERY_ALIAS_TO_STAT_AREA = {
+    'sgh sha': 22167,
+    'sgh tha': 22168,
+    'solomon gulch sha': 22167,
+    'solomon gulch tha': 22168,
+    'afk sha': 22667,
+    'afk tha': 22668,
+    'armin f. koernig sha': 22667,
+    'armin f. koernig tha': 22668,
+    'wnh sha': 22347,
+    'wnh tha': 22348,
+    'wally noerenberg sha': 22347,
+    'wally noerenberg tha': 22348,
+    'cch sha': 22227,
+    'cch tha': 22228,
+    'cannery creek sha': 22227,
+    'cannery creek tha': 22228,
+    'mbh sha': 22527,
+    'mbh tha': 22528,
+    'mbh agz': 22529,
+    'main bay sha': 22527,
+    'main bay tha': 22528,
+    'main bay alternating gear zone': 22529,
+}
+
+_HATCHERY_GEOMS = None  # stat_area_id → shapely geom (lazy-loaded)
+
+
+def _load_hatchery_geoms():
+    """Lazy-load hatchery area geometries from the stat areas shapefile.
+    Returns dict mapping stat area ID (int) → shapely geometry."""
+    global _HATCHERY_GEOMS
+    if _HATCHERY_GEOMS is not None:
+        return _HATCHERY_GEOMS
+    _HATCHERY_GEOMS = {}
+    target_ids = set(HATCHERY_ALIAS_TO_STAT_AREA.values())
+    stat_areas_dir = next(DATA.glob("*StatisticalAreas*"), None)
+    if not stat_areas_dir:
+        print("WARNING: stat areas dir not found for hatchery geoms", file=sys.stderr)
+        return _HATCHERY_GEOMS
+    shp = next(stat_areas_dir.glob("*.shp"), None)
+    if not shp:
+        return _HATCHERY_GEOMS
+    try:
+        sf = shapefile.Reader(str(shp))
+        fields = [f[0] for f in sf.fields[1:]]
+        for rec in sf.shapeRecords():
+            attrs = dict(zip(fields, rec.record))
+            try:
+                sid = int(attrs.get('STAT_AREA', 0))
+            except (ValueError, TypeError):
+                continue
+            if sid in target_ids:
+                g = shape(rec.shape.__geo_interface__)
+                if not g.is_valid:
+                    g = make_valid(g)
+                    g = _polys_only(g) or g
+                _HATCHERY_GEOMS[sid] = g
+    except Exception as e:
+        print(f"WARNING: failed to load hatchery geoms: {e}", file=sys.stderr)
+    return _HATCHERY_GEOMS
+
+
+def find_hatchery_geom(name):
+    """Look up a hatchery area geometry by its abbreviation or full name.
+    E.g. 'AFK THA' → Armin F. Koernig THA polygon from stat areas shapefile.
+    Returns shapely geometry or None."""
+    key = (name or '').lower().strip()
+    stat_id = HATCHERY_ALIAS_TO_STAT_AREA.get(key)
+    if stat_id is None:
+        return None
+    geoms = _load_hatchery_geoms()
+    return geoms.get(stat_id)
+
+
 # ── PWS named-feature gazetteer (GNIS + OSM, built by scripts/build_feature_gazetteer.py) ──
 _GAZETTEER = None
 _GAZETTEER_PATH = Path(__file__).parent / 'data' / 'pws_gazetteer.json'
@@ -1325,8 +1404,13 @@ def build_html(all_results, geojson_data, pdf_texts):
             for raw in raw_excl_names:
                 expanded_excl_names.extend(_expand_and_clause(raw, find_subd_key))
 
+            valid_subd_keys_for_dk = {sk for sk, _g in subd_by_district.get(dk, [])} if dk else set()
             for excl_name in expanded_excl_names:
                 ek = find_subd_key(excl_name)
+                # Skip subdistricts that belong to a different district
+                # (Claude sometimes bleeds exclusions across districts)
+                if ek and valid_subd_keys_for_dk and ek not in valid_subd_keys_for_dk:
+                    continue
                 subd_geom = subd_geoms.get(ek) if ek else None
                 bbox_geom = find_bbox_polygon(excl_name, d_geom)
                 if subd_geom is not None and bbox_geom is not None:
@@ -1353,7 +1437,7 @@ def build_html(all_results, geojson_data, pdf_texts):
             if hatchery_names:
                 district_hatchery_tags[(pdf_name, d_key_for_card)] = list(hatchery_names)
             for hatch_name in hatchery_names:
-                hatch_geom = find_named_feature_polygon(hatch_name, d_geom)
+                hatch_geom = find_hatchery_geom(hatch_name) or find_named_feature_polygon(hatch_name, d_geom)
                 if hatch_geom is not None and dk:
                     district_direct_subtract.setdefault(dk, []).append(
                         (hatch_name, hatch_geom))
@@ -1707,10 +1791,17 @@ def build_html(all_results, geojson_data, pdf_texts):
                 closures_html = f'<div class="closures-section"><div class="closures-label">Internal Closure Areas</div>{closures_html}</div>'
 
             # Excluded subdistricts + hatchery areas
+            # Filter out subdistricts that don't belong to this district
+            # (Claude sometimes bleeds exclusions across districts).
             raw_excl = d.get('excluded_subdistricts') or []
             excl = []
+            valid_subd_keys = {sk for sk, _g in subd_by_district.get(dk, [])} if dk else set()
             for _e in raw_excl:
-                excl.extend(_expand_and_clause(_e, find_subd_key))
+                for expanded_name in _expand_and_clause(_e, find_subd_key):
+                    ek = find_subd_key(expanded_name)
+                    if ek and valid_subd_keys and ek not in valid_subd_keys:
+                        continue  # belongs to a different district
+                    excl.append(expanded_name)
             hatch = d.get('excluded_hatchery_areas') or []
             excl_html = ""
             if excl or hatch:
