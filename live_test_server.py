@@ -1193,7 +1193,7 @@ def _expand_and_clause(name, find_subd_key_fn):
     return expanded
 
 
-def build_html(all_results, geojson_data, pdf_texts, awc_points):
+def build_html(all_results, geojson_data, pdf_texts):
     """Generate rich interactive HTML matching live_output3 style."""
 
     import datetime as _dt
@@ -1916,14 +1916,10 @@ def main():
     for d in districts:
         print(f"  · {d.get('district')} — {d.get('status')} — confidence: {d.get('confidence', '?')}", file=sys.stderr)
 
-    # Load AWC points
-    print("Loading AWC stream points...", file=sys.stderr)
-    awc_points = load_awc_points()
-
     # Generate HTML
     print("Generating HTML...", file=sys.stderr)
     all_results = {pdf_name: districts}
-    html = build_html(all_results, geojson_data, {pdf_name: text}, awc_points)
+    html = build_html(all_results, geojson_data, {pdf_name: text})
 
     # Write output
     output_path = args.output or Path('live_output.html')
