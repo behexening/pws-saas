@@ -921,6 +921,23 @@ app.post('/api/result/:id/reparse', express.json(), async (req, res) => {
 app.use('/results', express.static(path.join(__dirname, 'public', 'results')));
 
 /**
+ * GET /login
+ * Redirect already-authenticated users, otherwise serve login page
+ */
+app.get('/login', (req, res) => {
+  if (req.user) return res.redirect(hasAccess(req.user) ? '/app' : '/setup');
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+/**
+ * GET /signup  +  GET /signup.html
+ * Old signup route — redirect everything to the Google OAuth login
+ */
+app.get(['/signup', '/signup.html'], (_req, res) => {
+  res.redirect('/login');
+});
+
+/**
  * GET /app
  * The main map/results interface — requires login + active access
  */
