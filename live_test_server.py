@@ -212,7 +212,7 @@ Return ONLY valid JSON array, no markdown, no preamble."""
 
     try:
         response = client.messages.create(
-            model='claude-haiku-4-5-20251001',
+            model='claude-sonnet-4-6',
             max_tokens=8096,
             messages=[
                 {
@@ -360,10 +360,15 @@ def normalize_compound_closure(closure):
     have two directions in the definition text."""
     import re
 
-    # Already tagged as compound by Claude — just validate/backfill
+    # Already tagged as compound by Claude — validate/backfill and ensure
+    # _synth_lat/_synth_lon are populated (Claude never sets those internal
+    # fields, so we always need to extract them from the definition text).
     if closure.get('compound'):
         if closure.get('closed_side_lat') and closure.get('closed_side_lon'):
-            return closure
+            # Sides are set, but we still need the actual coordinate values.
+            # Fall through to the extraction logic below instead of returning
+            # early, so _synth_lat and _synth_lon get populated.
+            pass
         # compound=true but missing the split sides — fall through to parse
 
     definition = closure.get('definition') or closure.get('name') or ''
@@ -383,13 +388,18 @@ def normalize_compound_closure(closure):
     # the CLOSED region is the corner where BOTH conditions fail:
     # NORTH of X AND WEST of Y. The closed area is the intersection of the
     # two half-planes, producing a single rectangular region — NOT the union.
-    will_open_m = re.search(r'will\s+open', definition, re.IGNORECASE)
-    if will_open_m:
-        lat_closed = 'north' if lat_dir == 'south' else 'south'
-        lon_closed = 'west'  if lon_dir == 'east'  else 'east'
+    # If Claude already set closed_side_lat/lon, trust those.
+    if closure.get('closed_side_lat') and closure.get('closed_side_lon'):
+        lat_closed = closure['closed_side_lat']
+        lon_closed = closure['closed_side_lon']
     else:
-        lat_closed = lat_dir
-        lon_closed = lon_dir
+        will_open_m = re.search(r'will\s+open', definition, re.IGNORECASE)
+        if will_open_m:
+            lat_closed = 'north' if lat_dir == 'south' else 'south'
+            lon_closed = 'west'  if lon_dir == 'east'  else 'east'
+        else:
+            lat_closed = lat_dir
+            lon_closed = lon_dir
 
     # Extract the latitude and longitude values from the definition.
     lat_val = None
@@ -1118,6 +1128,71 @@ def _write_static_geojson(geojson_data):
                 pass
 
 
+def _expand_and_clause(name, find_subd_key_fn):
+    """Expand compound 'and' names into individual subdistrict names.
+
+    ADFG writes things like "Esther and Granite Bay Subdistricts" to mean
+    two separate subdistricts: "Esther Subdistrict" and "Granite Bay
+    Subdistrict". Claude may return this as a single entry.
+
+    Strategy:
+    1. If the name doesn't contain " and ", return it as-is.
+    2. Strip the trailing "Subdistrict(s)" suffix.
+    3. Split on " and " to get the individual parts.
+    4. For each part, try matching with find_subd_key. If the first part
+       doesn't match, try appending the trailing type word(s) from the last
+       part (e.g. "Bay" from "Granite Bay") since ADFG sometimes shares
+       the suffix across the "and" conjunction.
+    5. If splitting produces valid matches, return the expanded list.
+       Otherwise return the original name unchanged.
+    """
+    import re
+    lower = name.lower()
+    if ' and ' not in lower:
+        return [name]
+
+    # Strip trailing Subdistrict(s) suffix
+    suffix_match = re.search(r'\s+(subdistricts?)\s*$', name, re.IGNORECASE)
+    suffix = ' Subdistrict'
+    core = name
+    if suffix_match:
+        core = name[:suffix_match.start()]
+
+    parts = re.split(r'\s+and\s+', core, flags=re.IGNORECASE)
+    if len(parts) < 2:
+        return [name]
+
+    expanded = []
+    for i, part in enumerate(parts):
+        part = part.strip()
+        candidate = part + suffix
+        if find_subd_key_fn(candidate):
+            expanded.append(candidate)
+        elif i < len(parts) - 1:
+            # First part(s) may be missing a trailing type word shared with
+            # the last part. E.g. "Esther" needs no suffix, "Granite Bay"
+            # does. Try the bare name first, then with the last part's
+            # trailing word(s) appended.
+            last_words = parts[-1].strip().split()
+            # Try appending progressively more trailing words from the last part
+            matched = False
+            for j in range(len(last_words) - 1, 0, -1):
+                trailing = ' '.join(last_words[j:])
+                candidate_with_trailing = part + ' ' + trailing + suffix
+                if find_subd_key_fn(candidate_with_trailing):
+                    expanded.append(candidate_with_trailing)
+                    matched = True
+                    break
+            if not matched:
+                # Use the bare name + suffix even if no match — the caller's
+                # find_subd_key will handle the mismatch gracefully.
+                expanded.append(candidate)
+        else:
+            expanded.append(candidate)
+
+    return expanded
+
+
 def build_html(all_results, geojson_data, pdf_texts, awc_points):
     """Generate rich interactive HTML matching live_output3 style."""
 
@@ -1193,6 +1268,8 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
         3. Exact match on the name with " subdistrict" stripped
         4. Prefix match of the core name (requires >= 6 characters to avoid
            matching generic words like "port" to random subdistricts)
+        5. Substring match: the lookup name is a suffix of a shapefile name
+           (e.g. "san juan" matches "port san juan subdistrict")
         """
         if not subd_name:
             return None
@@ -1201,13 +1278,18 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             return n
         if n + ' subdistrict' in subd_geoms:
             return n + ' subdistrict'
-        short = n.replace(' subdistrict', '').strip()
+        short = n.replace(' subdistrict', '').replace(' subdistricts', '').strip()
         if short in subd_geoms:
             return short
         if len(short) >= 6:
             for k in subd_geoms:
                 k_short = k.replace(' subdistrict', '').strip()
                 if k_short == short or k.startswith(short) or short.startswith(k_short):
+                    return k
+            # Substring match: "san juan" → "port san juan subdistrict"
+            for k in subd_geoms:
+                k_short = k.replace(' subdistrict', '').strip()
+                if k_short.endswith(short) or k_short.endswith(' ' + short):
                     return k
         return None
 
@@ -1233,7 +1315,17 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
             # Excluded subdistricts → direct-subtract the subdistrict polygon,
             # optionally UNIONed with a hand-drawn bbox of the same name so
             # the cut follows the user's preferred boundary when one exists.
-            for excl_name in (d.get('excluded_subdistricts') or []):
+            #
+            # First, expand compound "and" names. ADFG writes things like
+            # "the Esther and Granite Bay Subdistricts" meaning two separate
+            # subdistricts. Claude may return this as a single entry. Split
+            # on " and " and try to match each part individually.
+            raw_excl_names = list(d.get('excluded_subdistricts') or [])
+            expanded_excl_names = []
+            for raw in raw_excl_names:
+                expanded_excl_names.extend(_expand_and_clause(raw, find_subd_key))
+
+            for excl_name in expanded_excl_names:
                 ek = find_subd_key(excl_name)
                 subd_geom = subd_geoms.get(ek) if ek else None
                 bbox_geom = find_bbox_polygon(excl_name, d_geom)
@@ -1615,7 +1707,10 @@ def build_html(all_results, geojson_data, pdf_texts, awc_points):
                 closures_html = f'<div class="closures-section"><div class="closures-label">Internal Closure Areas</div>{closures_html}</div>'
 
             # Excluded subdistricts + hatchery areas
-            excl = d.get('excluded_subdistricts') or []
+            raw_excl = d.get('excluded_subdistricts') or []
+            excl = []
+            for _e in raw_excl:
+                excl.extend(_expand_and_clause(_e, find_subd_key))
             hatch = d.get('excluded_hatchery_areas') or []
             excl_html = ""
             if excl or hatch:
