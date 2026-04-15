@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — akFISHinfo</title>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #060a0f;
+      --surface: #0d1520;
+      --border:  #1a2d3f;
+      --text:    #dde8f4;
+      --muted:   #5a7288;
+      --accent:  #00b4d8;
+      --open:    #22c55e;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; height: 50px;
+      background: rgba(6,10,15,0.95);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .wordmark-link { text-decoration: none; }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px; letter-spacing: 0.03em;
+      color: var(--text); user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .nav-links { display: flex; gap: 18px; align-items: center; }
+    .nav-link {
+      color: var(--muted); text-decoration: none;
+      font-size: 12px; font-weight: 500; transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--text); }
+
+    .page {
+      max-width: 680px;
+      margin: 44px auto;
+      padding: 0 24px 80px;
+    }
+    h1 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 2rem; letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 36px; line-height: 1.6; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 20px 22px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card p {
+      color: var(--text); font-size: 13px;
+      line-height: 1.7; margin-bottom: 10px;
+    }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* Pipeline steps */
+    .pipeline { display: flex; flex-direction: column; gap: 0; }
+    .pipeline-step {
+      display: flex; gap: 14px; align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(26,45,63,0.5);
+    }
+    .pipeline-step:last-child { border-bottom: none; padding-bottom: 0; }
+    .step-num {
+      width: 22px; height: 22px;
+      background: rgba(0,180,216,0.12);
+      border: 1px solid rgba(0,180,216,0.25);
+      border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 800; color: var(--accent);
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-label {
+      font-size: 12px; font-weight: 700;
+      color: var(--text); margin-bottom: 3px;
+    }
+    .step-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+    .cta-row { margin-top: 32px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: 9px 18px;
+      border-radius: 4px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      text-decoration: none; transition: opacity 0.15s;
+      cursor: pointer; border: none; font-family: inherit;
+    }
+    .btn:hover { opacity: 0.82; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-ghost   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="wordmark-link">
+    <div class="wordmark">akFISH<em>info.</em></div>
+  </a>
+  <div class="nav-links">
+    <a href="/app"         class="nav-link">map</a>
+    <a href="/about"       class="nav-link active">about</a>
+    <a href="/account"     class="nav-link" id="account-link" style="display:none">account</a>
+    <a href="/auth/logout" class="nav-link" id="logout-link"  style="display:none">sign out</a>
+    <a href="/login"       class="nav-link" id="login-link">sign in</a>
+  </div>
+</nav>
+
+<div class="page">
+  <h1>About <em>akFISHinfo.</em></h1>
+  <p class="page-sub">Real-time commercial salmon opening alerts for Prince William Sound.</p>
+
+  <div class="card">
+    <div class="card-title">What it is</div>
+    <p>akFISHinfo is a tool built by fishermen, for fishermen. ADF&amp;G opening announcements come as dense PDF documents sent to an email list — and by the time word gets around, the window to act is already closing. akFISHinfo cuts through that. The moment an announcement hits, it gets parsed, mapped, and sent straight to your phone as a text. No checking email, no waiting for a call, no games of telephone — just the information you need, when you need it.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Who it's for</div>
+    <p>Commercial salmon permit holders, tender operators, and crew fishing Prince William Sound. If you want to know exactly where you can and can't fish the moment an opening drops — before anyone else hears about it — this is built for you.</p>
+    <p>akFISHinfo covers all PWS districts: Eastern, Northern, Southeastern, and the associated subdistricts and statistical areas. The interactive map shows open and closed boundaries in real time so you can see at a glance what's available and where the lines are.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">How it works</div>
+    <div class="pipeline">
+      <div class="pipeline-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-label">ADF&amp;G issues an announcement</div>
+          <div class="step-desc">Alaska Department of Fish &amp; Game emails a PDF opening announcement to a monitored inbox.</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-label">PDF is parsed automatically</div>
+          <div class="step-desc">The attachment is processed by an AI parser that extracts district names, gear types, open/close windows, and any special constraints.</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-label">Map updates instantly</div>
+          <div class="step-desc">The interactive district map reflects the current opening status for all PWS districts in real time.</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-label">SMS alert goes out</div>
+          <div class="step-desc">Pro subscribers receive a text message immediately — no refreshing, no checking, no delays.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">The team</div>
+    <p>My name is Oliver. I started deckhanding out of Cordova in 2023, and I've been on the water every season since. I got tired of finding out about openings late — third-hand, after the good window was already closing — and figured there had to be a better way to get the information faster.</p>
+    <p>I happen to like building software as much as I like fishing, and the two interests lined up cleanly here. akFISHinfo is what came out of that. It's a small operation, built to do one thing well: make sure you know about a PWS opening before it matters that you didn't.</p>
+  </div>
+
+  <div class="cta-row">
+    <a href="/login" class="btn btn-primary" id="cta-btn">Get started</a>
+    <a href="/"      class="btn btn-ghost">Back to map</a>
+  </div>
+</div>
+
+<script>
+  fetch('/api/me').then(r => r.json()).then(({ user }) => {
+    if (user) {
+      document.getElementById('login-link').style.display   = 'none';
+      document.getElementById('account-link').style.display = '';
+      document.getElementById('logout-link').style.display  = '';
+      document.getElementById('cta-btn').href = user.has_access ? '/app' : '/pricing';
+      document.getElementById('cta-btn').textContent = 'Open app';
+    }
+  });
+</script>
+
+</body>
+</html>

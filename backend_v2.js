@@ -1211,6 +1211,14 @@ app.get('/pricing', (req, res, next) => {
 });
 
 /**
+ * GET /about
+ * Public about page — no auth required
+ */
+app.get('/about', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'about.html'));
+});
+
+/**
  * GET /health
  */
 app.get('/health', (req, res) => {
