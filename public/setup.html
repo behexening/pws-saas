@@ -144,16 +144,23 @@
     <p class="sub">Add your phone number to receive SMS alerts when a district opens.</p>
 
     <form id="setupForm">
-      <label>Phone number <span class="hint">(include country code, e.g. +19075550123)</span></label>
-      <input type="tel" id="phone" placeholder="+1 907 555 0123" required autocomplete="tel" />
+      <label>Phone number <span class="hint">(US number — 10 digits)</span></label>
+      <input type="tel" id="phone" placeholder="907 555 0123" required autocomplete="tel" />
       <div class="error-msg" id="errorMsg"></div>
       <button type="submit" class="btn" id="submitBtn">Continue</button>
     </form>
 
-    <p class="price-note">7-day free trial, then <strong>$15/month</strong>. One trial per phone number.</p>
+    <p class="price-note">7-day free trial, then <strong>$30/month</strong>. One trial per phone number.</p>
   </div>
 
   <script>
+    function normalizePhone(raw) {
+      const digits = raw.replace(/\D/g, '');
+      if (digits.length === 10) return '+1' + digits;
+      if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
+      return '+' + digits; // best effort
+    }
+
     fetch('/api/me').then(r => r.json()).then(({ user }) => {
       if (!user) { location.href = '/login'; return; }
       if (user.phone_number) {
@@ -175,7 +182,7 @@
         const r = await fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone_number: document.getElementById('phone').value }),
+          body: JSON.stringify({ phone_number: normalizePhone(document.getElementById('phone').value) }),
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Setup failed');

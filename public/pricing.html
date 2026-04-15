@@ -391,8 +391,13 @@
 
   <div class="cta-wrap">
     <button class="btn btn-primary" onclick="startCheckout()" id="checkout-btn">Subscribe</button>
-    <p class="cta-note" id="trial-info"></p>
     <p class="cta-note">Secure checkout via Stripe. Cancel anytime.</p>
+
+    <div id="trial-section" style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost" onclick="startTrial()" id="trial-btn">Start free 7-day trial — no card required</button>
+      <p class="cta-note" style="margin-top:8px">One trial per phone number.</p>
+      <p class="cta-note alert-err" id="trial-err" style="display:none;margin-top:8px;color:#f87171"></p>
+    </div>
   </div>
 
   <a href="/" class="btn btn-ghost" style="margin-top:12px">Back to homepage</a>
@@ -463,14 +468,36 @@
     }
   }
 
-  // Check session + set trial context
+  async function startTrial() {
+    const btn = document.getElementById('trial-btn');
+    const errEl = document.getElementById('trial-err');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Starting trial...';
+    try {
+      const r = await fetch('/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: '__existing__', grant_trial: true }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Could not start trial.');
+      window.location.href = d.redirect;
+    } catch (e) {
+      errEl.textContent = e.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Start free 7-day trial — no card required';
+    }
+  }
+
+  // Check session — hide trial option if already used
   fetch('/api/me').then(r => r.json()).then(({ user }) => {
     if (!user) { location.href = '/login'; return; }
-    const info = document.getElementById('trial-info');
-    if (user.trial_ends_at && !user.trial_active) {
-      info.textContent = 'Your 7-day trial has ended.';
-    } else if (!user.phone_number) {
-      location.href = '/setup';
+    if (!user.phone_number) { location.href = '/setup'; return; }
+    if (user.trial_ends_at) {
+      // Trial was already used — hide the trial section entirely
+      document.getElementById('trial-section').style.display = 'none';
     }
   });
 
