@@ -132,6 +132,30 @@
       color: var(--muted);
     }
     .price-note strong { color: var(--text); }
+    .opt-in {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 16px;
+      margin-bottom: 18px;
+    }
+    .opt-in input[type="checkbox"] {
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+    .opt-in label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.55;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -147,7 +171,15 @@
       <label>Phone number <span class="hint">(US number — 10 digits)</span></label>
       <input type="tel" id="phone" placeholder="907 555 0123" required autocomplete="tel" />
       <div class="error-msg" id="errorMsg"></div>
-      <button type="submit" class="btn" id="submitBtn">Continue</button>
+
+      <div class="opt-in">
+        <input type="checkbox" id="smsConsent" required />
+        <label for="smsConsent">
+          By checking this box, I agree to receive recurring automated SMS alerts from akFISHinfo about ADF&G Prince William Sound fishing openings. Message frequency varies. Message &amp; data rates may apply. Reply STOP to unsubscribe at any time.
+        </label>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn" disabled>Continue</button>
     </form>
 
     <p class="price-note">7-day free trial, then <strong>$30/month</strong>. One trial per phone number.</p>
@@ -160,6 +192,10 @@
       if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
       return '+' + digits; // best effort
     }
+
+    document.getElementById('smsConsent').addEventListener('change', function () {
+      document.getElementById('submitBtn').disabled = !this.checked;
+    });
 
     fetch('/api/me').then(r => r.json()).then(({ user }) => {
       if (!user) { location.href = '/login'; return; }

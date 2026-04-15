@@ -283,6 +283,9 @@ app.post('/api/setup', express.json(), async (req, res) => {
 
       // Trial path: check eligibility, then grant
       if (req.body.grant_trial) {
+        if (!req.user.email_verified) {
+          return res.status(400).json({ error: 'Please verify your email address before starting a trial. Check your inbox for a verification link.' });
+        }
         const priorTrial = await db.query(
           'SELECT id FROM captains WHERE phone_number = $1 AND trial_ends_at IS NOT NULL AND id != $2',
           [req.user.phone_number, req.user.id]
@@ -323,9 +326,9 @@ app.post('/api/setup', express.json(), async (req, res) => {
       return res.json({ redirect: '/app' });
     }
 
-    // Save phone (no trial granted yet — user picks on pricing page)
+    // Save phone + SMS opt-in consent (checkbox required on frontend)
     await db.query(
-      `UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2`,
+      `UPDATE captains SET phone_number = $1, sms_opted_in = true, sms_opted_in_at = NOW(), updated_at = NOW() WHERE id = $2`,
       [phone, req.user.id]
     );
 
@@ -596,6 +599,8 @@ async function initDatabase() {
     `);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS sms_opted_in BOOLEAN DEFAULT false;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS sms_opted_in_at TIMESTAMPTZ;`);
 
     // SMS log
     await db.query(`
@@ -845,6 +850,7 @@ async function alertProUsers(districts) {
        WHERE tier = 'pro'
        AND subscription_active = true
        AND alerts_enabled = true
+       AND sms_opted_in = true
        AND (regions && $1 OR regions = ARRAY['PWS'])`,
       [districts]
     );
