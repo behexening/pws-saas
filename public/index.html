@@ -501,10 +501,6 @@
       if (!layerByDistrict[name]) return;
       layerByDistrict[name].setStyle(STYLE.active);
       layerByDistrict[name].bringToFront();
-      const bounds = layerByDistrict[name].getBounds();
-      if (bounds.isValid()) {
-        map.panTo(bounds.getCenter(), { animate: true, duration: 1.4, easeLinearity: 0.15 });
-      }
     }
 
     // ── Infinite scroll ─────────────────────────────────────
