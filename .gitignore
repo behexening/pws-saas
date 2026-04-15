@@ -36,6 +36,9 @@ yarn-debug.log*
 *.swp
 *.swo
 
+# Claude Code context (local only)
+CLAUDE.md
+
 # Railway
 .railway/
 
@@ -43,5 +46,22 @@ yarn-debug.log*
 logs/*.log
 logs/*.txt
 
+# Log directory artifacts (debug exports, browser-saved pages, raw JSON telemetry)
+logs/*.json
+logs/*.csv
+logs/*.html
+logs/*_files/
+
+# Untracked geometry scratch work
+data/bbox_todo/
+data/rectangle/
+
+# Browser-saved legal reference pages (closedwaters)
+docs/geo/closedwaters/*_files/
+docs/geo/closedwaters/*.html
+
 # Upstream gazetteer source data (regenerate via scripts/build_feature_gazetteer.py)
 data/OSM&GNIS/
+
+# Large doc artifacts (debug output, not source)
+docs/**/*.html
