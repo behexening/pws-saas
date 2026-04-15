@@ -18,6 +18,7 @@
       --muted:   #5a7288;
       --accent:  #00b4d8;
       --open:    #22c55e;
+      --warn:    #f59e0b;
     }
     body {
       background: var(--bg);
@@ -57,8 +58,8 @@
 
     /* Layout */
     .page {
-      max-width: 480px;
-      margin: 64px auto;
+      max-width: 520px;
+      margin: 56px auto;
       padding: 0 24px 80px;
       text-align: center;
     }
@@ -73,22 +74,81 @@
       color: var(--muted);
       font-size: 0.85rem;
       line-height: 1.65;
-      max-width: 340px;
-      margin: 0 auto 40px;
+      max-width: 360px;
+      margin: 0 auto 12px;
     }
 
-    /* Pricing card */
+    /* Early adopter ticker */
+    .ticker-wrap {
+      margin: 0 auto 36px;
+      max-width: 340px;
+    }
+    .ticker {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 4px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--warn);
+      letter-spacing: 0.02em;
+    }
+    .ticker-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--warn);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+    .ticker-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 7px;
+      line-height: 1.5;
+    }
+    .ticker-sub strong { color: var(--text); }
+
+    /* Plan cards */
+    .plans {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
     .plan-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 28px 28px 24px;
+      padding: 22px 24px 20px;
       text-align: left;
-      margin-bottom: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      position: relative;
+    }
+    .plan-card:hover {
+      border-color: rgba(0,180,216,0.4);
+    }
+    .plan-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 22px rgba(0,180,216,0.1);
     }
     .plan-card.featured {
       border-color: var(--accent);
       box-shadow: 0 0 28px rgba(0,180,216,0.08);
+    }
+    .plan-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 4px;
     }
     .plan-label {
       font-size: 9px;
@@ -96,44 +156,81 @@
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--accent);
-      margin-bottom: 10px;
+      margin-bottom: 2px;
+    }
+    .plan-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: rgba(34,197,94,0.12);
+      color: var(--open);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 3px;
+      padding: 2px 7px;
     }
     .plan-price {
       font-family: 'Blackbird', sans-serif;
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       letter-spacing: -0.01em;
       color: var(--text);
-      margin-bottom: 4px;
+      line-height: 1;
+      margin-bottom: 3px;
     }
     .plan-price span {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 400;
       color: var(--muted);
       letter-spacing: 0;
     }
-    .plan-desc {
-      font-size: 0.78rem;
+    .plan-effective {
+      font-size: 11px;
       color: var(--muted);
-      margin-bottom: 20px;
-      line-height: 1.5;
+      margin-bottom: 0;
     }
+    .plan-effective strong { color: var(--open); }
+    .plan-radio {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .plan-card.selected .plan-radio {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .plan-card.selected .plan-radio::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 6px; height: 6px;
+      background: #000;
+      border-radius: 50%;
+    }
+
+    /* Feature list */
     .feature-list {
       list-style: none;
-      margin-bottom: 22px;
+      margin: 16px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid rgba(26,45,63,0.7);
     }
     .feature-list li {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--text);
-      padding: 5px 0;
-      border-bottom: 1px solid rgba(26,45,63,0.5);
+      padding: 4px 0;
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .feature-list li:last-child { border-bottom: none; }
     .feature-check {
-      width: 14px; height: 14px;
+      width: 13px; height: 13px;
       background: rgba(34,197,94,0.15);
       border: 1px solid rgba(34,197,94,0.3);
       border-radius: 2px;
@@ -144,16 +241,18 @@
     }
     .feature-check::after {
       content: '';
-      width: 5px; height: 8px;
+      width: 4px; height: 7px;
       border-right: 1.5px solid var(--open);
       border-bottom: 1.5px solid var(--open);
       transform: rotate(45deg) translate(-1px, -1px);
       display: block;
     }
+
+    /* CTA */
     .btn {
       display: block;
       width: 100%;
-      padding: 11px;
+      padding: 12px;
       border-radius: 4px;
       font-size: 12px;
       font-weight: 700;
@@ -167,16 +266,20 @@
       transition: opacity 0.15s;
     }
     .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary { background: var(--accent); color: #000; }
     .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
 
-    /* Trial notice */
-    .trial-notice {
-      text-align: center;
+    .cta-wrap {
+      margin-top: 20px;
+    }
+    .cta-note {
       font-size: 11px;
       color: var(--muted);
-      margin-top: 16px;
+      margin-top: 10px;
+      line-height: 1.5;
     }
+    .cta-note strong { color: var(--text); }
 
     /* Alert */
     .alert-err {
@@ -190,6 +293,18 @@
       display: none;
       text-align: left;
     }
+
+    /* Future price note */
+    .future-note {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.65;
+      text-align: left;
+    }
+    .future-note strong { color: var(--text); }
   </style>
 </head>
 <body>
@@ -204,28 +319,100 @@
 
 <div class="page">
   <h1>Get <em>access.</em></h1>
-  <p class="page-sub">Your trial has ended or you don't yet have an active subscription. Subscribe below to restore access.</p>
+  <p class="page-sub">Real-time ADF&G opening alerts, straight to your phone. No lag, no scanning PDFs.</p>
+
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <span class="ticker-dot"></span>
+      <span id="ticker-text">Loading early adopter seats...</span>
+    </div>
+    <p class="ticker-sub" id="ticker-sub"></p>
+  </div>
 
   <div class="alert-err" id="err"></div>
 
-  <div class="plan-card featured">
-    <div class="plan-label">Pro</div>
-    <div class="plan-price">$15 <span>/ month</span></div>
-    <div class="plan-desc">Instant SMS alert the moment ADF&G issues a PWS opening. Cancel anytime.</div>
-    <ul class="feature-list">
-      <li><span class="feature-check"></span>Real-time SMS alerts for all PWS districts</li>
-      <li><span class="feature-check"></span>Interactive district map with open/closed status</li>
-      <li><span class="feature-check"></span>Full announcement history</li>
-      <li><span class="feature-check"></span>Cancel anytime</li>
-    </ul>
-    <button class="btn btn-primary" onclick="startCheckout()" id="checkout-btn">Subscribe — $15/month</button>
-    <p class="trial-notice" id="trial-info" style="margin-top:12px"></p>
+  <div class="plans">
+
+    <!-- Monthly -->
+    <div class="plan-card selected" id="plan-monthly" onclick="selectPlan('monthly')">
+      <div class="plan-header">
+        <div>
+          <div class="plan-label">Monthly</div>
+          <div class="plan-price">$30 <span>/ month</span></div>
+          <div class="plan-effective">Billed monthly &mdash; cancel anytime</div>
+        </div>
+        <div class="plan-radio"></div>
+      </div>
+    </div>
+
+    <!-- Quarterly -->
+    <div class="plan-card" id="plan-quarterly" onclick="selectPlan('quarterly')">
+      <div class="plan-header">
+        <div>
+          <div class="plan-label">Quarterly</div>
+          <div class="plan-price">$80 <span>/ quarter</span></div>
+          <div class="plan-effective">~$26.67/mo &mdash; <strong>save $40/year</strong></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="plan-badge">Save 11%</span>
+          <div class="plan-radio"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yearly -->
+    <div class="plan-card" id="plan-yearly" onclick="selectPlan('yearly')">
+      <div class="plan-header">
+        <div>
+          <div class="plan-label">Yearly</div>
+          <div class="plan-price">$300 <span>/ year</span></div>
+          <div class="plan-effective">~$25/mo &mdash; <strong>save $60/year</strong></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="plan-badge">Best value</span>
+          <div class="plan-radio"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <a href="/" class="btn btn-ghost" style="margin-top:8px">Back to homepage</a>
+  <!-- Features (shown once, apply to all plans) -->
+  <div class="plan-card" style="cursor:default;margin-bottom:0">
+    <div class="plan-label">What you get</div>
+    <ul class="feature-list">
+      <li><span class="feature-check"></span>Instant SMS alert the moment ADF&G issues a PWS opening</li>
+      <li><span class="feature-check"></span>Interactive district map — open/closed status at a glance</li>
+      <li><span class="feature-check"></span>Full announcement history with date scrubber</li>
+      <li><span class="feature-check"></span>Coverage for all PWS districts</li>
+      <li><span class="feature-check"></span>Early adopter price locked in permanently</li>
+    </ul>
+  </div>
+
+  <div class="cta-wrap">
+    <button class="btn btn-primary" onclick="startCheckout()" id="checkout-btn">Subscribe</button>
+    <p class="cta-note" id="trial-info"></p>
+    <p class="cta-note">Secure checkout via Stripe. Cancel anytime.</p>
+  </div>
+
+  <a href="/" class="btn btn-ghost" style="margin-top:12px">Back to homepage</a>
+
+  <div class="future-note">
+    <strong>Early adopter pricing:</strong> The first 30 captains who subscribe lock in this rate permanently — even when we raise prices later in the season. Once those seats are gone, new subscribers pay the market rate.
+  </div>
 </div>
 
 <script>
+  let selectedPlan = 'monthly';
+
+  function selectPlan(plan) {
+    selectedPlan = plan;
+    document.querySelectorAll('.plan-card[id^="plan-"]').forEach(el => el.classList.remove('selected'));
+    document.getElementById('plan-' + plan).classList.add('selected');
+    const labels = { monthly: '$30/month', quarterly: '$80/quarter', yearly: '$300/year' };
+    document.getElementById('checkout-btn').textContent = 'Subscribe — ' + labels[plan];
+  }
+
   async function startCheckout() {
     const btn = document.getElementById('checkout-btn');
     const err = document.getElementById('err');
@@ -236,7 +423,7 @@
       const r = await fetch('/api/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: '__existing__' }),
+        body: JSON.stringify({ phone_number: '__existing__', plan: selectedPlan }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Could not start checkout.');
@@ -245,21 +432,51 @@
       err.textContent = e.message;
       err.style.display = 'block';
       btn.disabled = false;
-      btn.textContent = 'Subscribe — $15/month';
+      const labels = { monthly: '$30/month', quarterly: '$80/quarter', yearly: '$300/year' };
+      btn.textContent = 'Subscribe — ' + labels[selectedPlan];
     }
   }
 
-  // Check if trial was already used and show context
+  // Load early adopter ticker
+  async function loadTicker() {
+    try {
+      const r = await fetch('/api/early-adopter-spots');
+      const d = await r.json();
+      const tickerText = document.getElementById('ticker-text');
+      const tickerSub  = document.getElementById('ticker-sub');
+
+      if (d.spots_left > 0) {
+        tickerText.textContent = d.spots_left + ' early adopter ' + (d.spots_left === 1 ? 'seat' : 'seats') + ' remaining';
+        tickerSub.innerHTML = 'The first 30 subscribers lock in this price permanently. <strong>' + d.taken + ' of 30 taken.</strong>';
+      } else {
+        // All seats filled — swap to neutral styling
+        const ticker = document.querySelector('.ticker');
+        ticker.style.background = 'rgba(90,114,136,0.1)';
+        ticker.style.borderColor = 'rgba(90,114,136,0.25)';
+        ticker.style.color = 'var(--muted)';
+        document.querySelector('.ticker-dot').style.display = 'none';
+        tickerText.textContent = 'Early adopter seats are full';
+        tickerSub.textContent = 'New subscribers pay the current market rate.';
+      }
+    } catch (_) {
+      document.getElementById('ticker-text').textContent = 'Early adopter pricing available now';
+    }
+  }
+
+  // Check session + set trial context
   fetch('/api/me').then(r => r.json()).then(({ user }) => {
     if (!user) { location.href = '/login'; return; }
     const info = document.getElementById('trial-info');
-    if (user.trial_ends_at) {
+    if (user.trial_ends_at && !user.trial_active) {
       info.textContent = 'Your 7-day trial has ended.';
     } else if (!user.phone_number) {
-      // Shouldn't be on pricing without a phone — send them to setup
       location.href = '/setup';
     }
   });
+
+  // Init
+  selectPlan('monthly');
+  loadTicker();
 </script>
 </body>
 </html>

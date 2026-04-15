@@ -245,6 +245,22 @@ app.get('/api/me', (req, res) => {
                      has_access: hasAccess(req.user) } });
 });
 
+// GET /api/early-adopter-spots — returns remaining early adopter seats (30 total)
+app.get('/api/early-adopter-spots', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT COUNT(*) AS count FROM captains WHERE tier = 'pro' AND subscription_active = true`
+    );
+    const taken = parseInt(result.rows[0].count, 10);
+    const total = 30;
+    const spots_left = Math.max(0, total - taken);
+    res.json({ spots_left, total, taken });
+  } catch (err) {
+    console.error('early-adopter-spots error:', err);
+    res.status(500).json({ error: 'Could not fetch spot count' });
+  }
+});
+
 // POST /api/setup — called from /setup page to save phone + determine next step
 app.post('/api/setup', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
@@ -288,9 +304,17 @@ app.post('/api/setup', express.json(), async (req, res) => {
   }
 
   // No trial available → go to Stripe
+  const { plan } = req.body;
+  const priceIdMap = {
+    monthly:   process.env.STRIPE_PRICE_ID_MONTHLY   || process.env.STRIPE_PRICE_ID,
+    quarterly: process.env.STRIPE_PRICE_ID_QUARTERLY || process.env.STRIPE_PRICE_ID,
+    yearly:    process.env.STRIPE_PRICE_ID_YEARLY    || process.env.STRIPE_PRICE_ID,
+  };
+  const priceId = priceIdMap[plan] || priceIdMap.monthly;
+
   const stripeSession = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
-    line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     mode: 'subscription',
     customer_email: req.user.email,
     success_url: `${BASE_URL}/success?captain_id=${req.user.id}`,
