@@ -265,71 +265,75 @@ app.get('/api/early-adopter-spots', async (req, res) => {
 app.post('/api/setup', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
 
-  const { phone_number, plan } = req.body;
-  if (!phone_number) return res.status(400).json({ error: 'Phone number required' });
+  try {
+    const { phone_number, plan } = req.body;
+    if (!phone_number) return res.status(400).json({ error: 'Phone number required' });
 
-  const priceIdMap = {
-    monthly:   process.env.STRIPE_PRICE_ID_MONTHLY   || process.env.STRIPE_PRICE_ID,
-    quarterly: process.env.STRIPE_PRICE_ID_QUARTERLY || process.env.STRIPE_PRICE_ID,
-    yearly:    process.env.STRIPE_PRICE_ID_YEARLY    || process.env.STRIPE_PRICE_ID,
-  };
+    const priceIdMap = {
+      monthly:   process.env.STRIPE_PRICE_ID_MONTHLY   || process.env.STRIPE_PRICE_ID,
+      quarterly: process.env.STRIPE_PRICE_ID_QUARTERLY || process.env.STRIPE_PRICE_ID,
+      yearly:    process.env.STRIPE_PRICE_ID_YEARLY    || process.env.STRIPE_PRICE_ID,
+    };
 
-  // __existing__ sentinel: user already has phone saved — either grant trial or go to Stripe
-  if (phone_number === '__existing__') {
-    if (!req.user.phone_number) {
-      return res.status(400).json({ error: 'No phone number on file. Complete setup first.' });
-    }
-
-    // Trial path: check eligibility, then grant
-    if (req.body.grant_trial) {
-      const priorTrial = await db.query(
-        'SELECT id FROM captains WHERE phone_number = $1 AND trial_ends_at IS NOT NULL AND id != $2',
-        [req.user.phone_number, req.user.id]
-      );
-      if (priorTrial.rows.length > 0) {
-        return res.status(400).json({ error: 'This phone number has already been used for a trial. Please subscribe to continue.' });
+    // __existing__ sentinel: user already has phone saved — either grant trial or go to Stripe
+    if (phone_number === '__existing__') {
+      if (!req.user.phone_number) {
+        return res.status(400).json({ error: 'No phone number on file. Complete setup first.' });
       }
-      const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      await db.query('UPDATE captains SET trial_ends_at = $1, updated_at = NOW() WHERE id = $2',
-        [trialEndsAt, req.user.id]);
-      return res.json({ redirect: '/app', trial: true, trial_days: 7 });
+
+      // Trial path: check eligibility, then grant
+      if (req.body.grant_trial) {
+        const priorTrial = await db.query(
+          'SELECT id FROM captains WHERE phone_number = $1 AND trial_ends_at IS NOT NULL AND id != $2',
+          [req.user.phone_number, req.user.id]
+        );
+        if (priorTrial.rows.length > 0) {
+          return res.status(400).json({ error: 'This phone number has already been used for a trial. Please subscribe to continue.' });
+        }
+        const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await db.query('UPDATE captains SET trial_ends_at = $1, updated_at = NOW() WHERE id = $2',
+          [trialEndsAt, req.user.id]);
+        return res.json({ redirect: '/app', trial: true, trial_days: 7 });
+      }
+
+      // Subscribe path: create Stripe checkout with chosen plan
+      const priceId = priceIdMap[plan] || priceIdMap.monthly;
+      const stripeSession = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: 'subscription',
+        customer_email: req.user.email,
+        success_url: `${BASE_URL}/success?captain_id=${req.user.id}`,
+        cancel_url:  `${BASE_URL}/pricing`,
+        metadata: { captain_id: req.user.id.toString() },
+      });
+      return res.json({ redirect: stripeSession.url, trial: false });
     }
 
-    // Subscribe path: create Stripe checkout with chosen plan
-    const priceId = priceIdMap[plan] || priceIdMap.monthly;
-    const stripeSession = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
-      customer_email: req.user.email,
-      success_url: `${BASE_URL}/success?captain_id=${req.user.id}`,
-      cancel_url:  `${BASE_URL}/pricing`,
-      metadata: { captain_id: req.user.id.toString() },
-    });
-    return res.json({ redirect: stripeSession.url, trial: false });
+    // Normalize phone to E.164 (frontend also normalizes, this is a safety net)
+    let phone = phone_number.trim();
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 10) phone = '+1' + digits;
+    else if (digits.length === 11 && digits.startsWith('1')) phone = '+' + digits;
+
+    // Admin or already subscribed → save phone and go to app
+    if (req.user.is_admin || (req.user.tier === 'pro' && req.user.subscription_active)) {
+      await db.query('UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2',
+        [phone, req.user.id]);
+      return res.json({ redirect: '/app' });
+    }
+
+    // Save phone (no trial granted yet — user picks on pricing page)
+    await db.query(
+      `UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2`,
+      [phone, req.user.id]
+    );
+
+    res.json({ redirect: '/pricing' });
+  } catch (err) {
+    console.error('POST /api/setup error:', err);
+    res.status(500).json({ error: 'Setup failed. Please try again.' });
   }
-
-  // Normalize phone to E.164 (frontend also normalizes, this is a safety net)
-  let phone = phone_number.trim();
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) phone = '+1' + digits;
-  else if (digits.length === 11 && digits.startsWith('1')) phone = '+' + digits;
-
-  // Admin or already subscribed → save phone and go to app
-  if (req.user.is_admin || (req.user.tier === 'pro' && req.user.subscription_active)) {
-    await db.query('UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2',
-      [phone, req.user.id]);
-    return res.json({ redirect: '/app' });
-  }
-
-  // Save phone (no trial granted yet — user picks on pricing page)
-  await db.query(
-    `UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2`,
-    [phone, req.user.id]
-  );
-
-  // Send to pricing page to subscribe or start trial
-  res.json({ redirect: '/pricing' });
 });
 
 // ── Email verification via Mailgun ────────────────────────────
