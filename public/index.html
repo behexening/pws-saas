@@ -200,6 +200,7 @@
     .scroll-window {
       flex: 1;
       overflow: hidden;
+      cursor: grab;
       position: relative;
       mask-image: linear-gradient(
         to bottom,
@@ -316,7 +317,7 @@
   <nav>
     <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
     <div class="nav-right">
-      <a href="/about" class="nav-link">about</a>
+      <a href="/about" class="nav-link" style="margin-right:12px">about</a>
       <a href="/login" class="nav-link" id="app-link">sign in</a>
       <a href="/login" class="btn-nav">Get started</a>
     </div>
@@ -449,7 +450,7 @@
     // ── Leaflet — fully locked ──────────────────────────────
     const map = L.map('map', {
       center:           [60.42, -147.5],
-      zoom:             9,
+      zoom:             window.innerWidth < 600 ? 7 : 9,
       zoomControl:      false,
       attributionControl: false,
       dragging:         false,
@@ -513,6 +514,10 @@
     let setHeight = 0;
     let frameN    = 0;
     let lastActiveEl = null;
+    let paused    = false;
+    let dragLastY = null;
+    let dragVel   = 0;
+    let momentumRaf = null;
 
     function computeSetHeight() {
       let h = 0;
@@ -540,7 +545,12 @@
       }
     }
 
+    function wrapScroll() {
+      if (setHeight > 0) scrollPos = ((scrollPos % setHeight) + setHeight) % setHeight;
+    }
+
     function tick(ts) {
+      if (paused) return;
       if (!lastTs) lastTs = ts;
       const dt = Math.min(ts - lastTs, 60);
       lastTs = ts;
@@ -551,6 +561,81 @@
       if (frameN % 6 === 0) detectActiveCard();
       requestAnimationFrame(tick);
     }
+
+    function resumeAuto() {
+      paused = false;
+      lastTs = null;
+      requestAnimationFrame(tick);
+    }
+
+    function startMomentum() {
+      let vel = dragVel;
+      function momentum() {
+        vel *= 0.92;
+        if (Math.abs(vel) < 0.3) { resumeAuto(); return; }
+        scrollPos += vel;
+        wrapScroll();
+        track.style.transform = `translateY(-${scrollPos.toFixed(2)}px)`;
+        detectActiveCard();
+        momentumRaf = requestAnimationFrame(momentum);
+      }
+      momentumRaf = requestAnimationFrame(momentum);
+    }
+
+    function stopMomentum() {
+      if (momentumRaf) { cancelAnimationFrame(momentumRaf); momentumRaf = null; }
+    }
+
+    // Touch
+    scrollWindow.addEventListener('touchstart', e => {
+      paused = true;
+      stopMomentum();
+      dragLastY = e.touches[0].clientY;
+      dragVel   = 0;
+    }, { passive: true });
+
+    scrollWindow.addEventListener('touchmove', e => {
+      if (dragLastY === null) return;
+      const dy  = dragLastY - e.touches[0].clientY;
+      dragVel   = dy * 0.6 + dragVel * 0.4;
+      scrollPos += dy;
+      wrapScroll();
+      track.style.transform = `translateY(-${scrollPos.toFixed(2)}px)`;
+      detectActiveCard();
+      dragLastY = e.touches[0].clientY;
+    }, { passive: true });
+
+    scrollWindow.addEventListener('touchend', () => {
+      dragLastY = null;
+      startMomentum();
+    });
+
+    // Mouse (desktop drag)
+    scrollWindow.addEventListener('mousedown', e => {
+      paused = true;
+      stopMomentum();
+      dragLastY = e.clientY;
+      dragVel   = 0;
+      scrollWindow.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!paused || dragLastY === null) return;
+      const dy  = dragLastY - e.clientY;
+      dragVel   = dy * 0.6 + dragVel * 0.4;
+      scrollPos += dy;
+      wrapScroll();
+      track.style.transform = `translateY(-${scrollPos.toFixed(2)}px)`;
+      detectActiveCard();
+      dragLastY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!paused || dragLastY === null) return;
+      scrollWindow.style.cursor = 'grab';
+      dragLastY = null;
+      startMomentum();
+    });
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
