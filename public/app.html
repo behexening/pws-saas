@@ -7,24 +7,29 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3250;
-      --text: #e8eaf6;
-      --muted: #8890b0;
-      --open: #27ae60;
-      --closed: #e74c3c;
-      --warn: #f39c12;
+      --bg:      #060a0f;
+      --surface: #0d1520;
+      --surface2: #132030;
+      --border:  #1a2d3f;
+      --text:    #dde8f4;
+      --muted:   #5a7288;
+      --accent:  #00b4d8;
+      --open:    #22c55e;
+      --closed:  #ef4444;
+      --warn:    #f59e0b;
       --radius: 6px;
     }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
       font-size: 13px;
       letter-spacing: -0.01em;
       height: 100vh;
@@ -55,14 +60,15 @@
     }
 
     .wordmark {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px;
+      letter-spacing: 0.03em;
       color: var(--text);
+      user-select: none;
     }
-    .wordmark span {
-      color: #5b8dee;
+    .wordmark em {
+      font-style: normal;
+      color: var(--accent);
     }
 
     .live-badge {
@@ -85,7 +91,7 @@
       background: none;
       border: 1px solid var(--border);
       color: var(--muted);
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
       font-size: 11px;
       font-weight: 600;
       letter-spacing: -0.01em;
@@ -97,7 +103,7 @@
     .tab-btn.active {
       background: var(--surface2);
       color: var(--text);
-      border-color: #5b8dee;
+      border-color: var(--accent);
     }
     .tab-btn:hover:not(.active) {
       color: var(--text);
@@ -200,7 +206,7 @@
       transition: background 0.15s;
     }
     .district-card:hover { background: var(--surface2); }
-    .district-card.highlighted { background: var(--surface2); outline: 1px solid #5b8dee44; }
+    .district-card.highlighted { background: var(--surface2); outline: 1px solid rgba(0,180,216,0.27); }
 
     .card-header {
       display: flex;
@@ -392,14 +398,14 @@
       -webkit-appearance: none;
       width: 14px; height: 14px;
       border-radius: 50%;
-      background: #5b8dee;
+      background: var(--accent);
       cursor: pointer;
       border: 2px solid var(--bg);
     }
     .date-slider-input::-moz-range-thumb {
       width: 14px; height: 14px;
       border-radius: 50%;
-      background: #5b8dee;
+      background: var(--accent);
       cursor: pointer;
       border: 2px solid var(--bg);
     }
@@ -438,20 +444,20 @@
     }
     .ann-row:last-child { border-bottom: none; }
     .ann-row:hover { background: var(--surface); }
-    .ann-row.ann-active { background: var(--surface); border-left: 3px solid #5b8dee; padding-left: 11px; }
+    .ann-row.ann-active { background: var(--surface); border-left: 3px solid var(--accent); padding-left: 11px; }
     .ann-date { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
     .ann-meta { font-size: 10px; color: var(--muted); }
 
     /* ── Map ── */
     .map-panel { position: relative; }
-    #map { width: 100%; height: 100%; background: #0a0c12; }
+    #map { width: 100%; height: 100%; background: var(--bg); }
 
     .map-legend {
       position: absolute;
       bottom: 20px;
       left: 10px;
       z-index: 1000;
-      background: rgba(15,17,23,0.92);
+      background: rgba(6,10,15,0.92);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 9px 13px;
@@ -475,7 +481,7 @@
       z-index: 1000;
       font-size: 9px;
       color: var(--muted);
-      background: rgba(15,17,23,0.75);
+      background: rgba(6,10,15,0.75);
       padding: 2px 6px;
       border-radius: 4px;
       letter-spacing: -0.01em;
@@ -487,7 +493,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      background: rgba(15,17,23,0.85);
+      background: rgba(6,10,15,0.85);
       border-top: 1px solid var(--border);
       padding: 5px 14px;
       font-size: 9px;
@@ -572,7 +578,7 @@
   <!-- Topbar -->
   <div class="topbar">
     <div class="topbar-left">
-      <div class="wordmark">ak<span>FISH</span>info.</div>
+      <div class="wordmark">akFISH<em>info.</em></div>
       <span class="live-badge">live</span>
       <div class="topbar-tabs">
         <button class="tab-btn active" onclick="setTab('live', this)">live</button>
@@ -681,7 +687,7 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
           renderer: canvasRenderer,
           radius: 457,
           color: '#e67e22', weight: 1, opacity: 0.7,
-          fillColor: '#0a0c14', fillOpacity: 0.70,
+          fillColor: '#060a0f', fillOpacity: 0.70,
         }).bindTooltip(
           '⛔ Anadromous Stream<br><b>' + pt.name + '</b><br>500 yd closure buffer',
           { direction: 'top', sticky: true }
@@ -692,7 +698,7 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
       toggleBtn.onAdd = function() {
         const div = L.DomUtil.create('div', 'stream-toggle');
         div.innerHTML = '⛔ AWC Buffers: ON';
-        div.style.cssText = 'background:rgba(15,17,23,0.9);color:#e67e22;border:1px solid #e67e22;' +
+        div.style.cssText = 'background:rgba(6,10,15,0.9);color:#e67e22;border:1px solid #e67e22;' +
           'padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;';
         div.onclick = function() {
           visible = !visible;
@@ -1018,7 +1024,7 @@ function renderPanel(result) {
   const reparseBtn = hasOAGJ ? '' :
     `<button onclick="reparseResult(${result.id})" style="
       margin-left:8px;padding:3px 10px;font-size:10px;font-weight:700;
-      background:rgba(91,141,238,0.15);color:#5b8dee;border:1px solid rgba(91,141,238,0.4);
+      background:rgba(0,180,216,0.12);color:#00b4d8;border:1px solid rgba(0,180,216,0.3);
       border-radius:5px;cursor:pointer;letter-spacing:.3px;
     " title="Re-run parser to get clipped geometry">↻ Reparse</button>`;
 
