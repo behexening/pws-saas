@@ -1236,9 +1236,9 @@ app.get('/setup', (req, res) => {
  * GET /pricing
  * Redirect unauthenticated users to login first
  */
-app.get('/pricing', (req, res, next) => {
+app.get('/pricing', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  next(); // serve pricing.html if it exists
+  res.sendFile(path.join(__dirname, 'public', 'pricing.html'));
 });
 
 /**
