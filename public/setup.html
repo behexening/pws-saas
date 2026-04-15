@@ -1,149 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Setup — AK Fish Info</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0d1117;
-            color: #e6edf3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 2.5rem 2rem;
-            max-width: 420px;
-            width: 100%;
-        }
-        h1 { font-size: 1.4rem; margin-bottom: 0.4rem; }
-        .sub { color: #8b949e; font-size: 0.9rem; margin-bottom: 2rem; }
-        .greeting { color: #58a6ff; font-weight: 600; }
-        label {
-            display: block;
-            font-weight: 600;
-            color: #e6edf3;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-        .hint { color: #8b949e; font-size: 0.8rem; font-weight: 400; }
-        input[type="tel"] {
-            width: 100%;
-            padding: 10px 12px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #e6edf3;
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        input[type="tel"]:focus {
-            outline: none;
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: #238636;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .btn:hover { background: #2ea043; }
-        .btn:disabled { background: #1b4020; color: #666; cursor: not-allowed; }
-        .error-msg {
-            background: #3d1a1a;
-            border: 1px solid #7d2d2d;
-            color: #f87171;
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        .price-note {
-            text-align: center;
-            color: #8b949e;
-            font-size: 0.8rem;
-            margin-top: 1rem;
-        }
-        .price-note strong { color: #e6edf3; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup — akFISHinfo</title>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #060a0f;
+      --surface: #0d1520;
+      --border:  #1a2d3f;
+      --text:    #dde8f4;
+      --muted:   #5a7288;
+      --accent:  #00b4d8;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      background: rgba(6, 10, 15, 0.95);
+      border-bottom: 1px solid var(--border);
+    }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px;
+      letter-spacing: 0.03em;
+      color: var(--text);
+      user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 28px 26px;
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .greeting { color: var(--accent); }
+    .sub {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .hint {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 10px;
+    }
+    input[type="tel"] {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin-bottom: 18px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="tel"]:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      color: #000;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .error-msg {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      border-radius: 4px;
+      padding: 9px 12px;
+      font-size: 0.8rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .price-note {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .price-note strong { color: var(--text); }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Almost there, <span class="greeting" id="greeting">captain</span></h1>
-        <p class="sub">We need your phone number to send SMS alerts.</p>
+  <nav>
+    <div class="wordmark">akFISH<em>info.</em></div>
+  </nav>
 
-        <form id="setupForm">
-            <label>
-                Phone number <span class="hint">(include country code, e.g. +19075550123)</span>
-            </label>
-            <input type="tel" id="phone" name="phone_number"
-                   placeholder="+1-907-555-0123" required autocomplete="tel">
+  <div class="card">
+    <h1>Welcome, <span class="greeting" id="greeting">captain</span></h1>
+    <p class="sub">Add your phone number to receive SMS alerts when a district opens.</p>
 
-            <div class="error-msg" id="errorMsg"></div>
+    <form id="setupForm">
+      <label>Phone number <span class="hint">(include country code, e.g. +19075550123)</span></label>
+      <input type="tel" id="phone" placeholder="+1 907 555 0123" required autocomplete="tel" />
+      <div class="error-msg" id="errorMsg"></div>
+      <button type="submit" class="btn" id="submitBtn">Continue</button>
+    </form>
 
-            <button type="submit" class="btn" id="submitBtn">
-                Start free trial →
-            </button>
-        </form>
+    <p class="price-note">7-day free trial, then <strong>$15/month</strong>. One trial per phone number.</p>
+  </div>
 
-        <p class="price-note">7 days free, then <strong>$15/month</strong>. One trial per phone number.</p>
-    </div>
+  <script>
+    fetch('/api/me').then(r => r.json()).then(({ user }) => {
+      if (!user) { location.href = '/login'; return; }
+      if (user.phone_number) {
+        location.href = user.has_access ? '/app' : '/pricing';
+        return;
+      }
+      const first = (user.name || '').split(' ')[0];
+      if (first) document.getElementById('greeting').textContent = first;
+    });
 
-    <script>
-        // Pre-fill greeting from session user
-        fetch('/api/me')
-            .then(r => r.json())
-            .then(({ user }) => {
-                if (!user) { location.href = '/login'; return; }
-                // Server handles redirect if phone already set, but guard here too
-                if (user.phone_number) {
-                    location.href = user.has_access ? '/app' : '/pricing';
-                    return;
-                }
-                const firstName = (user.name || '').split(' ')[0];
-                if (firstName) document.getElementById('greeting').textContent = firstName;
-            });
-
-        document.getElementById('setupForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.style.display = 'none';
-            btn.disabled = true;
-            btn.textContent = 'Redirecting…';
-
-            try {
-                const resp = await fetch('/api/setup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone_number: document.getElementById('phone').value }),
-                });
-                const data = await resp.json();
-                if (!resp.ok) throw new Error(data.error || 'Setup failed');
-                window.location.href = data.redirect;
-            } catch (err) {
-                errorDiv.textContent = '❌ ' + err.message;
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.textContent = 'Continue to Payment →';
-            }
+    document.getElementById('setupForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Redirecting...';
+      try {
+        const r = await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone_number: document.getElementById('phone').value }),
         });
-    </script>
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Setup failed');
+        window.location.href = d.redirect;
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Continue';
+      }
+    });
+  </script>
 </body>
 </html>

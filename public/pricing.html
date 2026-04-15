@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — akFISHinfo</title>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #060a0f;
+      --surface: #0d1520;
+      --border:  #1a2d3f;
+      --text:    #dde8f4;
+      --muted:   #5a7288;
+      --accent:  #00b4d8;
+      --open:    #22c55e;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      height: 50px;
+      background: rgba(6,10,15,0.95);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px;
+      letter-spacing: 0.03em;
+      color: var(--text);
+      user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    /* Layout */
+    .page {
+      max-width: 480px;
+      margin: 64px auto;
+      padding: 0 24px 80px;
+      text-align: center;
+    }
+    h1 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.01em;
+      margin-bottom: 10px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .page-sub {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.65;
+      max-width: 340px;
+      margin: 0 auto 40px;
+    }
+
+    /* Pricing card */
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 28px 28px 24px;
+      text-align: left;
+      margin-bottom: 14px;
+    }
+    .plan-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 28px rgba(0,180,216,0.08);
+    }
+    .plan-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .plan-price {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .plan-price span {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+    .plan-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .feature-list {
+      list-style: none;
+      margin-bottom: 22px;
+    }
+    .feature-list li {
+      font-size: 0.8rem;
+      color: var(--text);
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(26,45,63,0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .feature-list li:last-child { border-bottom: none; }
+    .feature-check {
+      width: 14px; height: 14px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 2px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .feature-check::after {
+      content: '';
+      width: 5px; height: 8px;
+      border-right: 1.5px solid var(--open);
+      border-bottom: 1.5px solid var(--open);
+      transform: rotate(45deg) translate(-1px, -1px);
+      display: block;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+
+    /* Trial notice */
+    .trial-notice {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+
+    /* Alert */
+    .alert-err {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      border-radius: 4px;
+      padding: 9px 12px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: none;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wordmark">akFISH<em>info.</em></div>
+  <a href="/auth/logout" class="nav-link">sign out</a>
+</nav>
+
+<div class="page">
+  <h1>Get <em>access.</em></h1>
+  <p class="page-sub">Your trial has ended or you don't yet have an active subscription. Subscribe below to restore access.</p>
+
+  <div class="alert-err" id="err"></div>
+
+  <div class="plan-card featured">
+    <div class="plan-label">Pro</div>
+    <div class="plan-price">$15 <span>/ month</span></div>
+    <div class="plan-desc">Instant SMS alert the moment ADF&G issues a PWS opening. Cancel anytime.</div>
+    <ul class="feature-list">
+      <li><span class="feature-check"></span>Real-time SMS alerts for all PWS districts</li>
+      <li><span class="feature-check"></span>Interactive district map with open/closed status</li>
+      <li><span class="feature-check"></span>Full announcement history</li>
+      <li><span class="feature-check"></span>Cancel anytime</li>
+    </ul>
+    <button class="btn btn-primary" onclick="startCheckout()" id="checkout-btn">Subscribe — $15/month</button>
+    <p class="trial-notice" id="trial-info" style="margin-top:12px"></p>
+  </div>
+
+  <a href="/" class="btn btn-ghost" style="margin-top:8px">Back to homepage</a>
+</div>
+
+<script>
+  async function startCheckout() {
+    const btn = document.getElementById('checkout-btn');
+    const err = document.getElementById('err');
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Redirecting...';
+    try {
+      const r = await fetch('/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: '__existing__' }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Could not start checkout.');
+      window.location.href = d.redirect;
+    } catch (e) {
+      err.textContent = e.message;
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Subscribe — $15/month';
+    }
+  }
+
+  // Check if trial was already used and show context
+  fetch('/api/me').then(r => r.json()).then(({ user }) => {
+    if (!user) { location.href = '/login'; return; }
+    const info = document.getElementById('trial-info');
+    if (user.trial_ends_at) {
+      info.textContent = 'Your 7-day trial has ended.';
+    } else if (!user.phone_number) {
+      // Shouldn't be on pricing without a phone — send them to setup
+      location.href = '/setup';
+    }
+  });
+</script>
+</body>
+</html>
