@@ -142,13 +142,41 @@ function isAdminEmail(email) {
   return admins.includes(email.toLowerCase());
 }
 
-/** True if this captain has active access (admin, pro, or in-trial) */
+function isAlaskaGov(email) {
+  return !!(email && email.toLowerCase().endsWith('@alaska.gov'));
+}
+
+/** True if this captain has active access (admin, alaska.gov, pro, or in-trial) */
 function hasAccess(user) {
   if (!user) return false;
   if (user.is_admin) return true;
+  if (isAlaskaGov(user.email)) return true;
   if (user.tier === 'pro' && user.subscription_active) return true;
   if (user.trial_ends_at && new Date(user.trial_ends_at) > new Date()) return true;
   return false;
+}
+
+// ── Password hashing (no external deps — uses built-in crypto.scrypt) ──
+
+async function hashPassword(password) {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    crypto.scrypt(password, salt, 64, (err, key) => {
+      if (err) reject(err);
+      else resolve(`${salt}:${key.toString('hex')}`);
+    });
+  });
+}
+
+async function verifyPassword(password, stored) {
+  return new Promise((resolve, reject) => {
+    const [salt, key] = stored.split(':');
+    if (!salt || !key) return resolve(false);
+    crypto.scrypt(password, salt, 64, (err, derived) => {
+      if (err) reject(err);
+      else resolve(derived.toString('hex') === key);
+    });
+  });
 }
 
 // Start Google OAuth flow
@@ -160,7 +188,10 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login?error=1' }),
   (req, res) => {
-    if (!req.user.phone_number) return res.redirect('/setup');
+    // alaska.gov and admins skip the phone/trial setup entirely
+    if (!req.user.phone_number && !isAlaskaGov(req.user.email) && !req.user.is_admin) {
+      return res.redirect('/setup');
+    }
     if (hasAccess(req.user)) return res.redirect('/app');
     res.redirect('/pricing');
   }
@@ -242,6 +273,80 @@ app.post('/api/setup', express.json(), async (req, res) => {
   res.json({ redirect: stripeSession.url, trial: false });
 });
 
+// POST /api/register — create account with email + password
+app.post('/api/register', express.json(), async (req, res) => {
+  const { name, email, password } = req.body;
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'Name, email, and password are required.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  const existing = await db.query('SELECT id FROM captains WHERE email = $1', [email.toLowerCase()]);
+  if (existing.rows.length > 0) {
+    return res.status(409).json({ error: 'An account with that email already exists.' });
+  }
+
+  try {
+    const hash = await hashPassword(password);
+    const admin = isAdminEmail(email);
+    const result = await db.query(
+      `INSERT INTO captains (name, email, password_hash, tier, is_admin)
+       VALUES ($1, $2, $3, 'free', $4) RETURNING *`,
+      [name.trim(), email.toLowerCase(), hash, admin]
+    );
+    const user = result.rows[0];
+
+    req.login(user, err => {
+      if (err) return res.status(500).json({ error: 'Session error.' });
+      // alaska.gov users go straight to the app — no trial/payment needed
+      if (isAlaskaGov(user.email) || user.is_admin) {
+        return res.json({ redirect: '/app' });
+      }
+      // Everyone else needs phone number for trial
+      res.json({ redirect: '/setup' });
+    });
+  } catch (err) {
+    console.error('Register error:', err);
+    res.status(500).json({ error: 'Could not create account.' });
+  }
+});
+
+// POST /api/login — sign in with email + password
+app.post('/api/login', express.json(), async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  try {
+    const result = await db.query('SELECT * FROM captains WHERE email = $1', [email.toLowerCase()]);
+    const user = result.rows[0];
+
+    if (!user || !user.password_hash) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const ok = await verifyPassword(password, user.password_hash);
+    if (!ok) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    req.login(user, err => {
+      if (err) return res.status(500).json({ error: 'Session error.' });
+      if (!user.phone_number && !isAlaskaGov(user.email) && !user.is_admin) {
+        return res.json({ redirect: '/setup' });
+      }
+      if (hasAccess(user)) return res.json({ redirect: '/app' });
+      res.json({ redirect: '/pricing' });
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Could not sign in.' });
+  }
+});
+
 // ============================================================
 // DATABASE INIT
 // ============================================================
@@ -321,6 +426,9 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_captains_email ON captains(email);
       CREATE INDEX IF NOT EXISTS idx_captains_tier ON captains(tier);
     `);
+
+    // Password hash for email/password auth
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS password_hash TEXT;`);
 
     // Google OAuth + trial + admin columns
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);`);

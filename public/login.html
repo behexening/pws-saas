@@ -25,7 +25,8 @@
             width: 100%;
             text-align: center;
         }
-        .logo { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .logo-text { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 0.5rem; color: #e6edf3; }
+        .logo-text span { color: #58a6ff; }
         h1 { font-size: 1.4rem; color: #e6edf3; margin-bottom: 0.4rem; }
         .sub { color: #8b949e; font-size: 0.9rem; margin-bottom: 2rem; }
         .btn-google {
@@ -64,7 +65,7 @@
 </head>
 <body>
     <div class="card">
-        <div class="logo">⚓</div>
+        <div class="logo-text">akFISH<span>info.</span></div>
         <h1>AK Fish Info</h1>
         <p class="sub">Real-time Prince William Sound salmon alerts</p>
 
@@ -83,13 +84,89 @@
         </a>
 
         <p class="divider">— or —</p>
-        <a href="/" class="back">← Back to map</a>
+
+        <!-- Email sign-in form (shown by default) -->
+        <form id="email-signin-form" onsubmit="doSignIn(event)">
+            <input type="email" id="si-email" placeholder="Email" required autocomplete="email" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:8px;outline:none;" />
+            <input type="password" id="si-password" placeholder="Password" required autocomplete="current-password" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:12px;outline:none;" />
+            <button type="submit" style="width:100%;padding:11px;background:#238636;border:none;border-radius:6px;color:white;font-size:0.9rem;font-weight:600;cursor:pointer;">Sign in</button>
+        </form>
+
+        <!-- Email sign-up form (hidden by default) -->
+        <form id="email-signup-form" style="display:none;" onsubmit="doSignUp(event)">
+            <input type="text" id="su-name" placeholder="Full name" required autocomplete="name" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:8px;outline:none;" />
+            <input type="email" id="su-email" placeholder="Email" required autocomplete="email" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:8px;outline:none;" />
+            <input type="password" id="su-password" placeholder="Password (min 8 characters)" required minlength="8" autocomplete="new-password" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:12px;outline:none;" />
+            <button type="submit" style="width:100%;padding:11px;background:#238636;border:none;border-radius:6px;color:white;font-size:0.9rem;font-weight:600;cursor:pointer;">Create account</button>
+        </form>
+
+        <p style="margin-top:14px;font-size:0.82rem;color:#8b949e;">
+            <span id="toggle-label">Don't have an account?</span>
+            <a href="#" id="toggle-link" onclick="toggleForm(event)" style="color:#58a6ff;text-decoration:none;margin-left:4px;">Sign up</a>
+        </p>
+
+        <p style="margin-top:18px;"><a href="/" class="back">← Back to homepage</a></p>
     </div>
 
     <script>
         // Show error if Google auth failed
         if (new URLSearchParams(location.search).get('error')) {
             document.getElementById('errorMsg').style.display = 'block';
+        }
+
+        let showingSignUp = false;
+
+        function toggleForm(e) {
+            e.preventDefault();
+            showingSignUp = !showingSignUp;
+            document.getElementById('email-signin-form').style.display = showingSignUp ? 'none' : 'block';
+            document.getElementById('email-signup-form').style.display = showingSignUp ? 'block' : 'none';
+            document.getElementById('toggle-label').textContent = showingSignUp ? 'Already have an account?' : 'Don\'t have an account?';
+            document.getElementById('toggle-link').textContent = showingSignUp ? 'Sign in' : 'Sign up';
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        async function doSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('si-email').value.trim();
+            const password = document.getElementById('si-password').value;
+            try {
+                const r = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const d = await r.json();
+                if (!r.ok) { showError(d.error || 'Sign-in failed.'); return; }
+                window.location.href = d.redirect;
+            } catch {
+                showError('Connection error. Please try again.');
+            }
+        }
+
+        async function doSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('su-name').value.trim();
+            const email = document.getElementById('su-email').value.trim();
+            const password = document.getElementById('su-password').value;
+            try {
+                const r = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password }),
+                });
+                const d = await r.json();
+                if (!r.ok) { showError(d.error || 'Sign-up failed.'); return; }
+                window.location.href = d.redirect;
+            } catch {
+                showError('Connection error. Please try again.');
+            }
         }
     </script>
 </body>

@@ -362,14 +362,71 @@
     .status-badge.upcoming  { background: rgba(243,156,18,0.15); color: var(--warn);   border: 1px solid rgba(243,156,18,0.35); }
     .status-badge.ended     { background: rgba(136,144,176,0.1); color: var(--muted);  border: 1px solid rgba(136,144,176,0.2); }
 
-    /* ── Announcement picker (old tab) ── */
-    .ann-picker {
+    /* ── Date scrubber (old tab) ── */
+    .ann-picker { border-bottom: 1px solid var(--border); }
+
+    .date-scrubber {
+      padding: 10px 14px 8px;
       border-bottom: 1px solid var(--border);
-      max-height: 150px;
-      overflow-y: auto;
+      background: var(--bg);
     }
-    .ann-picker::-webkit-scrollbar { width: 4px; }
-    .ann-picker::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .scrubber-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .scrubber-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .scrubber-date-display { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .date-slider-input {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+    .date-slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #5b8dee;
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+    .date-slider-input::-moz-range-thumb {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #5b8dee;
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+    .scrubber-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .scrubber-nav-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .scrubber-nav-btn:hover { color: var(--text); border-color: var(--muted); }
+    .scrubber-status {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: -0.01em;
+    }
+
     .ann-row {
       padding: 8px 14px;
       cursor: pointer;
@@ -503,8 +560,9 @@
       .district-name { font-size: 13px; }
       .time-row, .constraint-row { font-size: 11px; }
 
-      /* Ann picker needs horizontal scroll on mobile, not fixed height */
-      .ann-picker { max-height: 120px; }
+      /* Date scrubber on mobile */
+      .date-scrubber { padding: 8px 12px 6px; }
+      .ann-picker { max-height: none; }
     }
   </style>
 </head>
@@ -533,7 +591,21 @@
 
     <!-- Left panel -->
     <div class="left-panel" id="left-panel">
-      <div class="ann-picker" id="ann-picker" style="display:none"></div>
+      <div class="ann-picker" id="ann-picker" style="display:none">
+        <div class="date-scrubber" id="date-scrubber" style="display:none">
+          <div class="scrubber-top">
+            <span class="scrubber-label">Timeline</span>
+            <span class="scrubber-date-display" id="scrubber-date-display">—</span>
+          </div>
+          <input type="range" id="date-slider" min="0" max="0" value="0" class="date-slider-input" oninput="onSliderInput(this.value)" />
+          <div class="scrubber-nav">
+            <button class="scrubber-nav-btn" onclick="stepSlider(-1)">◀ prev</button>
+            <span class="scrubber-status" id="scrubber-status"></span>
+            <button class="scrubber-nav-btn" onclick="stepSlider(1)">next ▶</button>
+          </div>
+        </div>
+        <div id="ann-list"></div>
+      </div>
       <div class="panel-header" id="panel-header" style="display:none">
         <div id="panel-status-badge"></div>
         <div class="panel-meta" id="panel-meta"></div>
@@ -700,14 +772,16 @@ async function loadTab(tab) {
     allResults = data.results || [];
 
     if (tab === 'old') {
-      renderAnnouncementList(allResults);
-    }
-
-    if (allResults.length) {
-      await loadAndRender(allResults[0]);
+      initDateScrubber(allResults);
+      // initDateScrubber handles the initial render; nothing more to do
+      if (!allResults.length) { renderPanel(null); renderMap(null); }
     } else {
-      renderPanel(null);
-      renderMap(null);
+      if (allResults.length) {
+        await loadAndRender(allResults[0]);
+      } else {
+        renderPanel(null);
+        renderMap(null);
+      }
     }
   } catch(err) {
     document.getElementById('cards-container').innerHTML =
@@ -724,19 +798,120 @@ async function loadAndRender(result) {
   await renderMap(result);
 }
 
-// ── Announcement list for old tab ──
-function renderAnnouncementList(results) {
-  const picker = document.getElementById('ann-picker');
+// ── Date scrubber for old tab ──
+
+// Array of {date (YYYY-MM-DD AKDT), results[]} sorted oldest→newest
+let scrubberDates = [];
+let scrubberIdx = 0;
+
+function buildScrubberDates(results) {
+  // Map each result to every AKDT date within its opening window.
+  // Fall back to announcement_date if timestamps are absent.
+  const dateMap = {}; // 'YYYY-MM-DD' → Set of result ids
+
+  for (const r of results) {
+    let dates = [];
+
+    if (r.earliest_opens_at && r.latest_closes_at) {
+      // Walk day by day from open → close (in AKDT)
+      const start = new Date(r.earliest_opens_at);
+      const end   = new Date(r.latest_closes_at);
+      let cur = new Date(start);
+      while (cur <= end) {
+        dates.push(cur.toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' })); // YYYY-MM-DD
+        cur = new Date(cur.getTime() + 86400000);
+      }
+    } else if (r.announcement_date) {
+      dates.push(String(r.announcement_date).substring(0, 10));
+    }
+
+    for (const d of dates) {
+      if (!dateMap[d]) dateMap[d] = [];
+      // Avoid duplicates
+      if (!dateMap[d].find(x => x.id === r.id)) dateMap[d].push(r);
+    }
+  }
+
+  // Sort dates ascending
+  return Object.keys(dateMap).sort().map(d => ({ date: d, results: dateMap[d] }));
+}
+
+function fmtScrubberDate(isoDate) {
+  const d = new Date(isoDate + 'T12:00:00Z');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+
+function initDateScrubber(results) {
+  const scrubber = document.getElementById('date-scrubber');
+  const annList  = document.getElementById('ann-list');
+
   if (!results.length) {
-    picker.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
+    scrubber.style.display = 'none';
+    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
     return;
   }
-  picker.innerHTML = results.map((r, i) => {
+
+  scrubberDates = buildScrubberDates(results);
+
+  if (!scrubberDates.length) {
+    scrubber.style.display = 'none';
+    renderAnnList(results, results[0]);
+    return;
+  }
+
+  const slider = document.getElementById('date-slider');
+  slider.min   = 0;
+  slider.max   = scrubberDates.length - 1;
+  scrubberIdx  = scrubberDates.length - 1; // start at most recent
+  slider.value = scrubberIdx;
+
+  scrubber.style.display = 'block';
+  applyScrubberIndex(scrubberIdx, true);
+}
+
+function applyScrubberIndex(idx, autoLoad) {
+  scrubberIdx = idx;
+  const entry = scrubberDates[idx];
+  if (!entry) return;
+
+  document.getElementById('date-slider').value = idx;
+  document.getElementById('scrubber-date-display').textContent = fmtScrubberDate(entry.date);
+  document.getElementById('scrubber-status').textContent =
+    `${idx + 1} / ${scrubberDates.length}`;
+
+  // Pick the result with the widest open window for this date
+  const dayResults = entry.results.slice().sort((a, b) => {
+    if (b.has_open_districts !== a.has_open_districts) return b.has_open_districts ? 1 : -1;
+    return new Date(b.earliest_opens_at || 0) - new Date(a.earliest_opens_at || 0);
+  });
+  const chosen = dayResults[0];
+
+  renderAnnList(allResults, chosen);
+  if (autoLoad !== false) loadAndRender(chosen);
+}
+
+function onSliderInput(val) {
+  applyScrubberIndex(parseInt(val, 10));
+}
+
+function stepSlider(delta) {
+  const next = Math.max(0, Math.min(scrubberDates.length - 1, scrubberIdx + delta));
+  if (next !== scrubberIdx) applyScrubberIndex(next);
+}
+
+function renderAnnList(results, activeResult) {
+  const annList = document.getElementById('ann-list');
+  if (!results.length) {
+    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
+    return;
+  }
+  annList.innerHTML = results.map(r => {
     const cnt = (r.districts || []).length;
+    const isActive = activeResult && r.id === activeResult.id;
     const openLabel = r.has_open_districts
       ? '<span style="color:var(--open);font-weight:700">open</span>'
       : '<span style="color:var(--muted)">closed</span>';
-    return `<div class="ann-row${i === 0 ? ' ann-active' : ''}" onclick="selectAnnouncement(${r.id}, this)">
+    return `<div class="ann-row${isActive ? ' ann-active' : ''}" onclick="selectAnnouncement(${r.id}, this)">
       <span class="ann-date">${fmtDate(r)}</span>
       <span class="ann-meta">${cnt} dist &middot; ${openLabel}</span>
     </div>`;
@@ -747,7 +922,27 @@ function selectAnnouncement(id, el) {
   document.querySelectorAll('.ann-row').forEach(r => r.classList.remove('ann-active'));
   el.classList.add('ann-active');
   const result = allResults.find(r => r.id === id);
-  if (result) loadAndRender(result);
+  if (!result) return;
+
+  // Sync scrubber to this announcement's date
+  if (scrubberDates.length) {
+    const targetDate = result.announcement_date
+      ? String(result.announcement_date).substring(0, 10)
+      : null;
+    if (targetDate) {
+      const matchIdx = scrubberDates.findIndex(e =>
+        e.results.some(r => r.id === id)
+      );
+      if (matchIdx >= 0) {
+        scrubberIdx = matchIdx;
+        document.getElementById('date-slider').value = scrubberIdx;
+        document.getElementById('scrubber-date-display').textContent = fmtScrubberDate(scrubberDates[matchIdx].date);
+        document.getElementById('scrubber-status').textContent = `${scrubberIdx + 1} / ${scrubberDates.length}`;
+      }
+    }
+  }
+
+  loadAndRender(result);
 }
 
 async function reparseResult(id) {
