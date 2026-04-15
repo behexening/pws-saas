@@ -448,9 +448,10 @@
     [...CARDS, ...CARDS].forEach(d => track.appendChild(makeCard(d)));
 
     // ── Leaflet — fully locked ──────────────────────────────
+    const isMobile = window.innerWidth <= 640;
     const map = L.map('map', {
       center:           [60.42, -147.5],
-      zoom:             window.innerWidth < 600 ? 7 : 9,
+      zoom:             isMobile ? 7 : 8,
       zoomControl:      false,
       attributionControl: false,
       dragging:         false,
@@ -465,6 +466,15 @@
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
     }).addTo(map);
+
+    // On mobile the panel covers the bottom 62vh, so the visible map is the top 38vh.
+    // Shift the center so PWS appears in the middle of that visible portion.
+    if (isMobile) {
+      const offsetPx = window.innerHeight * 0.31; // (50% - 19%) of viewport
+      const c = map.latLngToContainerPoint([60.42, -147.5]);
+      const newCenter = map.containerPointToLatLng(L.point(c.x, c.y + offsetPx));
+      map.setView(newCenter, 7, { animate: false });
+    }
 
     const STYLE = {
       open:    { fillColor: '#22c55e', fillOpacity: 0.15, color: '#22c55e', weight: 1.5, opacity: 0.5  },
