@@ -31,8 +31,12 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const rateLimit = require('express-rate-limit');
 
-const upload = multer({ dest: '/tmp/mailgun-uploads/' });
+const upload = multer({
+  dest: '/tmp/mailgun-uploads/',
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB cap
+});
 
 // ============================================================
 // CONFIG
@@ -54,18 +58,24 @@ const db = new Pool({
 // maxAge is NOT set globally here — it is set per-login based on the
 // "remember me" checkbox. Without maxAge the cookie is a browser-session
 // cookie (cleared when the browser closes), which is the safe default.
+if (!process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable is not set');
+  process.exit(1);
+}
+
 app.use(session({
   store: new pgSession({
     pool: db,
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),
-  secret: process.env.SESSION_SECRET || 'dev-secret-change-in-prod',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
+    sameSite: 'lax',
   },
 }));
 app.use(passport.initialize());
@@ -185,7 +195,13 @@ async function verifyPassword(password, stored) {
     if (!salt || !key) return resolve(false);
     crypto.scrypt(password, salt, 64, (err, derived) => {
       if (err) reject(err);
-      else resolve(derived.toString('hex') === key);
+      else {
+        try {
+          resolve(crypto.timingSafeEqual(derived, Buffer.from(key, 'hex')));
+        } catch {
+          resolve(false);
+        }
+      }
     });
   });
 }
@@ -317,8 +333,16 @@ async function sendVerificationEmail(email, token) {
   });
 }
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+});
+
 // POST /api/register — create account with email + password
-app.post('/api/register', express.json(), async (req, res) => {
+app.post('/api/register', authLimiter, express.json(), async (req, res) => {
   const { name, email, password, remember_me } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
@@ -361,7 +385,7 @@ app.post('/api/register', express.json(), async (req, res) => {
 });
 
 // POST /api/login — sign in with email + password
-app.post('/api/login', express.json(), async (req, res) => {
+app.post('/api/login', authLimiter, express.json(), async (req, res) => {
   const { email, password, remember_me } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required.' });
@@ -565,10 +589,38 @@ async function initDatabase() {
 // ============================================================
 
 /**
+ * Verify a Mailgun webhook signature.
+ * Uses HMAC-SHA256(timestamp + token, MAILGUN_WEBHOOK_SIGNING_KEY).
+ * Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#securing-webhooks
+ */
+function verifyMailgunSignature(timestamp, token, signature) {
+  const signingKey = process.env.MAILGUN_WEBHOOK_SIGNING_KEY;
+  if (!signingKey) {
+    console.warn('⚠ MAILGUN_WEBHOOK_SIGNING_KEY not set — skipping webhook signature check');
+    return true;
+  }
+  const expected = crypto
+    .createHmac('sha256', signingKey)
+    .update(timestamp + token)
+    .digest('hex');
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature || ''));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * POST /webhooks/email
  * Receives email from Mailgun, extracts PDF, queues parsing
  */
 app.post('/webhooks/email', upload.any(), async (req, res) => {
+  // Verify this request actually came from Mailgun
+  const { timestamp, token, signature } = req.body;
+  if (!verifyMailgunSignature(timestamp, token, signature)) {
+    console.warn('⚠ Mailgun webhook signature mismatch — rejected');
+    return res.status(403).send('Forbidden');
+  }
   try {
     const subject = req.body.subject || '';
     const attachmentCount = parseInt(req.body['attachment-count'] || '0', 10);
@@ -805,83 +857,22 @@ async function alertProUsers(districts) {
 // ============================================================
 
 /**
- * POST /api/signup
- * Create user and initiate Stripe checkout
- */
-app.post('/api/signup', express.json(), async (req, res) => {
-  try {
-    const { name, email, phone_number, regions, alerts_enabled } = req.body;
-
-    if (!email || !phone_number) {
-      return res.status(400).json({ error: 'Email and phone required' });
-    }
-
-    // Check if exists
-    const existing = await db.query('SELECT id FROM captains WHERE email = $1', [email]);
-    if (existing.rows.length > 0) {
-      return res.status(409).json({ error: 'Email already signed up' });
-    }
-
-    // Create captain (free tier initially)
-    const captain = await db.query(
-      `INSERT INTO captains (name, email, phone_number, regions, alerts_enabled, tier)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id`,
-      [name, email, phone_number, regions || ['PWS'], alerts_enabled, 'free']
-    );
-
-    const captainId = captain.rows[0].id;
-
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${BASE_URL}/success?captain_id=${captainId}`,
-      cancel_url: `${BASE_URL}/pricing`,
-      metadata: { captain_id: captainId.toString() },
-    });
-
-    res.json({ stripe_session_url: session.url });
-  } catch (err) {
-    console.error('Signup error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/**
  * GET /success
- * After payment, upgrade user to pro
+ * Shown after Stripe checkout completes. The actual upgrade is handled
+ * by the Stripe webhook (checkout.session.completed) — not here.
  */
-app.get('/success', async (req, res) => {
-  const { captain_id } = req.query;
-  if (!captain_id) {
-    return res.status(400).send('Missing captain_id');
-  }
-
-  try {
-    await db.query(
-      `UPDATE captains SET tier = $1, subscription_active = true WHERE id = $2`,
-      ['pro', captain_id]
-    );
-
-    res.send(`
-      <html>
-        <body style="font-family: sans-serif; text-align: center; margin-top: 2em;">
-          <h1>✓ Payment successful!</h1>
-          <p>Your SMS alerts are now active.</p>
-          <a href="/">Return to map</a>
-        </body>
-      </html>
-    `);
-  } catch (err) {
-    res.status(500).send('Error updating account');
-  }
+app.get('/success', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  res.send(`
+    <html>
+      <head><meta http-equiv="refresh" content="3;url=/app"></head>
+      <body style="font-family:sans-serif;text-align:center;margin-top:4em;background:#0d1117;color:#e6edf3">
+        <h2 style="color:#27ae60">Payment received!</h2>
+        <p>Your account is being activated&hellip; you'll be redirected shortly.</p>
+        <p><a href="/app" style="color:#58a6ff">Open the app</a></p>
+      </body>
+    </html>
+  `);
 });
 
 /**
@@ -1250,7 +1241,7 @@ async function start() {
     app.listen(PORT, () => {
       console.log(`\n🚀 PWS Parser running on port ${PORT}`);
       console.log(`📧 Email webhook: POST /webhooks/email`);
-      console.log(`💳 Signup: POST /api/signup`);
+      console.log(`💳 Stripe webhook: POST /webhooks/stripe`);
       console.log(`🗂️ Results: GET /results/{filename}`);
       console.log(`✅ Health: GET /health\n`);
     });

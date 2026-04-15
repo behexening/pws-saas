@@ -1,135 +1,577 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>akFISHinfo — Prince William Sound Salmon Alerts</title>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --border: #2e3250;
-            --text: #e8eaf6;
-            --muted: #8890b0;
-            --blue: #5b8dee;
-        }
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            min-height: 100vh;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>akFISHinfo — Prince William Sound Salmon Alerts</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
 
-        /* Nav */
-        nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 32px;
-            height: 52px;
-            border-bottom: 1px solid var(--border);
-            background: var(--surface);
-        }
-        .wordmark {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.04em;
-        }
-        .wordmark span { color: var(--blue); }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-link {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: color 0.15s;
-        }
-        .nav-link:hover { color: var(--text); }
-        .btn-primary {
-            background: var(--blue);
-            color: white;
-            padding: 7px 16px;
-            border-radius: 5px;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: opacity 0.15s;
-        }
-        .btn-primary:hover { opacity: 0.85; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Hero — placeholder until user fills in content */
-        .hero {
-            max-width: 760px;
-            margin: 120px auto;
-            padding: 0 32px;
-            text-align: center;
-        }
-        .hero h1 {
-            font-size: clamp(2rem, 5vw, 3.2rem);
-            font-weight: 700;
-            letter-spacing: -0.04em;
-            line-height: 1.1;
-            margin-bottom: 1.2rem;
-        }
-        .hero h1 span { color: var(--blue); }
-        .hero p {
-            color: var(--muted);
-            font-size: 1.05rem;
-            line-height: 1.7;
-            max-width: 540px;
-            margin: 0 auto 2.5rem;
-        }
-        .cta-group {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .btn-lg {
-            padding: 12px 28px;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: opacity 0.15s;
-        }
-        .btn-lg-primary { background: var(--blue); color: white; }
-        .btn-lg-primary:hover { opacity: 0.85; }
-        .btn-lg-ghost {
-            border: 1px solid var(--border);
-            color: var(--muted);
-        }
-        .btn-lg-ghost:hover { color: var(--text); border-color: var(--muted); }
-    </style>
+    :root {
+      --bg:         #060a0f;
+      --surface:    #0d1520;
+      --border:     #1a2d3f;
+      --border-dim: #0f1d2a;
+      --text:       #dde8f4;
+      --muted:      #5a7288;
+      --accent:     #00b4d8;
+      --open:       #22c55e;
+      --closed:     #ef4444;
+      --warn:       #f59e0b;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Map background ────────────────────────────────────── */
+    #map {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none !important;
+    }
+    #map * { pointer-events: none !important; }
+    #map .leaflet-control-container { display: none !important; }
+
+    /* ── Nav ───────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      background: rgba(6, 10, 15, 0.84);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      z-index: 300;
+    }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px;
+      letter-spacing: 0.03em;
+      color: var(--text);
+      user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .nav-right { display: flex; gap: 10px; align-items: center; }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text); }
+    .btn-nav {
+      background: var(--accent);
+      color: #000;
+      padding: 5px 13px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: opacity 0.15s;
+    }
+    .btn-nav:hover { opacity: 0.82; }
+
+    /* ── Left panel ────────────────────────────────────────── */
+    .panel {
+      position: fixed;
+      top: 50px; left: 0; bottom: 0;
+      width: 360px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(
+        105deg,
+        rgba(6,10,15,0.97) 0%,
+        rgba(6,10,15,0.97) 72%,
+        rgba(6,10,15,0.00) 100%
+      );
+      padding: 28px 26px 22px 22px;
+    }
+
+    /* ── Hero ──────────────────────────────────────────────── */
+    .hero-h1 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 2.0rem;
+      line-height: 1.08;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      margin-bottom: 11px;
+    }
+    .hero-h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub {
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 260px;
+      margin-bottom: 20px;
+    }
+    .cta-row {
+      display: flex;
+      gap: 9px;
+      margin-bottom: 24px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { opacity: 0.82; }
+    .btn-ghost { border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+
+    /* ── Feed header ───────────────────────────────────────── */
+    .feed-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .feed-title {
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── NOT LIVE DATA banner ──────────────────────────────── */
+    .not-live-banner {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,158,11,0.10);
+      border: 1px solid rgba(245,158,11,0.28);
+      border-radius: 3px;
+      padding: 4px 8px;
+      margin-bottom: 8px;
+    }
+    .not-live-dot {
+      width: 6px; height: 6px;
+      background: var(--warn);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .not-live-text {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--warn);
+    }
+    .not-live-sub {
+      font-size: 8.5px;
+      color: rgba(245,158,11,0.55);
+      letter-spacing: 0.04em;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* ── Scroll window ─────────────────────────────────────── */
+    .scroll-window {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%, black 10%, black 90%, transparent 100%
+      );
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%, black 10%, black 90%, transparent 100%
+      );
+    }
+    .card-track {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      will-change: transform;
+    }
+
+    /* ── Announcement card ─────────────────────────────────── */
+    .a-card {
+      background: rgba(13,21,32,0.88);
+      border: 1px solid var(--border-dim);
+      border-radius: 5px;
+      padding: 11px 13px 10px;
+      transition: border-color 0.5s, box-shadow 0.5s, background 0.5s;
+      user-select: none;
+      cursor: default;
+    }
+    .a-card.active {
+      border-color: var(--accent);
+      background: rgba(0,180,216,0.06);
+      box-shadow: 0 0 18px rgba(0,180,216,0.10), inset 0 0 0 1px rgba(0,180,216,0.07);
+    }
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .card-name {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+    .pill {
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 2px;
+    }
+    .pill.open   { background: rgba(34,197,94,0.13); color: var(--open); }
+    .pill.closed { background: rgba(239,68,68,0.10); color: var(--closed); }
+    .gear-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 5px;
+    }
+    .gear-tag {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: rgba(0,180,216,0.09);
+      color: rgba(0,180,216,0.75);
+      border: 1px solid rgba(0,180,216,0.12);
+    }
+    .card-constraint {
+      font-size: 0.67rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .card-meta {
+      font-size: 0.6rem;
+      color: #1d3045;
+      margin-top: 5px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Attribution ───────────────────────────────────────── */
+    .attr {
+      position: fixed;
+      bottom: 6px; right: 10px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.16);
+      z-index: 250;
+      pointer-events: none;
+    }
+
+    /* ── Mobile ────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .panel {
+        width: 100%; top: auto;
+        height: 62vh;
+        background: linear-gradient(
+          to bottom,
+          rgba(6,10,15,0.0) 0%,
+          rgba(6,10,15,0.97) 12%,
+          rgba(6,10,15,0.97) 100%
+        );
+        padding: 14px 18px 16px;
+      }
+      .hero-h1 { font-size: 1.55rem; }
+    }
+  </style>
 </head>
 <body>
-    <nav>
-        <div class="wordmark">akFISH<span>info.</span></div>
-        <div class="nav-links">
-            <a href="/login" class="nav-link" id="app-link">sign in</a>
-            <a href="/login" class="btn-primary">Get started</a>
-        </div>
-    </nav>
 
-    <!-- Hero — fill in your copy here -->
-    <div class="hero">
-        <h1>Real-time <span>salmon alerts</span> for Prince William Sound</h1>
-        <p>Instant SMS notifications the moment ADF&amp;G opens a district. Know before you go.</p>
-        <div class="cta-group">
-            <a href="/login" class="btn-lg btn-lg-primary">Start free trial</a>
-            <a href="/app" class="btn-lg btn-lg-ghost">View map →</a>
-        </div>
+  <div id="map"></div>
+
+  <nav>
+    <div class="wordmark">akFISH<em>info.</em></div>
+    <div class="nav-right">
+      <a href="/login" class="nav-link" id="app-link">sign in</a>
+      <a href="/login" class="btn-nav">Get started</a>
+    </div>
+  </nav>
+
+  <div class="panel">
+    <h1 class="hero-h1">Real time alerts<br>for <em>PWS.</em></h1>
+    <p class="hero-sub">Know before you go. Instant notification the moment ADF&amp;G issues a Prince William Sound opening.</p>
+    <div class="cta-row">
+      <a href="/login" class="btn btn-primary">Start free trial</a>
+      <a href="/login" class="btn btn-ghost">Sign in</a>
     </div>
 
-    <script>
-        // If already logged in, swap "sign in" for "open app"
-        fetch('/api/me').then(r => r.json()).then(({ user }) => {
-            if (!user) return;
-            const link = document.getElementById('app-link');
-            link.href = user.has_access ? '/app' : '/pricing';
-            link.textContent = 'open app';
-        });
-    </script>
+    <div class="feed-header">
+      <span class="feed-title">District feed &mdash; PWS Area</span>
+    </div>
+
+    <div class="not-live-banner">
+      <span class="not-live-dot"></span>
+      <span class="not-live-text">Not live data</span>
+      <span class="not-live-sub">Sample announcement only</span>
+    </div>
+
+    <div class="scroll-window" id="scrollWindow">
+      <div class="card-track" id="cardTrack"></div>
+    </div>
+  </div>
+
+  <div class="attr">Map data &copy; OpenStreetMap contributors &middot; CARTO</div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+  (() => {
+    // Real ADF&G PWS announcement data — Ann. #45, Aug 2020.
+    // Dates intentionally omitted. For display purposes only.
+    const CARDS = [
+      {
+        district:   'Eastern District',
+        code:       '221',
+        status:     'open',
+        gear:       ['Purse Seine'],
+        constraint: 'Excl. waters of Port Valdez north of Entrance Pt. to Potato Pt. line',
+      },
+      {
+        district:   'Northern District',
+        code:       '222',
+        status:     'open',
+        gear:       ['Purse Seine'],
+        constraint: 'Excl. Perry Island Subdistrict, Cannery Creek Subdistrict, CCH SHA and THA',
+      },
+      {
+        district:   'Coghill District',
+        code:       '223',
+        status:     'open',
+        gear:       ['Purse Seine', 'Drift Gillnet'],
+        constraint: 'Excl. Esther Subdistrict, Granite Bay Subdistrict, WNH SHA and THA',
+      },
+      {
+        district:   'Northwestern District',
+        code:       '224',
+        status:     'open',
+        gear:       ['Purse Seine'],
+        constraint: '',
+      },
+      {
+        district:   'Montague District',
+        code:       '227',
+        status:     'open',
+        gear:       ['Purse Seine'],
+        constraint: '',
+      },
+      {
+        district:   'Eshamy District',
+        code:       '225',
+        status:     'open',
+        gear:       ['Set Gillnet', 'Drift Gillnet'],
+        constraint: 'West of specified line and Main Bay Subdistrict only. AGZ: set gillnet permit holders only',
+      },
+      {
+        district:   'Southeastern District',
+        code:       '228',
+        status:     'open',
+        gear:       ['Purse Seine'],
+        constraint: '',
+      },
+      {
+        district:   'Copper River District',
+        code:       '212',
+        status:     'closed',
+        gear:       [],
+        constraint: 'Closed to commercial fishing',
+      },
+      {
+        district:   'Bering River District',
+        code:       '200',
+        status:     'closed',
+        gear:       [],
+        constraint: 'Closed to commercial fishing',
+      },
+    ];
+
+    // Build cards — two full copies for seamless infinite loop
+    const track = document.getElementById('cardTrack');
+    const N = CARDS.length;
+
+    function makeCard(d) {
+      const el = document.createElement('div');
+      el.className = 'a-card';
+      el.dataset.district = d.district;
+      const gearHtml = d.gear.length
+        ? d.gear.map(g => `<span class="gear-tag">${g}</span>`).join('')
+        : '';
+      const constraintHtml = d.constraint
+        ? `<div class="card-constraint">${d.constraint}</div>`
+        : '';
+      el.innerHTML = `
+        <div class="card-top">
+          <span class="card-name">${d.district}</span>
+          <span class="pill ${d.status}">${d.status === 'open' ? 'Open' : 'Closed'}</span>
+        </div>
+        ${gearHtml ? `<div class="gear-row">${gearHtml}</div>` : ''}
+        ${constraintHtml}
+        <div class="card-meta">District ${d.code} &middot; Prince William Sound</div>
+      `;
+      return el;
+    }
+
+    [...CARDS, ...CARDS].forEach(d => track.appendChild(makeCard(d)));
+
+    // ── Leaflet — fully locked ──────────────────────────────
+    const map = L.map('map', {
+      center:           [60.42, -147.5],
+      zoom:             8,
+      zoomControl:      false,
+      attributionControl: false,
+      dragging:         false,
+      scrollWheelZoom:  false,
+      doubleClickZoom:  false,
+      keyboard:         false,
+      tap:              false,
+      touchZoom:        false,
+      boxZoom:          false,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    const STYLE = {
+      open:    { fillColor: '#22c55e', fillOpacity: 0.15, color: '#22c55e', weight: 1.5, opacity: 0.5  },
+      closed:  { fillColor: '#7f1d1d', fillOpacity: 0.18, color: '#991b1b', weight: 1.5, opacity: 0.45 },
+      dim:     { fillColor: '#0d1f33', fillOpacity: 0.45, color: '#1a3450', weight: 1.2, opacity: 0.6  },
+      active:  { fillColor: '#00b4d8', fillOpacity: 0.26, color: '#00e5ff', weight: 2.5, opacity: 1    },
+    };
+
+    const statusByDistrict = {};
+    CARDS.forEach(c => { statusByDistrict[c.district] = c.status; });
+
+    const layerByDistrict = {};
+    let activeDistrict = null;
+
+    fetch('/static/districts.geojson')
+      .then(r => r.json())
+      .then(gj => {
+        L.geoJSON(gj, {
+          style: f => {
+            const s = statusByDistrict[f.properties.DISTRICT_N];
+            return STYLE[s] || STYLE.dim;
+          },
+          onEachFeature: (f, layer) => {
+            layerByDistrict[f.properties.DISTRICT_N] = layer;
+          },
+        }).addTo(map);
+      });
+
+    function highlightDistrict(name) {
+      if (name === activeDistrict) return;
+      if (activeDistrict && layerByDistrict[activeDistrict]) {
+        const prev = statusByDistrict[activeDistrict];
+        layerByDistrict[activeDistrict].setStyle(STYLE[prev] || STYLE.dim);
+      }
+      activeDistrict = name;
+      if (!layerByDistrict[name]) return;
+      layerByDistrict[name].setStyle(STYLE.active);
+      layerByDistrict[name].bringToFront();
+      const bounds = layerByDistrict[name].getBounds();
+      if (bounds.isValid()) {
+        map.panTo(bounds.getCenter(), { animate: true, duration: 1.4, easeLinearity: 0.15 });
+      }
+    }
+
+    // ── Infinite scroll ─────────────────────────────────────
+    const scrollWindow = document.getElementById('scrollWindow');
+    const GAP   = 7;
+    const SPEED = 0.30; // px/ms
+    let scrollPos = 0;
+    let lastTs    = null;
+    let setHeight = 0;
+    let frameN    = 0;
+    let lastActiveEl = null;
+
+    function computeSetHeight() {
+      let h = 0;
+      const cards = track.querySelectorAll('.a-card');
+      for (let i = 0; i < N; i++) h += cards[i].offsetHeight + GAP;
+      return h;
+    }
+
+    function detectActiveCard() {
+      const wRect  = scrollWindow.getBoundingClientRect();
+      const target = wRect.top + wRect.height * 0.35;
+      const cards  = track.querySelectorAll('.a-card');
+      let best = null, bestDist = Infinity;
+      cards.forEach(c => {
+        const r = c.getBoundingClientRect();
+        if (r.bottom < wRect.top || r.top > wRect.bottom) return;
+        const dist = Math.abs((r.top + r.height / 2) - target);
+        if (dist < bestDist) { bestDist = dist; best = c; }
+      });
+      if (best && best !== lastActiveEl) {
+        if (lastActiveEl) lastActiveEl.classList.remove('active');
+        best.classList.add('active');
+        highlightDistrict(best.dataset.district);
+        lastActiveEl = best;
+      }
+    }
+
+    function tick(ts) {
+      if (!lastTs) lastTs = ts;
+      const dt = Math.min(ts - lastTs, 60);
+      lastTs = ts;
+      scrollPos += SPEED * dt;
+      if (setHeight > 0 && scrollPos >= setHeight) scrollPos -= setHeight;
+      track.style.transform = `translateY(-${scrollPos.toFixed(2)}px)`;
+      frameN++;
+      if (frameN % 6 === 0) detectActiveCard();
+      requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setHeight = computeSetHeight();
+        detectActiveCard();
+        requestAnimationFrame(tick);
+      });
+    });
+
+    // ── Auth swap ───────────────────────────────────────────
+    fetch('/api/me').then(r => r.json()).then(({ user }) => {
+      if (!user) return;
+      const link = document.getElementById('app-link');
+      link.href = user.has_access ? '/app' : '/pricing';
+      link.textContent = 'open app';
+    }).catch(() => {});
+
+  })();
+  </script>
 </body>
 </html>
