@@ -88,7 +88,11 @@
         <!-- Email sign-in form (shown by default) -->
         <form id="email-signin-form" onsubmit="doSignIn(event)">
             <input type="email" id="si-email" placeholder="Email" required autocomplete="email" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:8px;outline:none;" />
-            <input type="password" id="si-password" placeholder="Password" required autocomplete="current-password" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:12px;outline:none;" />
+            <input type="password" id="si-password" placeholder="Password" required autocomplete="current-password" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:10px;outline:none;" />
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#8b949e;margin-bottom:12px;cursor:pointer;text-align:left;">
+                <input type="checkbox" id="si-remember" style="accent-color:#58a6ff;width:14px;height:14px;" />
+                Stay signed in for 30 days
+            </label>
             <button type="submit" style="width:100%;padding:11px;background:#238636;border:none;border-radius:6px;color:white;font-size:0.9rem;font-weight:600;cursor:pointer;">Sign in</button>
         </form>
 
@@ -96,7 +100,11 @@
         <form id="email-signup-form" style="display:none;" onsubmit="doSignUp(event)">
             <input type="text" id="su-name" placeholder="Full name" required autocomplete="name" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:8px;outline:none;" />
             <input type="email" id="su-email" placeholder="Email" required autocomplete="email" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:8px;outline:none;" />
-            <input type="password" id="su-password" placeholder="Password (min 8 characters)" required minlength="8" autocomplete="new-password" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:12px;outline:none;" />
+            <input type="password" id="su-password" placeholder="Password (min 8 characters)" required minlength="8" autocomplete="new-password" style="width:100%;padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-size:0.9rem;margin-bottom:10px;outline:none;" />
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#8b949e;margin-bottom:12px;cursor:pointer;text-align:left;">
+                <input type="checkbox" id="su-remember" style="accent-color:#58a6ff;width:14px;height:14px;" />
+                Stay signed in for 30 days
+            </label>
             <button type="submit" style="width:100%;padding:11px;background:#238636;border:none;border-radius:6px;color:white;font-size:0.9rem;font-weight:600;cursor:pointer;">Create account</button>
         </form>
 
@@ -134,13 +142,14 @@
 
         async function doSignIn(e) {
             e.preventDefault();
-            const email = document.getElementById('si-email').value.trim();
-            const password = document.getElementById('si-password').value;
+            const email       = document.getElementById('si-email').value.trim();
+            const password    = document.getElementById('si-password').value;
+            const remember_me = document.getElementById('si-remember').checked;
             try {
                 const r = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
+                    body: JSON.stringify({ email, password, remember_me }),
                 });
                 const d = await r.json();
                 if (!r.ok) { showError(d.error || 'Sign-in failed.'); return; }
@@ -152,14 +161,15 @@
 
         async function doSignUp(e) {
             e.preventDefault();
-            const name = document.getElementById('su-name').value.trim();
-            const email = document.getElementById('su-email').value.trim();
-            const password = document.getElementById('su-password').value;
+            const name        = document.getElementById('su-name').value.trim();
+            const email       = document.getElementById('su-email').value.trim();
+            const password    = document.getElementById('su-password').value;
+            const remember_me = document.getElementById('su-remember').checked;
             try {
                 const r = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password }),
+                    body: JSON.stringify({ name, email, password, remember_me }),
                 });
                 const d = await r.json();
                 if (!r.ok) { showError(d.error || 'Sign-up failed.'); return; }

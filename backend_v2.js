@@ -21,12 +21,14 @@ const express = require('express');
 const { Pool } = require('pg');
 const Anthropic = require('@anthropic-ai/sdk');
 const crypto = require('crypto');
+const https = require('https');
 const { execFile } = require('child_process');
 const { promisify } = require('util');
 const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
@@ -36,17 +38,34 @@ const upload = multer({ dest: '/tmp/mailgun-uploads/' });
 // CONFIG
 // ============================================================
 
+const PORT = process.env.PORT || 3000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
 const app = express();
 
-// Sessions — must be before passport.initialize()
+// Database — defined early so the session store can use it
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+
+// Sessions backed by Postgres so they survive server restarts.
+// maxAge is NOT set globally here — it is set per-login based on the
+// "remember me" checkbox. Without maxAge the cookie is a browser-session
+// cookie (cleared when the browser closes), which is the safe default.
 app.use(session({
+  store: new pgSession({
+    pool: db,
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+  }),
   secret: process.env.SESSION_SECRET || 'dev-secret-change-in-prod',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   },
 }));
 app.use(passport.initialize());
@@ -61,14 +80,6 @@ passport.deserializeUser(async (id, done) => {
   } catch (err) {
     done(err);
   }
-});
-const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-
-// Database
-const db = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
 });
 
 // Anthropic
@@ -207,14 +218,15 @@ app.get('/auth/logout', (req, res, next) => {
 // Current session user (used by frontend to show login state)
 app.get('/api/me', (req, res) => {
   if (!req.user) return res.json({ user: null });
-  const { id, email, name, tier, subscription_active, phone_number, trial_ends_at, is_admin } = req.user;
+  const { id, email, name, tier, subscription_active, phone_number, trial_ends_at, is_admin, email_verified, google_id } = req.user;
   const trialActive = trial_ends_at && new Date(trial_ends_at) > new Date();
   const trialDaysLeft = trialActive
     ? Math.ceil((new Date(trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
   res.json({ user: { id, email, name, tier, subscription_active, phone_number,
                      trial_ends_at, trial_active: trialActive, trial_days_left: trialDaysLeft,
-                     is_admin, has_access: hasAccess(req.user) } });
+                     is_admin, email_verified: !!email_verified, has_google: !!google_id,
+                     has_access: hasAccess(req.user) } });
 });
 
 // POST /api/setup — called from /setup page to save phone + determine next step
@@ -273,9 +285,41 @@ app.post('/api/setup', express.json(), async (req, res) => {
   res.json({ redirect: stripeSession.url, trial: false });
 });
 
+// ── Email verification via Mailgun ────────────────────────────
+
+async function sendVerificationEmail(email, token) {
+  const verifyUrl = `${BASE_URL}/verify-email?token=${token}`;
+  const domain = process.env.MAILGUN_DOMAIN;
+  const apiKey = process.env.MAILGUN_API_KEY;
+  if (!domain || !apiKey) {
+    console.warn('Mailgun not configured — skipping verification email');
+    return;
+  }
+
+  const body = new URLSearchParams({
+    from: `akFISHinfo <noreply@${domain}>`,
+    to: email,
+    subject: 'Verify your akFISHinfo email',
+    text: `Click the link below to verify your email address:\n\n${verifyUrl}\n\nThis link expires in 24 hours.`,
+    html: `<p>Click the link below to verify your email address:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in 24 hours.</p>`,
+  }).toString();
+
+  return new Promise((resolve, reject) => {
+    const auth = Buffer.from(`api:${apiKey}`).toString('base64');
+    const req = https.request(
+      `https://api.mailgun.net/v3/${domain}/messages`,
+      { method: 'POST', headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) } },
+      res => { res.on('data', () => {}); res.on('end', resolve); }
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 // POST /api/register — create account with email + password
 app.post('/api/register', express.json(), async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, remember_me } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
   }
@@ -289,22 +333,25 @@ app.post('/api/register', express.json(), async (req, res) => {
   }
 
   try {
-    const hash = await hashPassword(password);
+    const hash  = await hashPassword(password);
     const admin = isAdminEmail(email);
+    const verifyToken    = crypto.randomBytes(32).toString('hex');
+    const verifyExpires  = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const result = await db.query(
-      `INSERT INTO captains (name, email, password_hash, tier, is_admin)
-       VALUES ($1, $2, $3, 'free', $4) RETURNING *`,
-      [name.trim(), email.toLowerCase(), hash, admin]
+      `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires)
+       VALUES ($1, $2, $3, 'free', $4, $5, $6) RETURNING *`,
+      [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires]
     );
     const user = result.rows[0];
 
+    // Fire-and-forget verification email
+    sendVerificationEmail(email.toLowerCase(), verifyToken).catch(e => console.error('Verify email send failed:', e));
+
     req.login(user, err => {
       if (err) return res.status(500).json({ error: 'Session error.' });
-      // alaska.gov users go straight to the app — no trial/payment needed
-      if (isAlaskaGov(user.email) || user.is_admin) {
-        return res.json({ redirect: '/app' });
-      }
-      // Everyone else needs phone number for trial
+      if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
+      if (isAlaskaGov(user.email) || user.is_admin) return res.json({ redirect: '/app' });
       res.json({ redirect: '/setup' });
     });
   } catch (err) {
@@ -315,7 +362,7 @@ app.post('/api/register', express.json(), async (req, res) => {
 
 // POST /api/login — sign in with email + password
 app.post('/api/login', express.json(), async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, remember_me } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
@@ -335,6 +382,7 @@ app.post('/api/login', express.json(), async (req, res) => {
 
     req.login(user, err => {
       if (err) return res.status(500).json({ error: 'Session error.' });
+      if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
       if (!user.phone_number && !isAlaskaGov(user.email) && !user.is_admin) {
         return res.json({ redirect: '/setup' });
       }
@@ -344,6 +392,52 @@ app.post('/api/login', express.json(), async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Could not sign in.' });
+  }
+});
+
+// GET /verify-email?token=...
+app.get('/verify-email', async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.redirect('/login?error=badtoken');
+  try {
+    const result = await db.query(
+      `UPDATE captains
+       SET email_verified = true, email_verify_token = NULL, email_verify_expires = NULL, updated_at = NOW()
+       WHERE email_verify_token = $1 AND email_verify_expires > NOW()
+       RETURNING id`,
+      [token]
+    );
+    if (!result.rows.length) {
+      return res.send(`<html><body style="font-family:sans-serif;text-align:center;margin-top:4em;background:#0d1117;color:#e6edf3">
+        <h2>Link expired or invalid</h2><p><a href="/login" style="color:#58a6ff">Back to login</a></p></body></html>`);
+    }
+    // Refresh session user if this is their own token
+    if (req.user && req.user.id === result.rows[0].id) {
+      req.user.email_verified = true;
+    }
+    res.send(`<html><body style="font-family:sans-serif;text-align:center;margin-top:4em;background:#0d1117;color:#e6edf3">
+      <h2 style="color:#27ae60">Email verified!</h2><p><a href="/app" style="color:#58a6ff">Open the app</a></p></body></html>`);
+  } catch (err) {
+    console.error('Verify email error:', err);
+    res.redirect('/login?error=1');
+  }
+});
+
+// POST /api/resend-verification — resend verification email
+app.post('/api/resend-verification', async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
+  if (req.user.email_verified) return res.json({ ok: true, message: 'Already verified.' });
+  try {
+    const token   = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await db.query(
+      `UPDATE captains SET email_verify_token = $1, email_verify_expires = $2 WHERE id = $3`,
+      [token, expires, req.user.id]
+    );
+    await sendVerificationEmail(req.user.email, token);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not resend.' });
   }
 });
 
@@ -429,6 +523,11 @@ async function initDatabase() {
 
     // Password hash for email/password auth
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS password_hash TEXT;`);
+
+    // Email verification
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT false;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS email_verify_token TEXT;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS email_verify_expires TIMESTAMPTZ;`);
 
     // Google OAuth + trial + admin columns
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);`);
@@ -1027,6 +1126,50 @@ app.post('/api/result/:id/reparse', express.json(), async (req, res) => {
  * Serve generated HTML artifacts
  */
 app.use('/results', express.static(path.join(__dirname, 'public', 'results')));
+
+/**
+ * GET /account
+ * Account details page — requires login
+ */
+app.get('/account', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  res.sendFile(path.join(__dirname, 'public', 'account.html'));
+});
+
+/**
+ * PATCH /api/account — update name and/or password
+ */
+app.patch('/api/account', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
+  const { name, current_password, new_password } = req.body;
+  const updates = [];
+  const vals    = [];
+
+  if (name && name.trim()) {
+    vals.push(name.trim());
+    updates.push(`name = $${vals.length}`);
+  }
+
+  if (new_password) {
+    if (!current_password) return res.status(400).json({ error: 'Current password required to set a new one.' });
+    if (new_password.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    if (!req.user.password_hash) return res.status(400).json({ error: 'Account uses Google sign-in; password cannot be set here.' });
+    const ok = await verifyPassword(current_password, req.user.password_hash);
+    if (!ok) return res.status(401).json({ error: 'Current password is incorrect.' });
+    const hash = await hashPassword(new_password);
+    vals.push(hash);
+    updates.push(`password_hash = $${vals.length}`);
+  }
+
+  if (!updates.length) return res.status(400).json({ error: 'Nothing to update.' });
+
+  vals.push(req.user.id);
+  await db.query(
+    `UPDATE captains SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${vals.length}`,
+    vals
+  );
+  res.json({ ok: true });
+});
 
 /**
  * GET /login

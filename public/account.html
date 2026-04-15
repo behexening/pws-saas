@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account — akFISHinfo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --text: #e8eaf6;
+      --muted: #8890b0;
+      --blue: #5b8dee;
+      --green: #27ae60;
+      --red: #e74c3c;
+      --warn: #f39c12;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* Nav */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .wordmark { font-size: 17px; font-weight: 700; letter-spacing: -0.04em; }
+    .wordmark span { color: var(--blue); }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .nav-link { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.15s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--text); }
+
+    /* Page layout */
+    .page { max-width: 640px; margin: 48px auto; padding: 0 24px 60px; }
+    h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 4px; }
+    .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 36px; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    .field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 9px 12px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: var(--blue); }
+    .field input[readonly] { color: var(--muted); cursor: default; }
+
+    /* Info rows */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--muted); font-size: 12px; }
+    .info-value { font-weight: 600; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .badge-pro     { background: rgba(91,141,238,0.15); color: var(--blue); border: 1px solid rgba(91,141,238,0.35); }
+    .badge-trial   { background: rgba(243,156,18,0.13); color: var(--warn); border: 1px solid rgba(243,156,18,0.35); }
+    .badge-free    { background: rgba(136,144,176,0.1); color: var(--muted); border: 1px solid var(--border); }
+    .badge-gov     { background: rgba(39,174,96,0.15);  color: var(--green); border: 1px solid rgba(39,174,96,0.35); }
+    .badge-verified   { background: rgba(39,174,96,0.12); color: var(--green); border: 1px solid rgba(39,174,96,0.3); }
+    .badge-unverified { background: rgba(231,76,60,0.1); color: #e88; border: 1px solid rgba(231,76,60,0.25); }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 8px 18px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: opacity 0.15s;
+      letter-spacing: -0.01em;
+    }
+    .btn:hover { opacity: 0.82; }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-ghost   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-danger  { background: rgba(231,76,60,0.15); color: var(--red); border: 1px solid rgba(231,76,60,0.3); }
+    .btn-sm      { padding: 5px 12px; font-size: 11px; }
+
+    .action-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    /* Alerts */
+    .alert {
+      border-radius: 5px;
+      padding: 10px 14px;
+      font-size: 12px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .alert-success { background: rgba(39,174,96,0.12); border: 1px solid rgba(39,174,96,0.3); color: #5ddb8a; }
+    .alert-error   { background: rgba(231,76,60,0.1);  border: 1px solid rgba(231,76,60,0.25); color: #f87171; }
+
+    .verify-nudge {
+      background: rgba(243,156,18,0.08);
+      border: 1px solid rgba(243,156,18,0.25);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--warn);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .verify-nudge button {
+      background: none;
+      border: 1px solid rgba(243,156,18,0.4);
+      color: var(--warn);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wordmark">akFISH<span>info.</span></div>
+  <div class="nav-links">
+    <a href="/app" class="nav-link">map</a>
+    <a href="/account" class="nav-link active">account</a>
+    <a href="/auth/logout" class="nav-link">sign out</a>
+  </div>
+</nav>
+
+<div class="page">
+  <h1>Account</h1>
+  <p class="page-sub" id="page-sub">Loading your account details...</p>
+
+  <!-- Email verification nudge (shown if unverified) -->
+  <div class="verify-nudge" id="verify-nudge" style="display:none">
+    <span>Your email address is not yet verified. Check your inbox or</span>
+    <button onclick="resendVerification()">Resend email</button>
+  </div>
+
+  <!-- Subscription card -->
+  <div class="card">
+    <div class="card-title">Subscription</div>
+    <div class="info-row">
+      <span class="info-label">Plan</span>
+      <span class="info-value" id="acc-tier">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Status</span>
+      <span class="info-value" id="acc-status">—</span>
+    </div>
+    <div class="info-row" id="acc-trial-row" style="display:none">
+      <span class="info-label">Trial ends</span>
+      <span class="info-value" id="acc-trial-end">—</span>
+    </div>
+  </div>
+
+  <!-- Profile card -->
+  <div class="card">
+    <div class="card-title">Profile</div>
+    <div class="alert alert-success" id="profile-success">Saved.</div>
+    <div class="alert alert-error"   id="profile-error"></div>
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="acc-name" autocomplete="name" />
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="acc-email" readonly />
+    </div>
+    <div class="field">
+      <label>Phone</label>
+      <input type="text" id="acc-phone" readonly />
+    </div>
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="saveProfile()">Save name</button>
+    </div>
+  </div>
+
+  <!-- Password card (hidden for Google-only accounts) -->
+  <div class="card" id="password-card">
+    <div class="card-title">Change Password</div>
+    <div class="alert alert-success" id="pw-success">Password updated.</div>
+    <div class="alert alert-error"   id="pw-error"></div>
+    <div class="field">
+      <label>Current password</label>
+      <input type="password" id="pw-current" autocomplete="current-password" />
+    </div>
+    <div class="field">
+      <label>New password</label>
+      <input type="password" id="pw-new" autocomplete="new-password" placeholder="Min 8 characters" />
+    </div>
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="changePassword()">Update password</button>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="card">
+    <div class="card-title">Session</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--muted);">Sign out of all devices by logging out and back in.</span>
+      <a href="/auth/logout" class="btn btn-ghost btn-sm">Sign out</a>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUser = null;
+
+async function loadAccount() {
+  const r = await fetch('/api/me');
+  const { user } = await r.json();
+  if (!user) { window.location.href = '/login'; return; }
+  currentUser = user;
+
+  document.getElementById('page-sub').textContent = user.email;
+
+  // Verification nudge
+  if (!user.email_verified && !user.has_google) {
+    document.getElementById('verify-nudge').style.display = 'flex';
+  }
+
+  // Subscription
+  let tierLabel, statusLabel;
+  if (user.is_admin) {
+    tierLabel  = '<span class="badge badge-gov">Admin</span>';
+    statusLabel = '<span class="badge badge-verified">Full access</span>';
+  } else if (user.email && user.email.endsWith('@alaska.gov')) {
+    tierLabel  = '<span class="badge badge-gov">ADF&G / State</span>';
+    statusLabel = '<span class="badge badge-verified">Free — state employee</span>';
+  } else if (user.tier === 'pro' && user.subscription_active) {
+    tierLabel  = '<span class="badge badge-pro">Pro</span>';
+    statusLabel = '<span class="badge badge-verified">Active</span>';
+  } else if (user.trial_active) {
+    tierLabel  = '<span class="badge badge-trial">Trial</span>';
+    statusLabel = `<span class="badge badge-trial">${user.trial_days_left}d remaining</span>`;
+    const trialRow = document.getElementById('acc-trial-row');
+    trialRow.style.display = 'flex';
+    document.getElementById('acc-trial-end').textContent =
+      new Date(user.trial_ends_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } else {
+    tierLabel  = '<span class="badge badge-free">Free</span>';
+    statusLabel = '<span class="badge badge-unverified">No active subscription</span>';
+  }
+  document.getElementById('acc-tier').innerHTML   = tierLabel;
+  document.getElementById('acc-status').innerHTML = statusLabel;
+
+  // Profile
+  document.getElementById('acc-name').value  = user.name  || '';
+  document.getElementById('acc-email').value = user.email || '';
+  document.getElementById('acc-phone').value = user.phone_number || '—';
+
+  // Hide password card for Google-only accounts
+  if (user.has_google && !user.password_hash_exists) {
+    document.getElementById('password-card').style.display = 'none';
+  }
+}
+
+async function saveProfile() {
+  const name = document.getElementById('acc-name').value.trim();
+  if (!name) return;
+  const r = await fetch('/api/account', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const d = await r.json();
+  if (r.ok) {
+    showAlert('profile-success', 'profile-error', null);
+  } else {
+    showAlert('profile-success', 'profile-error', d.error || 'Could not save.');
+  }
+}
+
+async function changePassword() {
+  const current_password = document.getElementById('pw-current').value;
+  const new_password     = document.getElementById('pw-new').value;
+  const r = await fetch('/api/account', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ current_password, new_password }),
+  });
+  const d = await r.json();
+  if (r.ok) {
+    document.getElementById('pw-current').value = '';
+    document.getElementById('pw-new').value = '';
+    showAlert('pw-success', 'pw-error', null);
+  } else {
+    showAlert('pw-success', 'pw-error', d.error || 'Could not update password.');
+  }
+}
+
+async function resendVerification() {
+  const btn = event.target;
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  const r = await fetch('/api/resend-verification', { method: 'POST' });
+  btn.textContent = r.ok ? 'Sent!' : 'Failed';
+  setTimeout(() => { btn.textContent = 'Resend email'; btn.disabled = false; }, 4000);
+}
+
+function showAlert(successId, errorId, errorMsg) {
+  const s = document.getElementById(successId);
+  const e = document.getElementById(errorId);
+  if (errorMsg) {
+    e.textContent = errorMsg;
+    e.style.display = 'block';
+    s.style.display = 'none';
+  } else {
+    s.style.display = 'block';
+    e.style.display = 'none';
+    setTimeout(() => { s.style.display = 'none'; }, 3000);
+  }
+}
+
+loadAccount();
+</script>
+</body>
+</html>
