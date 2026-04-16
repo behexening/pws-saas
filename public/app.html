@@ -570,13 +570,28 @@
       .date-scrubber { padding: 8px 12px 6px; }
       .ann-picker { max-height: none; }
     }
+    .skip-link {
+      position: absolute; top: -40px; left: 8px;
+      background: var(--accent); color: #000;
+      padding: 6px 12px; border-radius: 0 0 4px 4px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      z-index: 9999; transition: top 0.15s;
+    }
+    .skip-link:focus { top: 0; }
+    .district-card:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 1px;
+    }
+    .ann-row:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: -1px;
+    }
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
 <div class="app-layout">
 
   <!-- Topbar -->
-  <div class="topbar">
+  <div class="topbar" role="banner">
     <div class="topbar-left">
       <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
       <span class="live-badge">live</span>
@@ -595,7 +610,7 @@
   </div>
 
   <!-- Main -->
-  <div class="main-split">
+  <main id="main" class="main-split">
 
     <!-- Left panel -->
     <div class="left-panel" id="left-panel">
@@ -643,7 +658,7 @@
       </div>
     </div>
 
-  </div>
+  </main>
 </div>
 
 <script>
@@ -919,7 +934,7 @@ function renderAnnList(results, activeResult) {
     const openLabel = r.has_open_districts
       ? '<span style="color:var(--open);font-weight:700">open</span>'
       : '<span style="color:var(--muted)">closed</span>';
-    return `<div class="ann-row${isActive ? ' ann-active' : ''}" onclick="selectAnnouncement(${r.id}, this)">
+    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" onclick="selectAnnouncement(${r.id}, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectAnnouncement(${r.id},this);}">
       <span class="ann-date">${fmtDate(r)}</span>
       <span class="ann-meta">${cnt} dist &middot; ${openLabel}</span>
     </div>`;
@@ -1042,7 +1057,13 @@ function renderPanel(result) {
   container.appendChild(grid);
 
   container.querySelectorAll('.district-card').forEach(card => {
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', (card.dataset.district || 'district') + ' — view on map');
     card.addEventListener('click', () => highlightDistrict(card.dataset.district));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); highlightDistrict(card.dataset.district); }
+    });
   });
 }
 

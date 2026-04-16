@@ -117,9 +117,22 @@
     .btn:hover { opacity: 0.82; }
     .btn-primary { background: var(--accent); color: #000; }
     .btn-ghost   { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    h2.card-title { font-size: 9px; }
+    .skip-link {
+      position: absolute; top: -40px; left: 8px;
+      background: var(--accent); color: #000;
+      padding: 6px 12px; border-radius: 0 0 4px 4px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      z-index: 9999; transition: top 0.15s;
+    }
+    .skip-link:focus { top: 0; }
+    .legal-links { margin-top: 28px; font-size: 11px; color: var(--muted); text-align: center; }
+    .legal-links a { color: var(--muted); text-decoration: none; }
+    .legal-links a:hover { color: var(--text); text-decoration: underline; }
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
 
 <nav>
   <a href="/" class="wordmark-link">
@@ -134,22 +147,23 @@
   </div>
 </nav>
 
+<main id="main">
 <div class="page">
   <h1>About <em>akFISHinfo.</em></h1>
   <p class="page-sub">Real-time commercial salmon opening alerts for Prince William Sound.</p>
 
   <div class="card">
-    <div class="card-title">What it is</div>
+    <h2 class="card-title">What it is</h2>
     <p>ADF&amp;G opening announcements are PDFs buried in an email list. By the time word gets around, the window's already closing. akFISHinfo parses the announcement the moment it hits, updates the map, and texts you.</p>
   </div>
 
   <div class="card">
-    <div class="card-title">Who it's for</div>
+    <h2 class="card-title">Who it's for</h2>
     <p>Commercial salmon fishermen in Prince William Sound. Permit holders, tender operators, crew — anyone who needs to know what's open and where the line is, before everyone else finds out.</p>
   </div>
 
   <div class="card">
-    <div class="card-title">How it works</div>
+    <h2 class="card-title">How it works</h2>
     <div class="pipeline">
       <div class="pipeline-step">
         <div class="step-num">1</div>
@@ -183,7 +197,7 @@
   </div>
 
   <div class="card">
-    <div class="card-title">The team</div>
+    <h2 class="card-title">The team</h2>
     <p>I'm Oliver. I started as a deckhand out of Cordova in 2023. Finding out about openings late — through the grapevine, after the good window was closing — got old fast. I also write software, so I built a fix.</p>
   </div>
 
@@ -191,7 +205,12 @@
     <a href="/login" class="btn btn-primary" id="cta-btn">Get started</a>
     <a href="/"      class="btn btn-ghost">Back to map</a>
   </div>
+
+  <p class="legal-links">
+    <a href="/privacy">Privacy Policy</a> &middot; <a href="/terms">Terms of Service</a>
+  </p>
 </div>
+</main>
 
 <script>
   fetch('/api/me').then(r => r.json()).then(({ user }) => {

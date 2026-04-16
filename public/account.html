@@ -212,9 +212,19 @@
       transition: opacity 0.15s;
     }
     .verify-btn:hover { opacity: 0.8; }
+    h2.card-title { font-size: 9px; }
+    .skip-link {
+      position: absolute; top: -40px; left: 8px;
+      background: var(--accent); color: #000;
+      padding: 6px 12px; border-radius: 0 0 4px 4px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      z-index: 9999; transition: top 0.15s;
+    }
+    .skip-link:focus { top: 0; }
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
 
 <nav>
   <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
@@ -226,6 +236,7 @@
   </div>
 </nav>
 
+<main id="main">
 <div class="page">
   <h1>Account</h1>
   <p class="page-sub" id="page-sub">Loading...</p>
@@ -237,7 +248,7 @@
 
   <!-- Subscription -->
   <div class="card">
-    <div class="card-title">Subscription</div>
+    <h2 class="card-title">Subscription</h2>
     <div class="info-row">
       <span class="info-label">Plan</span>
       <span id="acc-tier">—</span>
@@ -254,19 +265,19 @@
 
   <!-- Profile -->
   <div class="card">
-    <div class="card-title">Profile</div>
+    <h2 class="card-title">Profile</h2>
     <div class="alert alert-ok"  id="profile-ok">Saved.</div>
     <div class="alert alert-err" id="profile-err"></div>
     <div class="field">
-      <label>Name</label>
+      <label for="acc-name">Name</label>
       <input type="text"  id="acc-name"  autocomplete="name" />
     </div>
     <div class="field">
-      <label>Email</label>
+      <label for="acc-email">Email</label>
       <input type="email" id="acc-email" readonly />
     </div>
     <div class="field">
-      <label>Phone</label>
+      <label for="acc-phone">Phone</label>
       <input type="text"  id="acc-phone" readonly />
     </div>
     <div class="action-row">
@@ -276,15 +287,15 @@
 
   <!-- Password (hidden for Google-only accounts) -->
   <div class="card" id="password-card">
-    <div class="card-title">Change Password</div>
+    <h2 class="card-title">Change Password</h2>
     <div class="alert alert-ok"  id="pw-ok">Password updated.</div>
     <div class="alert alert-err" id="pw-err"></div>
     <div class="field">
-      <label>Current password</label>
+      <label for="pw-current">Current password</label>
       <input type="password" id="pw-current" autocomplete="current-password" />
     </div>
     <div class="field">
-      <label>New password</label>
+      <label for="pw-new">New password</label>
       <input type="password" id="pw-new" placeholder="Min 8 characters" autocomplete="new-password" />
     </div>
     <div class="action-row">
@@ -294,13 +305,14 @@
 
   <!-- Session -->
   <div class="card">
-    <div class="card-title">Session</div>
+    <h2 class="card-title">Session</h2>
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;color:var(--muted)">Signed in on this device.</span>
       <a href="/auth/logout" class="btn btn-ghost">Sign out</a>
     </div>
   </div>
 </div>
+</main>
 
 <script>
 let currentUser = null;

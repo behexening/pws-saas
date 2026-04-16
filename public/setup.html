@@ -156,19 +156,30 @@
       letter-spacing: 0;
       cursor: pointer;
     }
+
+    .skip-link {
+      position: absolute; top: -40px; left: 8px;
+      background: var(--accent); color: #000;
+      padding: 6px 12px; border-radius: 0 0 4px 4px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      z-index: 9999; transition: top 0.15s;
+    }
+    .skip-link:focus { top: 0; }
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
   <nav>
     <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
   </nav>
 
+  <main id="main">
   <div class="card">
     <h1>Welcome, <span class="greeting" id="greeting">captain</span></h1>
     <p class="sub">Add your phone number to receive SMS alerts when a district opens.</p>
 
     <form id="setupForm">
-      <label>Phone number <span class="hint">(US number — 10 digits)</span></label>
+      <label for="phone">Phone number <span class="hint">(US number — 10 digits)</span></label>
       <input type="tel" id="phone" placeholder="907 555 0123" required autocomplete="tel" />
       <div class="error-msg" id="errorMsg"></div>
 
@@ -189,6 +200,7 @@
       and <a href="/privacy" style="color:var(--accent);text-decoration:none">Privacy Policy</a>.
     </p>
   </div>
+  </main>
 
   <script>
     function normalizePhone(raw) {

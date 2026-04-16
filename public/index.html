@@ -308,9 +308,19 @@
       }
       .hero-h1 { font-size: 1.55rem; }
     }
+
+    .skip-link {
+      position: absolute; top: -40px; left: 8px;
+      background: var(--accent); color: #000;
+      padding: 6px 12px; border-radius: 0 0 4px 4px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      z-index: 9999; transition: top 0.15s;
+    }
+    .skip-link:focus { top: 0; }
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
 
   <div id="map"></div>
 
@@ -323,6 +333,7 @@
     </div>
   </nav>
 
+  <main id="main">
   <div class="panel">
     <h1 class="hero-h1">Real time alerts<br>for <em>PWS.</em></h1>
     <p class="hero-sub">Know before you go. Instant notification the moment ADF&amp;G issues a Prince William Sound opening.</p>
@@ -345,6 +356,7 @@
       <div class="card-track" id="cardTrack"></div>
     </div>
   </div>
+  </main>
 
   <div class="attr">Map data &copy; OpenStreetMap contributors &middot; CARTO</div>
 

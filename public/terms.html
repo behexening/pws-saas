@@ -157,9 +157,21 @@
       line-height: 1.65;
     }
     .draft-notice strong { color: var(--warn); }
+
+    h2.card-title { font-size: 9px; }
+    .skip-link {
+      position: absolute; top: -40px; left: 8px;
+      background: var(--accent); color: #000;
+      padding: 6px 12px; border-radius: 0 0 4px 4px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      z-index: 9999; transition: top 0.15s;
+    }
+    .skip-link:focus { top: 0; }
   </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
+
 
 <nav>
   <a href="/" class="wordmark-link">
@@ -174,6 +186,7 @@
   </div>
 </nav>
 
+<main id="main">
 <div class="page">
   <h1>Terms of <em>Service</em></h1>
   <p class="page-sub">
@@ -191,7 +204,7 @@
   -->
 <!-- ── 1. Acceptance ──────────────────────────────────────── -->
   <div class="card">
-    <div class="card-title">1 &mdash; Acceptance of Terms</div>
+    <h2 class="card-title">1 &mdash; Acceptance of Terms</h2>
     <div class="legal-body">
       <p>
         These Terms of Service ("Terms") govern your access to and use of akFISHinfo
@@ -221,7 +234,7 @@
 
   <!-- ── 2. Description of Service ─────────────────────────── -->
   <div class="card">
-    <div class="card-title">2 &mdash; Description of Service</div>
+    <h2 class="card-title">2 &mdash; Description of Service</h2>
     <div class="legal-body">
       <p>
         akFISHinfo monitors a designated email inbox for opening announcements issued
@@ -246,7 +259,7 @@
 
   <!-- ── 3. Subscription and Payment ───────────────────────── -->
   <div class="card">
-    <div class="card-title">3 &mdash; Subscription and Payment</div>
+    <h2 class="card-title">3 &mdash; Subscription and Payment</h2>
     <div class="legal-body">
       <p><strong>Free Trial.</strong> New subscribers may access the Service free of charge
       for seven (7) days. One trial is permitted per unique phone number. Trial access
@@ -323,7 +336,7 @@
 
   <!-- ── 4. SMS Alerts — CRITICAL SECTION ──────────────────── -->
   <div class="card">
-    <div class="card-title">4 &mdash; SMS Alerts</div>
+    <h2 class="card-title">4 &mdash; SMS Alerts</h2>
     <div class="legal-body">
       <!-- [ATTORNEY REVIEW] — This is the highest-risk section. The liability limitation
            language must be reviewed by a licensed Alaska attorney before publication.
@@ -364,7 +377,7 @@
 
   <!-- ── 5. No Regulatory Advice ────────────────────────────── -->
   <div class="card">
-    <div class="card-title">5 &mdash; No Regulatory Advice</div>
+    <h2 class="card-title">5 &mdash; No Regulatory Advice</h2>
     <div class="legal-body">
       <p>
         akFISHinfo parses and delivers ADF&amp;G announcements as received. The Service
@@ -385,7 +398,7 @@
 
   <!-- ── 6. Limitation of Liability ────────────────────────── -->
   <div class="card">
-    <div class="card-title">6 &mdash; Limitation of Liability</div>
+    <h2 class="card-title">6 &mdash; Limitation of Liability</h2>
     <div class="legal-body">
       <!-- [ATTORNEY REVIEW] — ALL CAPS presentation is required in many jurisdictions
            for limitation of liability clauses to be enforceable. Confirm Alaska
@@ -412,7 +425,7 @@
 
   <!-- ── 7. Indemnification ─────────────────────────────────── -->
   <div class="card">
-    <div class="card-title">7 &mdash; Indemnification</div>
+    <h2 class="card-title">7 &mdash; Indemnification</h2>
     <div class="legal-body">
       <!-- [ATTORNEY REVIEW] — standard clause; confirm scope is appropriate. -->
       <p>
@@ -427,7 +440,7 @@
 
   <!-- ── 8. Account Responsibilities ───────────────────────── -->
   <div class="card">
-    <div class="card-title">8 &mdash; Account Responsibilities</div>
+    <h2 class="card-title">8 &mdash; Account Responsibilities</h2>
     <div class="legal-body">
       <p>
         You are responsible for maintaining the accuracy of your account information,
@@ -451,7 +464,7 @@
 
   <!-- ── 9. Prohibited Uses ─────────────────────────────────── -->
   <div class="card">
-    <div class="card-title">9 &mdash; Prohibited Uses</div>
+    <h2 class="card-title">9 &mdash; Prohibited Uses</h2>
     <div class="legal-body">
       <p>You may not:</p>
       <p>
@@ -468,7 +481,7 @@
 
   <!-- ── 10. Termination ────────────────────────────────────── -->
   <div class="card">
-    <div class="card-title">10 &mdash; Termination</div>
+    <h2 class="card-title">10 &mdash; Termination</h2>
     <div class="legal-body">
       <p>
         You may cancel your subscription at any time via your account page. Access
@@ -484,7 +497,7 @@
 
   <!-- ── 11. Governing Law ──────────────────────────────────── -->
   <div class="card">
-    <div class="card-title">11 &mdash; Governing Law</div>
+    <h2 class="card-title">11 &mdash; Governing Law</h2>
     <div class="legal-body">
       <!-- [ATTORNEY REVIEW] — confirm Alaska is the correct governing law and
            jurisdiction choice given that the regulated activity occurs here.
@@ -499,7 +512,7 @@
 
   <!-- ── 12. Contact ────────────────────────────────────────── -->
   <div class="card">
-    <div class="card-title">12 &mdash; Contact</div>
+    <h2 class="card-title">12 &mdash; Contact</h2>
     <div class="legal-body">
       <!-- NOTE: admin@akfishinfo.com must be configured in Mailgun before this
            page goes live. -->
@@ -519,6 +532,7 @@
   </div>
 
 </div>
+</main>
 
 <script>
   fetch('/api/me').then(r => r.json()).then(({ user }) => {
