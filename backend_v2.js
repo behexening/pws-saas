@@ -1232,11 +1232,12 @@ app.get('/login', (req, res) => {
 });
 
 /**
- * GET /signup  +  GET /signup.html
- * Old signup route — redirect everything to the Google OAuth login
+ * GET /signup
+ * Registration page — public, redirects away if already logged in
  */
-app.get(['/signup', '/signup.html'], (_req, res) => {
-  res.redirect('/login');
+app.get(['/signup', '/signup.html'], (req, res) => {
+  if (req.user) return res.redirect(hasAccess(req.user) ? '/app' : '/setup');
+  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
 /**

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — akFISHinfo</title>
+  <title>Create Account — akFISHinfo</title>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -94,7 +94,10 @@
       height: 1px;
       background: var(--border);
     }
-    input {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"] {
       width: 100%;
       padding: 9px 12px;
       background: var(--bg);
@@ -118,6 +121,17 @@
       cursor: pointer;
     }
     input[type="checkbox"] { width: auto; margin: 0; accent-color: var(--accent); }
+    .opt-in-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.55;
+      cursor: pointer;
+    }
+    .opt-in-row input[type="checkbox"] { flex-shrink: 0; margin-top: 2px; }
     .btn-submit {
       width: 100%;
       padding: 10px;
@@ -171,10 +185,10 @@
   <a href="/" class="wordmark">akFISH<em>info.</em></a>
 
   <div class="card">
-    <h1>Sign in</h1>
-    <p class="sub">Real time alerts for PWS.</p>
+    <h1>Create account</h1>
+    <p class="sub">Real-time alerts for PWS commercial openings.</p>
 
-    <div class="error-msg" id="errorMsg">Sign-in failed. Please try again.</div>
+    <div class="error-msg" id="errorMsg"></div>
 
     <a href="/auth/google" class="btn-google">
       <svg width="16" height="16" viewBox="0 0 18 18">
@@ -188,25 +202,34 @@
 
     <div class="divider">or</div>
 
-    <form id="signin-form" onsubmit="doSignIn(event)">
-      <input type="email"    id="si-email"    placeholder="Email"    required autocomplete="email" />
-      <input type="password" id="si-password" placeholder="Password" required autocomplete="current-password" />
-      <label class="remember-row">
-        <input type="checkbox" id="si-remember" /> Stay signed in for 30 days
+    <form id="signup-form" onsubmit="doSignUp(event)">
+      <input type="text"     id="su-name"     placeholder="Full name"              required autocomplete="name" />
+      <input type="email"    id="su-email"    placeholder="Email"                  required autocomplete="email" />
+      <input type="password" id="su-password" placeholder="Password (min 8 chars)" required minlength="8" autocomplete="new-password" />
+      <input type="tel"      id="su-phone"    placeholder="Phone number (for SMS alerts)" autocomplete="tel" />
+      <label class="opt-in-row">
+        <input type="checkbox" id="su-sms-consent" />
+        By checking this box, I agree to receive recurring automated SMS alerts from akFISHinfo about ADF&amp;G Prince William Sound fishing openings. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe.
       </label>
-      <button type="submit" class="btn-submit">Sign in</button>
+      <label class="remember-row">
+        <input type="checkbox" id="su-remember" /> Stay signed in for 30 days
+      </label>
+      <button type="submit" class="btn-submit">Create account</button>
     </form>
 
     <div class="toggle-row">
-      Don't have an account?<a href="/signup">Sign up</a>
+      Already have an account?<a href="/login">Sign in</a>
     </div>
   </div>
 
   <a href="/" class="back">Back to homepage</a>
 
   <script>
-    if (new URLSearchParams(location.search).get('error')) {
-      document.getElementById('errorMsg').style.display = 'block';
+    function normalizePhone(raw) {
+      const digits = raw.replace(/\D/g, '');
+      if (digits.length === 10) return '+1' + digits;
+      if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
+      return raw;
     }
 
     function showError(msg) {
@@ -215,19 +238,34 @@
       el.style.display = 'block';
     }
 
-    async function doSignIn(e) {
+    async function doSignUp(e) {
       e.preventDefault();
-      const email       = document.getElementById('si-email').value.trim();
-      const password    = document.getElementById('si-password').value;
-      const remember_me = document.getElementById('si-remember').checked;
+      const name        = document.getElementById('su-name').value.trim();
+      const email       = document.getElementById('su-email').value.trim();
+      const password    = document.getElementById('su-password').value;
+      const remember_me = document.getElementById('su-remember').checked;
+      const rawPhone    = document.getElementById('su-phone').value.trim();
+      const smsConsent  = document.getElementById('su-sms-consent').checked;
+
+      if (rawPhone && !smsConsent) {
+        showError('Please check the SMS consent box to receive alerts, or clear the phone field to skip for now.');
+        return;
+      }
+
+      const body = { name, email, password, remember_me };
+      if (rawPhone && smsConsent) {
+        body.phone_number = normalizePhone(rawPhone);
+        body.sms_consent  = true;
+      }
+
       try {
-        const r = await fetch('/api/login', {
+        const r = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, remember_me }),
+          body: JSON.stringify(body),
         });
         const d = await r.json();
-        if (!r.ok) { showError(d.error || 'Sign-in failed.'); return; }
+        if (!r.ok) { showError(d.error || 'Sign-up failed.'); return; }
         window.location.href = d.redirect;
       } catch { showError('Connection error. Please try again.'); }
     }
