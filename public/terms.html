@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — akFISHinfo</title>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #060a0f;
+      --surface: #0d1520;
+      --border:  #1a2d3f;
+      --text:    #dde8f4;
+      --muted:   #5a7288;
+      --accent:  #00b4d8;
+      --open:    #22c55e;
+      --warn:    #f59e0b;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; height: 50px;
+      background: rgba(6,10,15,0.95);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .wordmark-link { text-decoration: none; }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px; letter-spacing: 0.03em;
+      color: var(--text); user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .nav-links { display: flex; gap: 18px; align-items: center; }
+    .nav-link {
+      color: var(--muted); text-decoration: none;
+      font-size: 12px; font-weight: 500; transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    .page {
+      max-width: 720px;
+      margin: 44px auto;
+      padding: 0 24px 80px;
+    }
+    h1 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 2rem; letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 36px; line-height: 1.6; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 20px 22px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Legal body text */
+    .legal-body p {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+    .legal-body p:last-child { margin-bottom: 0; }
+    .legal-body strong { color: var(--text); font-weight: 600; }
+    .legal-body a { color: var(--accent); text-decoration: none; }
+    .legal-body a:hover { text-decoration: underline; }
+
+    /* Warning callout */
+    .legal-body .warning {
+      color: var(--warn);
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 4px;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* ALL CAPS limitation of liability block */
+    .liability-caps {
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.8;
+      letter-spacing: 0.015em;
+    }
+
+    /* Pricing table */
+    .price-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px;
+      font-size: 13px;
+    }
+    .price-table th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .price-table td {
+      padding: 8px 10px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(26,45,63,0.5);
+    }
+    .price-table tr:last-child td { border-bottom: none; }
+    .badge-locked {
+      display: inline-block;
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--open);
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Draft notice */
+    .draft-notice {
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 5px;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      font-size: 12px;
+      color: var(--warn);
+      line-height: 1.65;
+    }
+    .draft-notice strong { color: var(--warn); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="wordmark-link">
+    <div class="wordmark">akFISH<em>info.</em></div>
+  </a>
+  <div class="nav-links">
+    <a href="/app"         class="nav-link">map</a>
+    <a href="/about"       class="nav-link">about</a>
+    <a href="/account"     class="nav-link" id="account-link" style="display:none">account</a>
+    <a href="/auth/logout" class="nav-link" id="logout-link"  style="display:none">sign out</a>
+    <a href="/login"       class="nav-link" id="login-link">sign in</a>
+  </div>
+</nav>
+
+<div class="page">
+  <h1>Terms of <em>Service</em></h1>
+  <p class="page-sub">
+    Effective date: April 16, 2026<br>
+    akFISHinfo &mdash; Prince William Sound commercial salmon opening alerts
+  </p>
+
+  <!--
+    ============================================================
+    DRAFT — FOR ATTORNEY REVIEW BEFORE PUBLICATION
+    This document was prepared as a working draft. It has not
+    been reviewed by a licensed attorney and does not constitute
+    legal advice. Do not publish without attorney sign-off.
+    ============================================================
+  -->
+<!-- ── 1. Acceptance ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">1 &mdash; Acceptance of Terms</div>
+    <div class="legal-body">
+      <p>
+        These Terms of Service ("Terms") govern your access to and use of akFISHinfo
+        (the "Service"), operated by
+        <!-- OBFUSCATE BEFORE PUBLISH: use JS pattern described in plan-legal-pages.md -->
+        Oliver Nessel
+        <!-- END OBFUSCATE -->
+        ("we," "us," or "our"), a sole proprietor based in Fairbanks, Alaska.
+      </p>
+      <p>
+        By creating an account, starting a free trial, or subscribing to the Service,
+        you agree to be bound by these Terms. If you do not agree, do not use the Service.
+      </p>
+      <p>
+        You must be at least 18 years old to use the Service. By using the Service,
+        you represent that you are 18 or older.
+        <!-- [ATTORNEY REVIEW] — confirm whether 18 is the right threshold, or whether
+             holding a commercial fishing permit is a more appropriate criterion. -->
+      </p>
+      <p>
+        We may update these Terms from time to time. Continued use of the Service after
+        an update constitutes acceptance of the revised Terms. We will make reasonable
+        efforts to notify registered users of material changes.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 2. Description of Service ─────────────────────────── -->
+  <div class="card">
+    <div class="card-title">2 &mdash; Description of Service</div>
+    <div class="legal-body">
+      <p>
+        akFISHinfo monitors a designated email inbox for opening announcements issued
+        by the Alaska Department of Fish &amp; Game ("ADF&amp;G") for Prince William Sound
+        commercial salmon fisheries. When an announcement is received, the Service uses
+        automated AI-assisted parsing to extract district information, gear types, and
+        open/close windows, and delivers SMS alerts to active subscribers.
+      </p>
+      <p>
+        <strong>The Service is an information delivery tool, not an authoritative
+        source of fishing regulations.</strong> All alert content is derived from
+        official ADF&amp;G communications. akFISHinfo does not generate, author, or
+        modify regulatory information.
+      </p>
+      <p>
+        The Service is intended to provide timely access to information that ADF&amp;G
+        has already made public. It is not a substitute for direct monitoring of
+        official ADF&amp;G channels.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 3. Subscription and Payment ───────────────────────── -->
+  <div class="card">
+    <div class="card-title">3 &mdash; Subscription and Payment</div>
+    <div class="legal-body">
+      <p><strong>Free Trial.</strong> New subscribers may access the Service free of charge
+      for seven (7) days. One trial is permitted per unique phone number. Trial access
+      is subject to all other provisions of these Terms.</p>
+
+      <p><strong>Current Subscription Rates.</strong> The following rates apply to the
+      first 30 subscribers who activate a paid subscription ("early adopter" pricing):</p>
+
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>Rate</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Monthly</td>
+            <td>$30.00 / month</td>
+            <td><span class="badge-locked">Rate locked</span></td>
+          </tr>
+          <tr>
+            <td>Quarterly</td>
+            <td>$80.00 / quarter</td>
+            <td><span class="badge-locked">Rate locked</span></td>
+          </tr>
+          <tr>
+            <td>Yearly</td>
+            <td>$300.00 / year</td>
+            <td><span class="badge-locked">Rate locked</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        <strong>Early Adopter Rate Lock.</strong> Subscribers who activate a paid subscription
+        among the first 30 to do so will have their rate permanently locked at the applicable
+        early adopter price shown above for as long as their subscription remains active and
+        in good standing. A lapse in subscription (cancellation followed by re-subscription)
+        forfeits the locked rate.
+      </p>
+      <p>
+        <strong>Standard Rates.</strong> After the first 30 subscriber slots are filled,
+        new subscribers will be charged at the then-current standard rate. The standard
+        monthly rate is $50.00 per month. Quarterly and yearly standard rates will be
+        announced at the same relative percentage discount to the standard monthly rate
+        as early adopter quarterly and yearly plans are to the early adopter monthly rate.
+        <!-- [ATTORNEY REVIEW] — confirm this language is binding and clear enough to
+             constitute a rate-lock commitment for early adopters. -->
+      </p>
+      <p>
+        <strong>Billing.</strong> Subscriptions are billed through Stripe. By subscribing,
+        you authorize us to charge your payment method on a recurring basis at the
+        applicable rate until you cancel. All amounts are in U.S. dollars.
+      </p>
+      <p>
+        <strong>Auto-Renewal.</strong> Subscriptions renew automatically at the end of
+        each billing period. You may cancel at any time via your account page; access
+        continues through the end of the current paid period.
+      </p>
+      <p>
+        <strong>Refunds.</strong> We do not issue refunds for partial billing periods.
+        <!-- [ATTORNEY REVIEW] — confirm this is compliant with Alaska consumer protection
+             law and any applicable credit card network rules. -->
+      </p>
+      <p>
+        <strong>Price Changes.</strong> For subscribers not subject to an early adopter
+        rate lock, we will provide at least 30 days' notice before any price change takes
+        effect.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 4. SMS Alerts — CRITICAL SECTION ──────────────────── -->
+  <div class="card">
+    <div class="card-title">4 &mdash; SMS Alerts</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — This is the highest-risk section. The liability limitation
+           language must be reviewed by a licensed Alaska attorney before publication.
+           The tension: the product's purpose is that fishermen act on alerts.
+           A disclaimer that says "don't rely on this" would be dishonest and likely
+           unenforceable. The approach here limits liability for specific system failure
+           modes rather than disclaiming the entire use case. See plan-legal-pages.md. -->
+      <p>
+        Alerts are derived directly from official ADF&amp;G opening announcements and are
+        intended to provide timely notification of district openings and closures.
+        Subscribers are expected to rely on these alerts as one input into their
+        fishing decisions.
+      </p>
+      <div class="warning">
+        <strong>However, akFISHinfo does not guarantee:</strong><br>
+        (a) the accuracy of AI-parsed announcement data — the parser may misread or
+        incompletely render complex or ambiguous announcement language;<br>
+        (b) delivery timing — SMS delivery depends on Twilio and downstream carrier
+        networks that are outside our control;<br>
+        (c) that all ADF&amp;G announcements will be received and processed — the Service
+        depends on ADF&amp;G delivering announcements to a monitored inbox;<br>
+        (d) that subsequent ADF&amp;G amendments, corrections, or emergency closures
+        issued after an initial announcement will be reflected in previously sent alerts.
+      </div>
+      <p>
+        <strong>You are responsible for verifying that a fishery is open before
+        deploying gear.</strong> akFISHinfo shall not be liable for fines, permit
+        violations, lost catch, vessel damage, or any other loss or consequence resulting
+        from a delayed, inaccurate, incomplete, or missed alert.
+      </p>
+      <p>
+        By providing your phone number and opting in to SMS alerts, you consent to
+        receive text messages from akFISHinfo at the number provided. Message and data
+        rates may apply. You may opt out by canceling your subscription.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 5. No Regulatory Advice ────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">5 &mdash; No Regulatory Advice</div>
+    <div class="legal-body">
+      <p>
+        akFISHinfo parses and delivers ADF&amp;G announcements as received. The Service
+        does not provide legal advice, regulatory guidance, or fishing recommendations.
+      </p>
+      <p>
+        ADF&amp;G regulations and opening announcements may contain conditions,
+        gear restrictions, area descriptions, and timing constraints that the automated
+        parser may not fully or accurately capture. The official ADF&amp;G announcement
+        and applicable Alaska commercial fishing regulations are the authoritative sources.
+      </p>
+      <p>
+        You are solely responsible for compliance with all applicable Alaska commercial
+        fishing regulations, permit conditions, and ADF&amp;G orders.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 6. Limitation of Liability ────────────────────────── -->
+  <div class="card">
+    <div class="card-title">6 &mdash; Limitation of Liability</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — ALL CAPS presentation is required in many jurisdictions
+           for limitation of liability clauses to be enforceable. Confirm Alaska
+           requirements. Confirm the 12-month cap is appropriate. -->
+      <p class="liability-caps">
+        THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND,
+        EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+      </p>
+      <p class="liability-caps" style="margin-top:12px;">
+        TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, AKFISHINFO SHALL NOT BE LIABLE
+        FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES,
+        INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, LOST CATCH, VESSEL DAMAGE, FINES,
+        REGULATORY PENALTIES, OR LOSS OF DATA, ARISING OUT OF OR RELATED TO YOUR USE OF
+        THE SERVICE, EVEN IF AKFISHINFO HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+      </p>
+      <p class="liability-caps" style="margin-top:12px;">
+        IN NO EVENT SHALL AKFISHINFO'S TOTAL LIABILITY TO YOU FOR ALL CLAIMS ARISING OUT
+        OF OR RELATED TO THESE TERMS OR THE SERVICE EXCEED THE TOTAL FEES PAID BY YOU
+        TO AKFISHINFO IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 7. Indemnification ─────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">7 &mdash; Indemnification</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — standard clause; confirm scope is appropriate. -->
+      <p>
+        You agree to indemnify, defend, and hold harmless akFISHinfo and its operator
+        from and against any claims, liabilities, damages, losses, and expenses —
+        including reasonable legal fees — arising out of or in connection with your
+        use of the Service, your violation of these Terms, or your violation of any
+        applicable law or regulation.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 8. Account Responsibilities ───────────────────────── -->
+  <div class="card">
+    <div class="card-title">8 &mdash; Account Responsibilities</div>
+    <div class="legal-body">
+      <p>
+        You are responsible for maintaining the accuracy of your account information,
+        including your phone number. SMS alerts are delivered to the number on file.
+        akFISHinfo is not liable for missed alerts resulting from an outdated or
+        incorrect phone number.
+      </p>
+      <p>
+        One free trial is permitted per phone number. Attempts to circumvent this
+        restriction by using multiple phone numbers may result in account termination.
+      </p>
+      <p>
+        Account sharing is not permitted. Your subscription is for your individual use.
+      </p>
+      <p>
+        You are responsible for maintaining the confidentiality of your account
+        credentials and for all activity that occurs under your account.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 9. Prohibited Uses ─────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">9 &mdash; Prohibited Uses</div>
+    <div class="legal-body">
+      <p>You may not:</p>
+      <p>
+        (a) resell, redistribute, or commercially exploit alert data or any Service output;<br>
+        (b) use automated means to scrape, harvest, or systematically collect data from
+        the Service;<br>
+        (c) use the Service to facilitate fishing in violation of any applicable
+        ADF&amp;G order, permit condition, or Alaska law;<br>
+        (d) attempt to gain unauthorized access to any part of the Service or its
+        underlying infrastructure.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 10. Termination ────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">10 &mdash; Termination</div>
+    <div class="legal-body">
+      <p>
+        You may cancel your subscription at any time via your account page. Access
+        continues through the end of the current paid billing period.
+      </p>
+      <p>
+        We reserve the right to suspend or terminate your account, with or without
+        notice, if we reasonably determine that you have violated these Terms or that
+        continued access poses a risk to the integrity of the Service.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 11. Governing Law ──────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">11 &mdash; Governing Law</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — confirm Alaska is the correct governing law and
+           jurisdiction choice given that the regulated activity occurs here.
+           Confirm whether an arbitration clause is advisable. -->
+      <p>
+        These Terms are governed by the laws of the State of Alaska, without regard
+        to conflict of law principles. Any dispute arising under these Terms shall be
+        resolved in the courts of the State of Alaska.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 12. Contact ────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">12 &mdash; Contact</div>
+    <div class="legal-body">
+      <!-- NOTE: admin@akfishinfo.com must be configured in Mailgun before this
+           page goes live. -->
+      <p>
+        Questions about these Terms may be directed to:<br>
+        <strong>akFISHinfo</strong><br>
+        <!-- OBFUSCATE BEFORE PUBLISH: use JS pattern from plan-legal-pages.md
+             to prevent address harvesting by web scrapers. -->
+        <!-- [ATTORNEY REVIEW] — confirm whether a home address is required for a
+             sole proprietor, or whether a PO box or registered agent address is
+             preferable from a privacy and liability standpoint. -->
+        1274 Deer Valley Rd, Fairbanks, AK 99709<br>
+        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a>
+        <!-- END OBFUSCATE -->
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  fetch('/api/me').then(r => r.json()).then(({ user }) => {
+    if (user) {
+      document.getElementById('login-link').style.display   = 'none';
+      document.getElementById('account-link').style.display = '';
+      document.getElementById('logout-link').style.display  = '';
+    }
+  }).catch(() => {});
+</script>
+
+</body>
+</html>

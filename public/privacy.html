@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — akFISHinfo</title>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #060a0f;
+      --surface: #0d1520;
+      --border:  #1a2d3f;
+      --text:    #dde8f4;
+      --muted:   #5a7288;
+      --accent:  #00b4d8;
+      --open:    #22c55e;
+      --warn:    #f59e0b;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; height: 50px;
+      background: rgba(6,10,15,0.95);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .wordmark-link { text-decoration: none; }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px; letter-spacing: 0.03em;
+      color: var(--text); user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .nav-links { display: flex; gap: 18px; align-items: center; }
+    .nav-link {
+      color: var(--muted); text-decoration: none;
+      font-size: 12px; font-weight: 500; transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    .page {
+      max-width: 720px;
+      margin: 44px auto;
+      padding: 0 24px 80px;
+    }
+    h1 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 2rem; letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 36px; line-height: 1.6; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 20px 22px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Legal body text */
+    .legal-body p {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+    .legal-body p:last-child { margin-bottom: 0; }
+    .legal-body strong { color: var(--text); font-weight: 600; }
+    .legal-body a { color: var(--accent); text-decoration: none; }
+    .legal-body a:hover { text-decoration: underline; }
+
+    /* Data collection table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px;
+      font-size: 12px;
+    }
+    .data-table th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 7px 10px;
+      color: var(--text);
+      border-bottom: 1px solid rgba(26,45,63,0.5);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table .col-why { color: var(--muted); }
+
+    /* Third-party processor list */
+    .processor-row {
+      display: flex; gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(26,45,63,0.5);
+      align-items: flex-start;
+    }
+    .processor-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .processor-name {
+      font-size: 12px; font-weight: 700; color: var(--text);
+      min-width: 90px; flex-shrink: 0;
+    }
+    .processor-detail { font-size: 12px; color: #8aa8be; line-height: 1.55; flex: 1; }
+    .processor-detail a { color: var(--accent); text-decoration: none; font-size: 11px; }
+    .processor-detail a:hover { text-decoration: underline; }
+
+    /* Draft notice */
+    .draft-notice {
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 5px;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      font-size: 12px;
+      color: var(--warn);
+      line-height: 1.65;
+    }
+    .draft-notice strong { color: var(--warn); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="wordmark-link">
+    <div class="wordmark">akFISH<em>info.</em></div>
+  </a>
+  <div class="nav-links">
+    <a href="/app"         class="nav-link">map</a>
+    <a href="/about"       class="nav-link">about</a>
+    <a href="/account"     class="nav-link" id="account-link" style="display:none">account</a>
+    <a href="/auth/logout" class="nav-link" id="logout-link"  style="display:none">sign out</a>
+    <a href="/login"       class="nav-link" id="login-link">sign in</a>
+  </div>
+</nav>
+
+<div class="page">
+  <h1>Privacy <em>Policy</em></h1>
+  <p class="page-sub">
+    Effective date: April 16, 2026<br>
+    akFISHinfo &mdash; Prince William Sound commercial salmon opening alerts
+  </p>
+
+  <!--
+    ============================================================
+    DRAFT — FOR ATTORNEY REVIEW BEFORE PUBLICATION
+    This document was prepared as a working draft. It has not
+    been reviewed by a licensed attorney and does not constitute
+    legal advice. Do not publish without attorney sign-off.
+    ============================================================
+  -->
+<!-- ── 1. Who We Are ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">1 &mdash; Who We Are</div>
+    <div class="legal-body">
+      <p>
+        akFISHinfo is a commercial salmon opening alert service operated by
+        <!-- OBFUSCATE BEFORE PUBLISH: use JS pattern described in plan-legal-pages.md -->
+        Oliver Nessel
+        <!-- END OBFUSCATE -->
+        ("we," "us," or "our"), a sole proprietor based in Fairbanks, Alaska.
+        This Privacy Policy explains how we collect, use, and share information about
+        you when you use the akFISHinfo service ("Service").
+      </p>
+      <p>
+        If you have questions about this policy or your data, contact us at
+        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a>.
+        <!-- NOTE: admin@akfishinfo.com must be configured in Mailgun before
+             this page goes live. -->
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 2. Information We Collect ─────────────────────────── -->
+  <div class="card">
+    <div class="card-title">2 &mdash; Information We Collect</div>
+    <div class="legal-body">
+      <p><strong>Information you provide directly:</strong></p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Why we collect it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Email address</td>
+            <td class="col-why">Account creation, email verification, account emails</td>
+          </tr>
+          <tr>
+            <td>Name</td>
+            <td class="col-why">Display and account identification</td>
+          </tr>
+          <tr>
+            <td>Password (hashed)</td>
+            <td class="col-why">Authentication — plaintext password is never stored or transmitted</td>
+          </tr>
+          <tr>
+            <td>Phone number</td>
+            <td class="col-why">SMS alert delivery; trial eligibility verification</td>
+          </tr>
+          <tr>
+            <td>Subscription / billing information</td>
+            <td class="col-why">Access control and plan management. Credit card data is handled entirely by Stripe — we store only a Stripe customer ID and subscription ID, not card numbers.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><strong>Information collected automatically:</strong></p>
+
+
+      <p>
+        Like most web services, our server infrastructure automatically collects certain
+        technical information when you access the Service, which may include your IP address,
+        browser type, and pages or features accessed. This information is used to operate
+        and debug the Service and is not linked to your identity for marketing purposes.
+        Railway retains infrastructure logs for 30 days.
+      </p>
+
+      <p><strong>Information from third parties:</strong></p>
+      <p>
+        If you sign in using Google OAuth, we receive your name and email address from
+        Google as part of the authentication flow. We do not receive your Google password.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 3. How We Use Your Information ────────────────────── -->
+  <div class="card">
+    <div class="card-title">3 &mdash; How We Use Your Information</div>
+    <div class="legal-body">
+      <p>We use the information we collect to:</p>
+      <p>
+        (a) deliver SMS opening alerts to your registered phone number via Twilio;<br>
+        (b) create and manage your account, including authentication and session management;<br>
+        (c) send transactional emails — account verification, password reset, and billing
+        notices — via Mailgun;<br>
+        (d) process subscription payments via Stripe;<br>
+        (e) enforce trial and access controls (one trial per phone number);<br>
+        (f) operate, maintain, and improve the Service;<br>
+        (g) respond to support requests and communications.
+      </p>
+      <p>
+        <strong>We do not sell your personal information to third parties.</strong>
+        We do not use your information for advertising or behavioral tracking.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 4. Third-Party Service Providers ──────────────────── -->
+  <div class="card">
+    <div class="card-title">4 &mdash; Third-Party Service Providers</div>
+    <div class="legal-body">
+      <p>
+        We share your information only with the service providers necessary to operate
+        the Service. Each provider is listed below with a description of what we share
+        and a link to their own privacy policy.
+      </p>
+
+      <div style="margin-top:12px;">
+        <div class="processor-row">
+          <div class="processor-name">Stripe</div>
+          <div class="processor-detail">
+            Payment processing. We share your name and email with Stripe; Stripe handles
+            all card data directly and is PCI-compliant. We store only your Stripe customer
+            and subscription IDs.<br>
+            <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Twilio</div>
+          <div class="processor-detail">
+            SMS alert delivery. We share your phone number and alert message text with Twilio
+            to deliver opening notifications.<br>
+            <a href="https://www.twilio.com/en-us/legal/privacy" target="_blank" rel="noopener">twilio.com/legal/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Mailgun</div>
+          <div class="processor-detail">
+            Transactional email delivery (account verification, billing notices) and inbound
+            email receipt of ADF&amp;G announcements. We share your email address with Mailgun
+            for delivery of account emails.<br>
+            <a href="https://www.mailgun.com/privacy-policy/" target="_blank" rel="noopener">mailgun.com/privacy-policy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Google</div>
+          <div class="processor-detail">
+            OAuth sign-in. If you use "Sign in with Google," your name and email are
+            shared with Google as part of the authentication flow.<br>
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Anthropic</div>
+          <div class="processor-detail">
+            AI-assisted parsing of ADF&amp;G announcements. The text content of ADF&amp;G PDF
+            announcements is processed by Anthropic's API to extract district and opening
+            information. <strong>No user personal data is sent to Anthropic.</strong><br>
+            <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">anthropic.com/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Railway</div>
+          <div class="processor-detail">
+            Application hosting and database infrastructure. All server-side data — including
+            your account information and the Postgres database — is stored on Railway's
+            infrastructure.<br>
+            <a href="https://railway.app/legal/privacy" target="_blank" rel="noopener">railway.app/legal/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">CARTO / OSM</div>
+          <div class="processor-detail">
+            Map tile delivery. When you view the district map, your browser requests map tiles
+            from CARTO, which may log your IP address as part of standard CDN operation.
+            Map data is sourced from OpenStreetMap contributors.<br>
+            <a href="https://carto.com/privacy/" target="_blank" rel="noopener">carto.com/privacy</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. Data Retention ──────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">5 &mdash; Data Retention</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — confirm these retention periods are reasonable and
+           defensible, and that the 30-day deletion window is achievable operationally. -->
+      <p>
+        <strong>Account data</strong> (name, email, phone, subscription status) is retained
+        for as long as your account is active. Upon a valid deletion request, we will
+        delete your account data within 30 days.
+      </p>
+      <p>
+        <strong>SMS delivery log</strong> (phone number, message text, timestamp, delivery
+        status) is retained for 90 days for audit and debugging purposes, then deleted.
+      </p>
+      <p>
+        <strong>Session data</strong> expires at the end of your browser session, or within
+        30 days if you selected "Stay signed in."
+      </p>
+      <p>
+        <strong>Server infrastructure logs</strong> are retained by Railway for 30 days,
+        per Railway's log retention policy.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 6. Your Rights ─────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">6 &mdash; Your Rights</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — confirm CCPA applicability given that the user base
+           is primarily Alaskan but the Service is publicly accessible. Confirm
+           whether any GDPR obligations apply. -->
+      <p>
+        <strong>Access your data.</strong> Your account page shows the name, email, and
+        phone number currently on file. You may update this information at any time.
+      </p>
+      <p>
+        <strong>Delete your account.</strong> To request deletion of your account and
+        associated personal data, email
+        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a> with the subject
+        line "Delete my account." We will complete deletion within 30 days of a verified
+        request. Note that deletion will terminate your subscription and forfeit any
+        remaining paid period.
+        <!-- NOTE: Account deletion is currently handled manually via email.
+             An in-app deletion button is planned for a future update. -->
+      </p>
+      <p>
+        <strong>Opt out of SMS.</strong> SMS alerts are only sent to active paid subscribers
+        or users in a free trial. Canceling your subscription stops all SMS delivery.
+        You may also text STOP to our Twilio number at any time to opt out.
+        STOP opt-out handling will be active before SMS alerts go live.
+      </p>
+      <p>
+        <strong>California residents (CCPA).</strong> California residents have the right
+        to know what personal information we collect, to request deletion, and to opt out
+        of the sale of personal information. We do not sell personal information.
+        To exercise your rights, contact us at
+        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 7. Cookies ────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">7 &mdash; Cookies</div>
+    <div class="legal-body">
+      <p>
+        We use one session cookie (<code>connect.sid</code>) to manage your login session.
+        This cookie is strictly necessary for authentication and cannot be disabled while
+        using the Service. It does not track you across other websites.
+      </p>
+      <p>
+        We do not use advertising cookies, behavioral tracking cookies, or any
+        third-party analytics cookies. The map tile provider (CARTO) may set cookies
+        in your browser as part of tile delivery; refer to CARTO's privacy policy
+        for details.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 8. Security ────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">8 &mdash; Security</div>
+    <div class="legal-body">
+      <!-- [ATTORNEY REVIEW] — confirm all factual claims in this section are accurate
+           before publication. -->
+      <p>
+        We take reasonable technical measures to protect your information:
+      </p>
+      <p>
+        <strong>Passwords</strong> are stored as scrypt hashes. Plaintext passwords are
+        never stored or transmitted.
+      </p>
+      <p>
+        <strong>Payment data</strong> is handled entirely by Stripe, a PCI-compliant
+        payment processor. We never receive or store credit card numbers.
+      </p>
+      <p>
+        <strong>Database connections</strong> are encrypted. The database is hosted on
+        Railway's infrastructure.
+      </p>
+      <p>
+        <strong>HTTPS</strong> is enforced in production.
+        <!-- [ATTORNEY REVIEW — VERIFY: confirm HTTPS redirect is enforced at the
+             infrastructure or application level in the production environment. -->
+      </p>
+      <p>
+        No security measure is perfect. In the event of a data breach affecting your
+        personal information, we will notify affected users as required by applicable law.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 9. Children's Privacy ──────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">9 &mdash; Children's Privacy</div>
+    <div class="legal-body">
+      <p>
+        The Service is not directed at individuals under 18 years of age, and we do not
+        knowingly collect personal information from anyone under 18. If you believe we
+        have inadvertently collected information from a minor, please contact us at
+        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a> and we will
+        delete it promptly.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 10. Changes to This Policy ────────────────────────── -->
+  <div class="card">
+    <div class="card-title">10 &mdash; Changes to This Policy</div>
+    <div class="legal-body">
+      <p>
+        We may update this Privacy Policy from time to time. When we do, we will update
+        the effective date at the top of this page. For material changes, we will send a
+        notice to the email address on file for registered users. Continued use of the
+        Service after a change takes effect constitutes acceptance of the updated policy.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 11. Contact ────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">11 &mdash; Contact</div>
+    <div class="legal-body">
+      <!-- NOTE: admin@akfishinfo.com must be configured in Mailgun before
+           this page goes live. -->
+      <!-- [ATTORNEY REVIEW] — confirm whether a physical address is legally required
+           in a Privacy Policy for a sole proprietor in Alaska, and whether a home
+           address is advisable or whether a PO box or registered agent should be used. -->
+      <p>
+        For privacy-related inquiries, data access or deletion requests, or any other
+        questions about this policy:
+      </p>
+      <p>
+        <!-- OBFUSCATE BEFORE PUBLISH: use JS pattern described in plan-legal-pages.md -->
+        <strong>akFISHinfo</strong><br>
+        Oliver Nessel<br>
+        1274 Deer Valley Rd, Fairbanks, AK 99709<br>
+        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a>
+        <!-- END OBFUSCATE -->
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  fetch('/api/me').then(r => r.json()).then(({ user }) => {
+    if (user) {
+      document.getElementById('login-link').style.display   = 'none';
+      document.getElementById('account-link').style.display = '';
+      document.getElementById('logout-link').style.display  = '';
+    }
+  }).catch(() => {});
+</script>
+
+</body>
+</html>

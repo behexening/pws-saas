@@ -381,12 +381,20 @@ const authLimiter = rateLimit({
 
 // POST /api/register — create account with email + password
 app.post('/api/register', authLimiter, express.json(), async (req, res) => {
-  const { name, email, password, remember_me } = req.body;
+  const { name, email, password, remember_me, phone_number, sms_consent } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  // Normalize phone if provided with consent
+  let normalizedPhone = null;
+  if (phone_number && sms_consent) {
+    const digits = phone_number.trim().replace(/\D/g, '');
+    if (digits.length === 10) normalizedPhone = '+1' + digits;
+    else if (digits.length === 11 && digits.startsWith('1')) normalizedPhone = '+' + digits;
   }
 
   const existing = await db.query('SELECT id FROM captains WHERE email = $1', [email.toLowerCase()]);
@@ -397,14 +405,23 @@ app.post('/api/register', authLimiter, express.json(), async (req, res) => {
   try {
     const hash  = await hashPassword(password);
     const admin = isAdminEmail(email);
-    const verifyToken    = crypto.randomBytes(32).toString('hex');
-    const verifyExpires  = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const verifyToken   = crypto.randomBytes(32).toString('hex');
+    const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const result = await db.query(
-      `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires)
-       VALUES ($1, $2, $3, 'free', $4, $5, $6) RETURNING *`,
-      [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires]
-    );
+    let result;
+    if (normalizedPhone) {
+      result = await db.query(
+        `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires, phone_number, sms_opted_in, sms_opted_in_at)
+         VALUES ($1, $2, $3, 'free', $4, $5, $6, $7, true, NOW()) RETURNING *`,
+        [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires, normalizedPhone]
+      );
+    } else {
+      result = await db.query(
+        `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires)
+         VALUES ($1, $2, $3, 'free', $4, $5, $6) RETURNING *`,
+        [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires]
+      );
+    }
     const user = result.rows[0];
 
     // Fire-and-forget verification email
@@ -414,6 +431,8 @@ app.post('/api/register', authLimiter, express.json(), async (req, res) => {
       if (err) return res.status(500).json({ error: 'Session error.' });
       if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
       if (isAlaskaGov(user.email) || user.is_admin) return res.json({ redirect: '/app' });
+      // Phone captured at registration — skip /setup, go straight to pricing
+      if (normalizedPhone) return res.json({ redirect: '/pricing' });
       res.json({ redirect: '/setup' });
     });
   } catch (err) {
@@ -1257,6 +1276,22 @@ app.get('/pricing', (req, res) => {
  */
 app.get('/about', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'about.html'));
+});
+
+/**
+ * GET /privacy
+ * Privacy Policy — public, no auth required
+ */
+app.get('/privacy', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
+});
+
+/**
+ * GET /terms
+ * Terms of Service — public, no auth required
+ */
+app.get('/terms', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
 });
 
 /**

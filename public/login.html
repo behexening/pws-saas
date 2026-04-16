@@ -162,6 +162,17 @@
       transition: color 0.15s;
     }
     .back:hover { color: var(--text); }
+    .opt-in-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.55;
+      cursor: pointer;
+    }
+    .opt-in-row input[type="checkbox"] { flex-shrink: 0; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -201,10 +212,15 @@
       <input type="text"     id="su-name"     placeholder="Full name"             required autocomplete="name" />
       <input type="email"    id="su-email"    placeholder="Email"                 required autocomplete="email" />
       <input type="password" id="su-password" placeholder="Password (min 8 chars)" required minlength="8" autocomplete="new-password" />
+      <input type="tel"      id="su-phone"    placeholder="Phone number (for SMS alerts)" autocomplete="tel" />
+      <label class="opt-in-row" id="su-sms-row" style="display:none">
+        <input type="checkbox" id="su-sms-consent" />
+        By checking this box, I agree to receive recurring automated SMS alerts from akFISHinfo about ADF&G Prince William Sound fishing openings. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe.
+      </label>
       <label class="remember-row">
         <input type="checkbox" id="su-remember" /> Stay signed in for 30 days
       </label>
-      <button type="submit" class="btn-submit">Create account</button>
+      <button type="submit" class="btn-submit" id="su-submit">Create account</button>
     </form>
 
     <div class="toggle-row">
@@ -255,17 +271,46 @@
       } catch { showError('Connection error. Please try again.'); }
     }
 
+    function normalizePhone(raw) {
+      const digits = raw.replace(/\D/g, '');
+      if (digits.length === 10) return '+1' + digits;
+      if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
+      return raw;
+    }
+
+    // Show SMS consent row only when phone field has a value
+    document.getElementById('su-phone').addEventListener('input', function () {
+      const row = document.getElementById('su-sms-row');
+      row.style.display = this.value.trim() ? 'flex' : 'none';
+      if (!this.value.trim()) document.getElementById('su-sms-consent').checked = false;
+    });
+
     async function doSignUp(e) {
       e.preventDefault();
       const name        = document.getElementById('su-name').value.trim();
       const email       = document.getElementById('su-email').value.trim();
       const password    = document.getElementById('su-password').value;
       const remember_me = document.getElementById('su-remember').checked;
+      const rawPhone    = document.getElementById('su-phone').value.trim();
+      const smsConsent  = document.getElementById('su-sms-consent').checked;
+
+      // If a phone was entered, consent must be checked
+      if (rawPhone && !smsConsent) {
+        showError('Please check the SMS consent box to receive alerts, or clear the phone field to skip for now.');
+        return;
+      }
+
+      const body = { name, email, password, remember_me };
+      if (rawPhone && smsConsent) {
+        body.phone_number = normalizePhone(rawPhone);
+        body.sms_consent  = true;
+      }
+
       try {
         const r = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, remember_me }),
+          body: JSON.stringify(body),
         });
         const d = await r.json();
         if (!r.ok) { showError(d.error || 'Sign-up failed.'); return; }
