@@ -18,6 +18,7 @@
  */
 
 const express = require('express');
+const helmet = require('helmet');
 const { Pool } = require('pg');
 const Anthropic = require('@anthropic-ai/sdk');
 const crypto = require('crypto');
@@ -47,6 +48,7 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
 const app = express();
+app.use(helmet({ contentSecurityPolicy: false }));
 
 // Database — defined early so the session store can use it
 const db = new Pool({
@@ -834,6 +836,9 @@ async function runLiveTest(announcementId, pdfPath) {
  * You can enhance this to parse the actual data
  */
 function extractDistrictsFromHTML(htmlPath) {
+  if (htmlPath.includes('..') || path.isAbsolute(htmlPath)) {
+    throw new Error('Invalid file path');
+  }
   const htmlContent = require('fs').readFileSync(htmlPath, 'utf8');
   const districts = [];
   
