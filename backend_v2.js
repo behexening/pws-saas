@@ -48,7 +48,20 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
 const app = express();
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", "'unsafe-inline'", "unpkg.com"],
+      styleSrc:   ["'self'", "'unsafe-inline'", "unpkg.com"],
+      imgSrc:     ["'self'", "data:", "blob:", "*.basemaps.cartocdn.com"],
+      connectSrc: ["'self'"],
+      fontSrc:    ["'self'", "data:"],
+      objectSrc:  ["'none'"],
+      frameSrc:   ["'none'"],
+    },
+  },
+}));
 
 // Database — defined early so the session store can use it
 const db = new Pool({
@@ -75,7 +88,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: (process.env.BASE_URL || '').startsWith('https://'),
     httpOnly: true,
     sameSite: 'lax',
   },
