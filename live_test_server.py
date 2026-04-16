@@ -670,12 +670,20 @@ def _normalize_feature_name(name):
     n = re.sub(r"[^\w\s]", " ", n)
     n = re.sub(r"\s+", " ", n).strip()
     n = re.sub(r"\bst\b", "saint", n)
-    # Strip trailing descriptor words — closure names often add these
-    for suffix in (" closure", " closed area", " area", " section",
-                   " waters", " portion"):
-        if n.endswith(suffix):
-            n = n[:-len(suffix)].strip()
-            break
+    # Strip trailing descriptor words — closure names often stack multiple
+    # qualifiers (e.g. "eastern waters closure") so loop until stable.
+    changed = True
+    while changed:
+        changed = False
+        for suffix in (" closure", " closed area", " area", " section",
+                       " waters", " portion"):
+            if n.endswith(suffix):
+                n = n[:-len(suffix)].strip()
+                changed = True
+                break
+    # Strip trailing directional qualifier so "Eshamy Bay eastern" → "Eshamy Bay"
+    # for gazetteer lookup (e.g. "Eshamy Bay eastern waters closure").
+    n = re.sub(r'\s+(eastern|western|northern|southern)$', '', n).strip()
     return n
 
 
