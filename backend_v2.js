@@ -834,6 +834,10 @@ async function runLiveTest(announcementId, pdfPath) {
  * You can enhance this to parse the actual data
  */
 function extractDistrictsFromHTML(htmlPath) {
+  const path = require('path');
+  if (htmlPath.includes('..') || path.isAbsolute(htmlPath)) {
+    throw new Error('Invalid file path');
+  }
   const htmlContent = require('fs').readFileSync(htmlPath, 'utf8');
   const districts = [];
   
