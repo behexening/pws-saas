@@ -1100,22 +1100,28 @@ function prettifyTimeBlock(block) {
   const closesEl = rows[1] && rows[1].querySelector('.time-val');
   if (!opensEl || !closesEl) return;
 
-  const opens  = new Date(opensEl.textContent);
-  const closes = new Date(closesEl.textContent);
-  if (isNaN(opens.getTime()) || isNaN(closes.getTime())) return;
+  // Times in the DB are AKDT wall-clock already (e.g. "2025-08-26T08:00:00"),
+  // with no timezone suffix. Parse components directly so we don't accidentally
+  // treat them as local-browser time and shift them on format.
+  const parse = s => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(s).trim());
+    return m ? { y:+m[1], mo:+m[2], d:+m[3], h:+m[4], mi:+m[5] } : null;
+  };
+  const opens  = parse(opensEl.textContent);
+  const closes = parse(closesEl.textContent);
+  if (!opens || !closes) return;
 
   // Stash raw ISO for later filtering (survives prettification)
-  block.dataset.opens  = opensEl.textContent;
-  block.dataset.closes = closesEl.textContent;
+  block.dataset.opens  = opensEl.textContent.trim();
+  block.dataset.closes = closesEl.textContent.trim();
 
-  const dateStr = d => d.toLocaleDateString('en-US', {
-    month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Anchorage',
-  });
-  const timeStr = d => {
-    const s = d.toLocaleTimeString('en-US', {
-      hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Anchorage',
-    }).toLowerCase();
-    return s.replace(':00 ', '').replace(' ', '');
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const dateStr = p => `${MONTHS[p.mo - 1]} ${p.d} ${p.y}`;
+  const timeStr = p => {
+    const ampm = p.h < 12 ? 'am' : 'pm';
+    const h12 = ((p.h + 11) % 12) + 1;
+    return p.mi === 0 ? `${h12}${ampm}` : `${h12}:${String(p.mi).padStart(2,'0')}${ampm}`;
   };
 
   const openDate  = dateStr(opens);
@@ -1145,17 +1151,17 @@ function filterCardsByScrubberDate(container, scrubberDateAKDT) {
       const opensIso  = block.dataset.opens;
       const closesIso = block.dataset.closes;
       if (!opensIso || !closesIso) return;
-      const opens  = new Date(opensIso);
-      const closes = new Date(closesIso);
-      let cur = new Date(opens);
-      let match = false;
-      while (cur <= closes) {
-        if (cur.toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' }) === scrubberDateAKDT) {
-          match = true;
-          break;
-        }
-        cur = new Date(cur.getTime() + 86400000);
-      }
+      // ISO strings are AKDT wall-clock — compare via UTC on the same components
+      // so we don't re-shift by the browser's local timezone.
+      const parseDay = s => {
+        const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+        return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : NaN;
+      };
+      const openDay  = parseDay(opensIso);
+      const closeDay = parseDay(closesIso);
+      const scrubDay = parseDay(scrubberDateAKDT);
+      const match = !isNaN(openDay) && !isNaN(closeDay) && !isNaN(scrubDay) &&
+                    scrubDay >= openDay && scrubDay <= closeDay;
       if (match) anyMatch = true;
       else block.style.display = 'none';
     });
