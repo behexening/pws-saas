@@ -731,6 +731,7 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
 // ── Tab switching ──
 function setTab(tab, btn) {
   currentTab = tab;
+  if (tab !== 'old') currentScrubberDate = null;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('ann-picker').style.display = tab === 'old' ? 'block' : 'none';
@@ -827,6 +828,7 @@ async function loadAndRender(result) {
 // Array of {date (YYYY-MM-DD AKDT), results[]} sorted oldest→newest
 let scrubberDates = [];
 let scrubberIdx = 0;
+let currentScrubberDate = null; // YYYY-MM-DD AKDT — set while on 'old' tab
 
 function buildScrubberDates(results) {
   // Map each result to every AKDT date within its opening window.
@@ -898,6 +900,7 @@ function applyScrubberIndex(idx, autoLoad) {
   const entry = scrubberDates[idx];
   if (!entry) return;
 
+  currentScrubberDate = entry.date;
   document.getElementById('date-slider').value = idx;
   document.getElementById('scrubber-date-display').textContent = fmtScrubberDate(entry.date);
   document.getElementById('scrubber-status').textContent =
@@ -1080,6 +1083,84 @@ function renderPanel(result) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); highlightDistrict(card.dataset.district); }
     });
   });
+
+  // Prettify Opens/Closes ISO timestamps → "August 26 2025, 8am–8pm" (AKDT)
+  container.querySelectorAll('.time-block').forEach(prettifyTimeBlock);
+
+  // On old tab, hide districts/periods that aren't active on the scrubber date
+  if (currentTab === 'old' && currentScrubberDate) {
+    filterCardsByScrubberDate(container, currentScrubberDate);
+  }
+}
+
+// Reformat one .time-block: parse ISO Opens/Closes, render in AKDT plain English
+function prettifyTimeBlock(block) {
+  const rows = block.querySelectorAll('.time-row');
+  const opensEl  = rows[0] && rows[0].querySelector('.time-val');
+  const closesEl = rows[1] && rows[1].querySelector('.time-val');
+  if (!opensEl || !closesEl) return;
+
+  const opens  = new Date(opensEl.textContent);
+  const closes = new Date(closesEl.textContent);
+  if (isNaN(opens.getTime()) || isNaN(closes.getTime())) return;
+
+  // Stash raw ISO for later filtering (survives prettification)
+  block.dataset.opens  = opensEl.textContent;
+  block.dataset.closes = closesEl.textContent;
+
+  const dateStr = d => d.toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Anchorage',
+  });
+  const timeStr = d => {
+    const s = d.toLocaleTimeString('en-US', {
+      hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Anchorage',
+    }).toLowerCase();
+    return s.replace(':00 ', '').replace(' ', '');
+  };
+
+  const openDate  = dateStr(opens);
+  const closeDate = dateStr(closes);
+  let text;
+  if (openDate === closeDate) {
+    text = `${openDate}, ${timeStr(opens)}–${timeStr(closes)}`;
+  } else {
+    text = `${openDate} ${timeStr(opens)} – ${closeDate} ${timeStr(closes)}`;
+  }
+
+  const durationEl = block.querySelector('.duration-tag');
+  const durationHtml = durationEl ? durationEl.outerHTML : '';
+  block.innerHTML =
+    `<div class="time-row" style="font-size:11.5px;color:var(--text);font-weight:500">${text}</div>` +
+    durationHtml;
+}
+
+// Hide time-blocks whose [opens, closes] range doesn't cover scrubberDate (AKDT).
+// Hide the whole card if none of its time-blocks cover that date.
+function filterCardsByScrubberDate(container, scrubberDateAKDT) {
+  container.querySelectorAll('.district-card').forEach(card => {
+    const blocks = card.querySelectorAll('.time-block');
+    if (!blocks.length) return; // can't tell — leave it alone
+    let anyMatch = false;
+    blocks.forEach(block => {
+      const opensIso  = block.dataset.opens;
+      const closesIso = block.dataset.closes;
+      if (!opensIso || !closesIso) return;
+      const opens  = new Date(opensIso);
+      const closes = new Date(closesIso);
+      let cur = new Date(opens);
+      let match = false;
+      while (cur <= closes) {
+        if (cur.toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' }) === scrubberDateAKDT) {
+          match = true;
+          break;
+        }
+        cur = new Date(cur.getTime() + 86400000);
+      }
+      if (match) anyMatch = true;
+      else block.style.display = 'none';
+    });
+    if (!anyMatch) card.style.display = 'none';
+  });
 }
 
 // ── Point-in-polygon (for map→card click) ──
@@ -1251,7 +1332,7 @@ document.getElementById('scrubber-prev').addEventListener('click', () => stepSli
 document.getElementById('scrubber-next').addEventListener('click', () => stepSlider(1));
 
 loadTab('live');
-setInterval(() => loadTab(currentTab), 60000);
+setInterval(() => { if (currentTab === 'live') loadTab('live'); }, 60000);
 
 // Leaflet needs to know the real container size after layout settles.
 // On mobile the grid reflows after DOMContentLoaded, so we wait a tick.
