@@ -479,6 +479,13 @@
       maxZoom: 19,
     }).addTo(map);
 
+    if (isMobile) {
+      const c = map.latLngToContainerPoint([60.42, -147.5]);
+      const newCenter = map.containerPointToLatLng(
+        L.point(c.x - 20, c.y + window.innerHeight * 0.20)
+      );
+      map.setView(newCenter, 7, { animate: false });
+    }
 
     const STYLE = {
       open:    { fillColor: '#22c55e', fillOpacity: 0.15, color: '#22c55e', weight: 1.5, opacity: 0.5  },
