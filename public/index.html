@@ -479,14 +479,6 @@
       maxZoom: 19,
     }).addTo(map);
 
-    // On mobile the panel covers the bottom 62vh, so the visible map is the top 38vh.
-    // Shift the center so PWS appears in the middle of that visible portion.
-    if (isMobile) {
-      const offsetPx = window.innerHeight * 0.14; // place PWS center at ~36% from top
-      const c = map.latLngToContainerPoint([60.42, -147.5]);
-      const newCenter = map.containerPointToLatLng(L.point(c.x, c.y + offsetPx));
-      map.setView(newCenter, 7, { animate: false });
-    }
 
     const STYLE = {
       open:    { fillColor: '#22c55e', fillOpacity: 0.15, color: '#22c55e', weight: 1.5, opacity: 0.5  },
