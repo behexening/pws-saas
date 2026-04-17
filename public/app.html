@@ -596,8 +596,8 @@
       <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
       <span class="live-badge">live</span>
       <div class="topbar-tabs">
-        <button class="tab-btn active" onclick="setTab('live', this)">live</button>
-        <button class="tab-btn" onclick="setTab('old', this)">old</button>
+        <button class="tab-btn active" id="tab-btn-live">live</button>
+        <button class="tab-btn" id="tab-btn-old">old</button>
       </div>
     </div>
     <div class="topbar-right" id="topbar-right">
@@ -620,11 +620,11 @@
             <span class="scrubber-label">Timeline</span>
             <span class="scrubber-date-display" id="scrubber-date-display">—</span>
           </div>
-          <input type="range" id="date-slider" min="0" max="0" value="0" class="date-slider-input" oninput="onSliderInput(this.value)" />
+          <input type="range" id="date-slider" min="0" max="0" value="0" class="date-slider-input" />
           <div class="scrubber-nav">
-            <button class="scrubber-nav-btn" onclick="stepSlider(-1)">◀ prev</button>
+            <button class="scrubber-nav-btn" id="scrubber-prev">◀ prev</button>
             <span class="scrubber-status" id="scrubber-status"></span>
-            <button class="scrubber-nav-btn" onclick="stepSlider(1)">next ▶</button>
+            <button class="scrubber-nav-btn" id="scrubber-next">next ▶</button>
           </div>
         </div>
         <div id="ann-list"></div>
@@ -935,11 +935,19 @@ function renderAnnList(results, activeResult) {
     const openLabel = r.has_open_districts
       ? '<span style="color:var(--open);font-weight:700">open</span>'
       : '<span style="color:var(--muted)">closed</span>';
-    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" onclick="selectAnnouncement(${r.id}, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectAnnouncement(${r.id},this);}">
+    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" data-result-id="${r.id}">
       <span class="ann-date">${fmtDate(r)}</span>
       <span class="ann-meta">${cnt} dist &middot; ${openLabel}</span>
     </div>`;
   }).join('');
+
+  annList.querySelectorAll('.ann-row').forEach(row => {
+    const id = Number(row.dataset.resultId);
+    row.addEventListener('click', () => selectAnnouncement(id, row));
+    row.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectAnnouncement(id, row); }
+    });
+  });
 }
 
 function selectAnnouncement(id, el) {
@@ -970,7 +978,7 @@ function selectAnnouncement(id, el) {
 }
 
 async function reparseResult(id) {
-  const btn = document.querySelector(`button[onclick="reparseResult(${id})"]`);
+  const btn = document.querySelector(`button[data-reparse-id="${id}"]`);
   if (btn) { btn.textContent = '↻ Reparsing…'; btn.disabled = true; }
   try {
     const resp = await fetch(`/api/result/${id}/reparse`, { method: 'POST' });
@@ -1039,7 +1047,7 @@ function renderPanel(result) {
   const hasOAGJ = result._html && /OPEN_AREAS_GJ\s*=\s*\{/.test(result._html) &&
     /"features"\s*:\s*\[\s*\{/.test(result._html);
   const reparseBtn = hasOAGJ ? '' :
-    `<button onclick="reparseResult(${result.id})" style="
+    `<button data-reparse-id="${result.id}" style="
       margin-left:8px;padding:3px 10px;font-size:10px;font-weight:700;
       background:rgba(0,180,216,0.12);color:#00b4d8;border:1px solid rgba(0,180,216,0.3);
       border-radius:5px;cursor:pointer;letter-spacing:.3px;
@@ -1050,6 +1058,12 @@ function renderPanel(result) {
     ${closedCount ? `<span class="stat-pill closed-pill">${closedCount} Closed</span>` : ''}
     ${reparseBtn}
   `;
+
+  const rpBtn = stats.querySelector('[data-reparse-id]');
+  if (rpBtn) {
+    const rpId = Number(rpBtn.dataset.reparseId);
+    rpBtn.addEventListener('click', () => reparseResult(rpId));
+  }
 
   const grid = document.createElement('div');
   grid.className = 'cards-grid';
@@ -1230,6 +1244,12 @@ function highlightDistrict(key) {
 }
 
 // Init
+document.getElementById('tab-btn-live').addEventListener('click', function(){ setTab('live', this); });
+document.getElementById('tab-btn-old').addEventListener('click', function(){ setTab('old', this); });
+document.getElementById('date-slider').addEventListener('input', function(){ onSliderInput(this.value); });
+document.getElementById('scrubber-prev').addEventListener('click', () => stepSlider(-1));
+document.getElementById('scrubber-next').addEventListener('click', () => stepSlider(1));
+
 loadTab('live');
 setInterval(() => loadTab(currentTab), 60000);
 
