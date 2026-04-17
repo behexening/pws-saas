@@ -34,6 +34,10 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const rateLimit = require('express-rate-limit');
 
+const TRUSTED_SENDER_DOMAINS = ['@adfg.alaska.gov', '@alaska.gov'];
+const EXTRA_ALLOWED_SENDERS = (process.env.EXTRA_ALLOWED_SENDERS || '')
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
 const upload = multer({
   dest: '/tmp/mailgun-uploads/',
   limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB cap
@@ -694,6 +698,14 @@ app.post('/webhooks/email', upload.any(), async (req, res) => {
   if (!verifyMailgunSignature(timestamp, token, signature)) {
     console.warn('⚠ Mailgun webhook signature mismatch — rejected');
     return res.status(403).send('Forbidden');
+  }
+  const sender = (req.body.sender || req.body.from || '').toLowerCase();
+  const trusted =
+    TRUSTED_SENDER_DOMAINS.some(d => sender.endsWith(d)) ||
+    EXTRA_ALLOWED_SENDERS.some(s => sender.includes(s));
+  if (!trusted) {
+    console.warn(`⚠ Untrusted sender ignored: ${sender}`);
+    return res.status(200).send('OK');
   }
   try {
     const subject = req.body.subject || '';
