@@ -734,6 +734,7 @@ function setTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('ann-picker').style.display = tab === 'old' ? 'block' : 'none';
+  document.getElementById('left-panel').scrollTop = 0;
   loadTab(tab);
 }
 
