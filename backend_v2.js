@@ -33,6 +33,7 @@ const pgSession = require('connect-pg-simple')(session);
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 
 const TRUSTED_SENDER_DOMAINS = ['@adfg.alaska.gov', '@alaska.gov'];
 const EXTRA_ALLOWED_SENDERS = (process.env.EXTRA_ALLOWED_SENDERS || '')
@@ -52,6 +53,7 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
 const app = express();
+app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -1207,6 +1209,7 @@ app.post('/api/result/:id/reparse', express.json(), async (req, res) => {
  * Serve generated HTML artifacts
  */
 app.use('/results', express.static(path.join(__dirname, 'public', 'results')));
+app.use('/static', express.static(path.join(__dirname, 'public', 'static'), { maxAge: '7d' }));
 
 /**
  * GET /account
