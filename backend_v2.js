@@ -53,6 +53,7 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: {
