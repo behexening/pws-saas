@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>akFISHinfo.</title>
+  <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/theme.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
@@ -12,19 +15,7 @@
       src: url('/static/projekt-blackbird-v2.otf') format('opentype');
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:      #060a0f;
-      --surface: #0d1520;
-      --surface2: #132030;
-      --border:  #1a2d3f;
-      --text:    #dde8f4;
-      --muted:   #5a7288;
-      --accent:  #00b4d8;
-      --open:    #22c55e;
-      --closed:  #ef4444;
-      --warn:    #f59e0b;
-      --radius: 6px;
-    }
+    :root { --radius: 6px; }
 
     body {
       background: var(--bg);
@@ -606,6 +597,9 @@
       <a href="/account" class="nav-link" id="account-link" style="display:none">account</a>
       <a href="/auth/logout" class="nav-link" id="logout-link" style="display:none">sign out</a>
       <a href="/login" class="nav-link" id="login-link">login</a>
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+        <span class="icon-sun" aria-hidden="true">☀</span><span class="icon-moon" aria-hidden="true">☾</span>
+      </button>
     </div>
   </div>
 
@@ -664,10 +658,25 @@
 <script>
 // ── Map init ──
 const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+function tileUrlForTheme() {
+  var theme = (window.akfiTheme && window.akfiTheme.get()) ||
+    (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+  return theme === 'light'
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+}
+let tileLayer = L.tileLayer(tileUrlForTheme(), {
   attribution: '&copy; OpenStreetMap &copy; CARTO',
   subdomains: 'abcd', maxZoom: 17,
 }).addTo(map);
+window.addEventListener('themechange', function () {
+  if (tileLayer) map.removeLayer(tileLayer);
+  tileLayer = L.tileLayer(tileUrlForTheme(), {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd', maxZoom: 17,
+  }).addTo(map);
+  if (typeof currentResult !== 'undefined' && currentResult) renderMap(currentResult);
+});
 
 let activeLayers = [];       // all Leaflet layers — cleared on each reload
 let mapDistrictLayers = {};  // district_key → Leaflet layer (for card↔map sync)
@@ -814,11 +823,13 @@ async function loadTab(tab) {
   }
 }
 
+let currentResult = null;
 async function loadAndRender(result) {
   if (!result._html) {
     const htmlResp = await fetch(`/api/result/${result.id}/html`);
     if (htmlResp.ok) result._html = await htmlResp.text();
   }
+  currentResult = result;
   renderPanel(result);
   await renderMap(result);
 }
@@ -1293,7 +1304,8 @@ async function renderMap(result) {
         // Fall back to solid fill for old DB records that predate OPEN_AREAS_GJ.
         if (info && info.open)
           return { color: info.color, weight: 2, opacity: 0.8, fillColor: info.color, fillOpacity: hasOpenAreas ? 0.001 : 0.20 };
-        return { color: '#3a3f5c', weight: 1, opacity: 0.35, fillColor: '#000', fillOpacity: 0.001 };
+        var dim = getComputedStyle(document.documentElement).getPropertyValue('--map-stroke-dim').trim() || '#3a3f5c';
+        return { color: dim, weight: 1, opacity: 0.35, fillColor: dim, fillOpacity: 0.001 };
       },
       onEachFeature: function(feature, layer) {
         const name = feature.properties.DISTRICT_N || '';

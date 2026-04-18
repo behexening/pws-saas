@@ -4,22 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing — akFISHinfo</title>
+  <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/theme.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
       src: url('/static/projekt-blackbird-v2.otf') format('opentype');
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:      #060a0f;
-      --surface: #0d1520;
-      --border:  #1a2d3f;
-      --text:    #dde8f4;
-      --muted:   #5a7288;
-      --accent:  #00b4d8;
-      --open:    #22c55e;
-      --warn:    #f59e0b;
-    }
     body {
       background: var(--bg);
       color: var(--text);
@@ -326,9 +319,10 @@
 
 <nav>
   <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
-  <div style="display:flex;gap:18px;align-items:center">
+  <div style="display:flex;gap:10px;align-items:center">
     <a href="/about"       class="nav-link">about</a>
     <a href="/auth/logout" class="nav-link">sign out</a>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"><span class="icon-sun" aria-hidden="true">☀</span><span class="icon-moon" aria-hidden="true">☾</span></button>
   </div>
 </nav>
 

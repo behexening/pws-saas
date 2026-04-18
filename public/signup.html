@@ -4,20 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account — akFISHinfo</title>
+  <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/theme.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
       src: url('/static/projekt-blackbird-v2.otf') format('opentype');
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:      #060a0f;
-      --surface: #0d1520;
-      --border:  #1a2d3f;
-      --text:    #dde8f4;
-      --muted:   #5a7288;
-      --accent:  #00b4d8;
-    }
     body {
       background: var(--bg);
       color: var(--text);
@@ -195,6 +190,7 @@
   </style>
 </head>
 <body>
+<button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode" style="position:fixed;top:14px;right:14px;z-index:100"><span class="icon-sun" aria-hidden="true">☀</span><span class="icon-moon" aria-hidden="true">☾</span></button>
   <a href="#main" class="skip-link">Skip to content</a>
 
   <a href="/" class="wordmark">akFISH<em>info.</em></a>
