@@ -308,6 +308,31 @@
       z-index: 9999; transition: top 0.15s;
     }
     .skip-link:focus { top: 0; }
+
+    /* ── Light-mode overrides ─────────────────────────────── */
+    [data-theme="light"] nav {
+      background: rgba(255,255,255,0.82) !important;
+      border-bottom-color: var(--border);
+    }
+    [data-theme="light"] .panel {
+      background: linear-gradient(
+        105deg,
+        rgba(244,247,251,0.97) 0%,
+        rgba(244,247,251,0.97) 72%,
+        rgba(244,247,251,0.00) 100%
+      );
+    }
+    [data-theme="light"] .attr { color: rgba(15,26,38,0.35); }
+    @media (max-width: 640px) {
+      [data-theme="light"] .panel {
+        background: linear-gradient(
+          to bottom,
+          rgba(244,247,251,0.0) 0%,
+          rgba(244,247,251,0.97) 12%,
+          rgba(244,247,251,0.97) 100%
+        );
+      }
+    }
   </style>
 </head>
 <body>
