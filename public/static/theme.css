@@ -55,3 +55,9 @@
 .theme-toggle .icon-moon { display: inline; }
 [data-theme="light"] .theme-toggle .icon-sun  { display: inline; }
 [data-theme="light"] .theme-toggle .icon-moon { display: none; }
+
+/* Override hardcoded dark nav backgrounds on public pages in light mode */
+[data-theme="light"] nav,
+[data-theme="light"] .topbar {
+  background: var(--surface) !important;
+}

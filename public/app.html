@@ -575,6 +575,36 @@
     .ann-row:focus-visible {
       outline: 2px solid var(--accent); outline-offset: -1px;
     }
+
+    /* ── Light-mode overrides for elements with hardcoded dark-tuned colors ── */
+    [data-theme="light"] .map-legend   { background: rgba(255,255,255,0.94); }
+    [data-theme="light"] .map-note     { background: rgba(255,255,255,0.85); color: var(--muted); }
+    [data-theme="light"] .disclaimer-bar { background: rgba(255,255,255,0.9); }
+
+    [data-theme="light"] .constraint-item {
+      background: rgba(3,105,161,0.1);
+      color: var(--accent);
+      border-color: rgba(3,105,161,0.25);
+    }
+    [data-theme="light"] .excl-tag.subdistrict {
+      background: rgba(3,105,161,0.12);
+      color: var(--accent);
+      border-color: rgba(3,105,161,0.3);
+    }
+    [data-theme="light"] .excl-tag.gen {
+      background: rgba(185,28,28,0.08);
+      color: var(--closed);
+      border-color: rgba(185,28,28,0.25);
+    }
+    [data-theme="light"] .closure-name       { color: var(--closed); }
+    [data-theme="light"] .closed-side-warning { color: var(--closed); border-left-color: var(--closed); background: rgba(185,28,28,0.1); }
+    [data-theme="light"] .applies-badge.period     { color: var(--closed); background: rgba(185,28,28,0.12); border-color: rgba(185,28,28,0.3); }
+    [data-theme="light"] .applies-badge.allperiods { color: #fff; background: var(--closed); border-color: var(--closed); }
+    [data-theme="light"] .points-table td     { color: var(--text); }
+    [data-theme="light"] .closed-pill          { color: var(--closed); }
+
+    /* topbar on light mode: subtle separation from body bg */
+    [data-theme="light"] .topbar { box-shadow: 0 1px 0 var(--border); }
   </style>
 </head>
 <body>
