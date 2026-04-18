@@ -1236,11 +1236,37 @@ async function renderMap(result) {
   doc.querySelectorAll('script').forEach(s => { scriptText += s.textContent; });
 
   // ── Build HIGHLIGHTED from card DOM ──────────────────────────────────────
+  // On old tab with a scrubber date, only highlight districts whose card has
+  // a time-block covering that date. Keeps the map in sync with the filtered
+  // card list.
+  const parseDay = s => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
+    return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : NaN;
+  };
+  const scrubDay = (currentTab === 'old' && currentScrubberDate)
+    ? parseDay(currentScrubberDate) : NaN;
+  const activeKeysForDate = isNaN(scrubDay) ? null : new Set();
+
   doc.querySelectorAll('.district-card').forEach(card => {
     const key = card.dataset.district;
     const nameEl = card.querySelector('.district-name');
     const name = nameEl ? nameEl.textContent.trim() : '';
     if (!key || !name) return;
+
+    if (activeKeysForDate) {
+      let matches = false;
+      card.querySelectorAll('.time-block').forEach(block => {
+        const vals = block.querySelectorAll('.time-val');
+        if (vals.length < 2) return;
+        const openDay  = parseDay(vals[0].textContent.trim());
+        const closeDay = parseDay(vals[1].textContent.trim());
+        if (!isNaN(openDay) && !isNaN(closeDay) &&
+            scrubDay >= openDay && scrubDay <= closeDay) matches = true;
+      });
+      if (!matches) return; // not active on scrubber date — skip highlight
+      activeKeysForDate.add(key);
+    }
+
     const isOpen = !!card.querySelector('.status-open');
     const styleStr = card.getAttribute('style') || '';
     const colorM = styleStr.match(/border-left:\s*\d+px solid ([^;]+)/);
@@ -1285,6 +1311,10 @@ async function renderMap(result) {
   // Closure lines and excluded subdistricts are already subtracted from the
   // polygon geometry by Python/Shapely. No separate overlays needed.
   const openAreasGJ = extractBalancedJson(scriptText, 'OPEN_AREAS_GJ');
+  if (openAreasGJ && openAreasGJ.features && activeKeysForDate) {
+    openAreasGJ.features = openAreasGJ.features.filter(f =>
+      activeKeysForDate.has(f.properties && f.properties.district_key));
+  }
   if (openAreasGJ && openAreasGJ.features && openAreasGJ.features.length) {
     const openLayer = L.geoJSON(openAreasGJ, {
       style: function(feature) {
