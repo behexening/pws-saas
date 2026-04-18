@@ -350,7 +350,7 @@
   <div class="plans">
 
     <!-- Monthly -->
-    <button type="button" class="plan-card selected" id="plan-monthly" onclick="selectPlan('monthly')" aria-pressed="true">
+    <button type="button" class="plan-card selected" id="plan-monthly" data-plan="monthly" aria-pressed="true">
       <div class="plan-header">
         <div>
           <div class="plan-label">Monthly</div>
@@ -362,7 +362,7 @@
     </button>
 
     <!-- Quarterly -->
-    <button type="button" class="plan-card" id="plan-quarterly" onclick="selectPlan('quarterly')" aria-pressed="false">
+    <button type="button" class="plan-card" id="plan-quarterly" data-plan="quarterly" aria-pressed="false">
       <div class="plan-header">
         <div>
           <div class="plan-label">Quarterly</div>
@@ -377,7 +377,7 @@
     </button>
 
     <!-- Yearly -->
-    <button type="button" class="plan-card" id="plan-yearly" onclick="selectPlan('yearly')" aria-pressed="false">
+    <button type="button" class="plan-card" id="plan-yearly" data-plan="yearly" aria-pressed="false">
       <div class="plan-header">
         <div>
           <div class="plan-label">Yearly</div>
@@ -406,7 +406,7 @@
   </div>
 
   <div class="cta-wrap">
-    <button class="btn btn-primary" onclick="startCheckout()" id="checkout-btn">Subscribe</button>
+    <button class="btn btn-primary" id="checkout-btn">Subscribe</button>
     <p class="cta-note">Secure checkout via Stripe. Cancel anytime.</p>
     <p class="cta-note" style="margin-top:6px">
       By subscribing you agree to our
@@ -415,7 +415,7 @@
     </p>
 
     <div id="trial-section" style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
-      <button class="btn btn-ghost" onclick="startTrial()" id="trial-btn">Start free 7-day trial — no card required</button>
+      <button class="btn btn-ghost" id="trial-btn">Start free 7-day trial — no card required</button>
       <p class="cta-note" style="margin-top:8px">One trial per phone number.</p>
       <p class="cta-note alert-err" id="trial-err" style="display:none;margin-top:8px;color:#f87171"></p>
     </div>
@@ -531,6 +531,12 @@
   // Init
   selectPlan('monthly');
   loadTicker();
+
+  document.querySelectorAll('.plan-card[data-plan]').forEach(btn => {
+    btn.addEventListener('click', () => selectPlan(btn.dataset.plan));
+  });
+  document.getElementById('checkout-btn').addEventListener('click', startCheckout);
+  document.getElementById('trial-btn').addEventListener('click', startTrial);
 </script>
 </body>
 </html>

@@ -204,7 +204,7 @@
 
     <div class="divider">or</div>
 
-    <form id="signin-form" onsubmit="doSignIn(event)">
+    <form id="signin-form">
       <label for="si-email" class="sr-only">Email address</label>
       <input type="email"    id="si-email"    placeholder="Email"    required autocomplete="email" />
       <label for="si-password" class="sr-only">Password</label>
@@ -250,6 +250,8 @@
         window.location.href = d.redirect;
       } catch { showError('Connection error. Please try again.'); }
     }
+
+    document.getElementById('signin-form').addEventListener('submit', doSignIn);
   </script>
 </body>
 </html>

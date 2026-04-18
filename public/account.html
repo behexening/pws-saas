@@ -243,7 +243,7 @@
 
   <div class="verify-nudge" id="verify-nudge" style="display:none">
     <span>Your email address has not been verified. Check your inbox.</span>
-    <button class="verify-btn" onclick="resendVerification()">Resend</button>
+    <button class="verify-btn" id="resend-verify-btn">Resend</button>
   </div>
 
   <!-- Subscription -->
@@ -281,7 +281,7 @@
       <input type="text"  id="acc-phone" readonly />
     </div>
     <div class="action-row">
-      <button class="btn btn-primary" onclick="saveProfile()">Save name</button>
+      <button class="btn btn-primary" id="save-profile-btn">Save name</button>
     </div>
   </div>
 
@@ -299,7 +299,7 @@
       <input type="password" id="pw-new" placeholder="Min 8 characters" autocomplete="new-password" />
     </div>
     <div class="action-row">
-      <button class="btn btn-primary" onclick="changePassword()">Update password</button>
+      <button class="btn btn-primary" id="change-password-btn">Update password</button>
     </div>
   </div>
 
@@ -390,8 +390,8 @@ async function changePassword() {
   showAlert('pw-ok', 'pw-err', r.ok ? null : (d.error || 'Could not update password.'));
 }
 
-async function resendVerification() {
-  const btn = event.target;
+async function resendVerification(e) {
+  const btn = e.currentTarget;
   btn.textContent = 'Sending...';
   btn.disabled = true;
   const r = await fetch('/api/resend-verification', { method: 'POST' });
@@ -414,6 +414,10 @@ function showAlert(okId, errId, errMsg) {
 }
 
 loadAccount();
+
+document.getElementById('resend-verify-btn')?.addEventListener('click', resendVerification);
+document.getElementById('save-profile-btn')?.addEventListener('click', saveProfile);
+document.getElementById('change-password-btn')?.addEventListener('click', changePassword);
 </script>
 </body>
 </html>

@@ -218,7 +218,7 @@
 
     <div class="divider">or</div>
 
-    <form id="signup-form" onsubmit="doSignUp(event)">
+    <form id="signup-form">
       <label for="su-name" class="sr-only">Full name</label>
       <input type="text"     id="su-name"     placeholder="Full name"              required autocomplete="name" />
       <label for="su-email" class="sr-only">Email address</label>
@@ -290,6 +290,8 @@
         window.location.href = d.redirect;
       } catch { showError('Connection error. Please try again.'); }
     }
+
+    document.getElementById('signup-form').addEventListener('submit', doSignUp);
   </script>
 </body>
 </html>
