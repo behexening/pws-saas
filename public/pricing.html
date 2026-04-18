@@ -470,12 +470,28 @@
   }
 
   // Load early adopter ticker
+  async function fetchSpots() {
+    const r = await fetch('/api/early-adopter-spots');
+    if (!r.ok) throw new Error('status ' + r.status);
+    return r.json();
+  }
   async function loadTicker() {
+    const tickerText = document.getElementById('ticker-text');
+    const tickerSub  = document.getElementById('ticker-sub');
+    let d;
     try {
-      const r = await fetch('/api/early-adopter-spots');
-      const d = await r.json();
-      const tickerText = document.getElementById('ticker-text');
-      const tickerSub  = document.getElementById('ticker-sub');
+      d = await fetchSpots();
+    } catch {
+      // Retry once — Railway occasionally 502s when the dyno is warming up
+      try { d = await fetchSpots(); } catch {}
+    }
+    if (!d) {
+      // Still preserve urgency even without a live count
+      tickerText.textContent = 'Only 30 early adopter seats available';
+      tickerSub.innerHTML = 'The first 30 subscribers lock in this price permanently — for the life of the subscription.';
+      return;
+    }
+    try {
 
       if (d.spots_left > 0) {
         tickerText.textContent = d.spots_left + ' early adopter ' + (d.spots_left === 1 ? 'seat' : 'seats') + ' remaining';
@@ -491,7 +507,8 @@
         tickerSub.textContent = 'New subscribers pay the current market rate.';
       }
     } catch (_) {
-      document.getElementById('ticker-text').textContent = 'Early adopter pricing available now';
+      tickerText.textContent = 'Only 30 early adopter seats available';
+      tickerSub.innerHTML = 'The first 30 subscribers lock in this price permanently — for the life of the subscription.';
     }
   }
 
