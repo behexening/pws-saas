@@ -329,7 +329,7 @@
 <main id="main">
 <div class="page">
   <h1>Get <em>access.</em></h1>
-  <p class="page-sub">Real-time ADF&G opening alerts, straight to your phone. No lag, no scanning PDFs.</p>
+  <p class="page-sub">Real-time ADF&G opening alerts, straight to your phone. Season runs May&ndash;September — pick the window that matches your fishing schedule.</p>
 
   <div class="ticker-wrap">
     <div class="ticker">
@@ -343,40 +343,40 @@
 
   <div class="plans">
 
-    <!-- Monthly -->
-    <button type="button" class="plan-card selected" id="plan-monthly" data-plan="monthly" aria-pressed="true">
+    <!-- Biweekly -->
+    <button type="button" class="plan-card" id="plan-biweekly" data-plan="biweekly" aria-pressed="false">
       <div class="plan-header">
         <div>
-          <div class="plan-label">Monthly</div>
-          <div class="plan-price">$30 <span>/ month</span></div>
-          <div class="plan-effective">Billed monthly &mdash; cancel anytime</div>
+          <div class="plan-label">Biweekly</div>
+          <div class="plan-price"><span class="price-amount" data-price="biweekly">$30</span> <span class="price-unit">/ 2 weeks</span></div>
+          <div class="plan-effective" data-effective="biweekly">For short stints &mdash; cancel anytime</div>
         </div>
         <div class="plan-radio"></div>
       </div>
     </button>
 
-    <!-- Quarterly -->
-    <button type="button" class="plan-card" id="plan-quarterly" data-plan="quarterly" aria-pressed="false">
+    <!-- Monthly -->
+    <button type="button" class="plan-card selected" id="plan-monthly" data-plan="monthly" aria-pressed="true">
       <div class="plan-header">
         <div>
-          <div class="plan-label">Quarterly</div>
-          <div class="plan-price">$80 <span>/ quarter</span></div>
-          <div class="plan-effective">~$26.67/mo &mdash; <strong>save $40/year</strong></div>
+          <div class="plan-label">Monthly</div>
+          <div class="plan-price"><span class="price-amount" data-price="monthly">$50</span> <span class="price-unit">/ month</span></div>
+          <div class="plan-effective" data-effective="monthly">~$25/wk &mdash; best for most captains</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <span class="plan-badge">Save 11%</span>
+          <span class="plan-badge">Popular</span>
           <div class="plan-radio"></div>
         </div>
       </div>
     </button>
 
-    <!-- Yearly -->
-    <button type="button" class="plan-card" id="plan-yearly" data-plan="yearly" aria-pressed="false">
+    <!-- Season -->
+    <button type="button" class="plan-card" id="plan-season" data-plan="season" aria-pressed="false">
       <div class="plan-header">
         <div>
-          <div class="plan-label">Yearly</div>
-          <div class="plan-price">$300 <span>/ year</span></div>
-          <div class="plan-effective">~$25/mo &mdash; <strong>save $60/year</strong></div>
+          <div class="plan-label">Season</div>
+          <div class="plan-price"><span class="price-amount" data-price="season">$240</span> <span class="price-unit">/ season</span></div>
+          <div class="plan-effective" data-effective="season">May&ndash;September &mdash; <strong>save $10/mo</strong> + up to 3 deckhand seats</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <span class="plan-badge">Best value</span>
@@ -396,6 +396,7 @@
       <li><span class="feature-check"></span>Full announcement history with date scrubber</li>
       <li><span class="feature-check"></span>Coverage for all PWS districts</li>
       <li><span class="feature-check"></span>Early adopter price locked in permanently</li>
+      <li id="season-perk" style="display:none"><span class="feature-check"></span><strong>Season only:</strong> add up to 3 deckhands with their own alerts &amp; limited map view</li>
     </ul>
   </div>
 
@@ -417,14 +418,50 @@
 
   <a href="/" class="btn btn-ghost" style="margin-top:12px">Back to homepage</a>
 
-  <div class="future-note">
-    <strong>Early adopter pricing:</strong> The first 30 captains who subscribe lock in this rate permanently — even when we raise prices later in the season. Once those seats are gone, new subscribers pay the market rate.
+  <div class="future-note" id="future-note">
+    <strong>Early adopter pricing:</strong> The first 30 captains who subscribe lock in these rates permanently. Once those seats are gone, regular pricing kicks in: <strong>$50 biweekly · $84 monthly · $400 season</strong>.
   </div>
 </div>
 </main>
 
 <script>
   let selectedPlan = 'monthly';
+  let earlyAdopterActive = true;
+
+  // Two pricing ladders. Kept client-side for instant render; the server
+  // re-validates early-adopter eligibility at checkout so spoofing these
+  // amounts won't change what Stripe actually charges.
+  const PLAN_COPY = {
+    'ea': {
+      biweekly: { amount: '$30',  unit: '/ 2 weeks', effective: 'For short stints &mdash; cancel anytime',                             label: '$30/2 weeks' },
+      monthly:  { amount: '$50',  unit: '/ month',   effective: '~$25/wk &mdash; best for most captains',                              label: '$50/month' },
+      season:   { amount: '$240', unit: '/ season',  effective: 'May&ndash;September &mdash; <strong>save $10/mo</strong> + up to 3 deckhand seats', label: '$240/season' },
+    },
+    'std': {
+      biweekly: { amount: '$50',  unit: '/ 2 weeks', effective: 'For short stints &mdash; cancel anytime',                             label: '$50/2 weeks' },
+      monthly:  { amount: '$84',  unit: '/ month',   effective: '~$21/wk &mdash; best for most captains',                              label: '$84/month' },
+      season:   { amount: '$400', unit: '/ season',  effective: 'May&ndash;September &mdash; <strong>save $16/mo</strong> + up to 3 deckhand seats', label: '$400/season' },
+    },
+  };
+
+  function currentLadder() { return earlyAdopterActive ? PLAN_COPY.ea : PLAN_COPY.std; }
+
+  function renderPrices() {
+    const ladder = currentLadder();
+    for (const plan of ['biweekly', 'monthly', 'season']) {
+      const priceEl = document.querySelector('[data-price="' + plan + '"]');
+      const effEl   = document.querySelector('[data-effective="' + plan + '"]');
+      if (priceEl) priceEl.textContent = ladder[plan].amount;
+      if (effEl)   effEl.innerHTML     = ladder[plan].effective;
+    }
+    updateCheckoutLabel();
+  }
+
+  function updateCheckoutLabel() {
+    const btn = document.getElementById('checkout-btn');
+    if (!btn || btn.disabled) return;
+    btn.textContent = 'Subscribe — ' + currentLadder()[selectedPlan].label;
+  }
 
   function selectPlan(plan) {
     selectedPlan = plan;
@@ -435,8 +472,9 @@
     const card = document.getElementById('plan-' + plan);
     card.classList.add('selected');
     card.setAttribute('aria-pressed', 'true');
-    const labels = { monthly: '$30/month', quarterly: '$80/quarter', yearly: '$300/year' };
-    document.getElementById('checkout-btn').textContent = 'Subscribe — ' + labels[plan];
+    updateCheckoutLabel();
+    const seasonPerk = document.getElementById('season-perk');
+    if (seasonPerk) seasonPerk.style.display = (plan === 'season') ? 'flex' : 'none';
   }
 
   async function startCheckout() {
@@ -458,8 +496,7 @@
       err.textContent = e.message;
       err.style.display = 'block';
       btn.disabled = false;
-      const labels = { monthly: '$30/month', quarterly: '$80/quarter', yearly: '$300/year' };
-      btn.textContent = 'Subscribe — ' + labels[selectedPlan];
+      updateCheckoutLabel();
     }
   }
 
@@ -472,37 +509,40 @@
   async function loadTicker() {
     const tickerText = document.getElementById('ticker-text');
     const tickerSub  = document.getElementById('ticker-sub');
+    const futureNote = document.getElementById('future-note');
     let d;
     try {
       d = await fetchSpots();
     } catch {
-      // Retry once — Railway occasionally 502s when the dyno is warming up
       try { d = await fetchSpots(); } catch {}
     }
     if (!d) {
-      // Still preserve urgency even without a live count
+      // Conservative default: assume early adopter still active
+      earlyAdopterActive = true;
+      renderPrices();
       tickerText.textContent = 'Only 30 early adopter seats available';
       tickerSub.innerHTML = 'The first 30 subscribers lock in this price permanently — for the life of the subscription.';
       return;
     }
-    try {
 
-      if (d.spots_left > 0) {
-        tickerText.textContent = d.spots_left + ' early adopter ' + (d.spots_left === 1 ? 'seat' : 'seats') + ' remaining';
-        tickerSub.innerHTML = 'The first 30 subscribers lock in this price permanently. <strong>' + d.taken + ' of 30 taken.</strong>';
-      } else {
-        // All seats filled — swap to neutral styling
-        const ticker = document.querySelector('.ticker');
-        ticker.style.background = 'rgba(90,114,136,0.1)';
-        ticker.style.borderColor = 'rgba(90,114,136,0.25)';
-        ticker.style.color = 'var(--muted)';
-        document.querySelector('.ticker-dot').style.display = 'none';
-        tickerText.textContent = 'Early adopter seats are full';
-        tickerSub.textContent = 'New subscribers pay the current market rate.';
-      }
-    } catch (_) {
-      tickerText.textContent = 'Only 30 early adopter seats available';
-      tickerSub.innerHTML = 'The first 30 subscribers lock in this price permanently — for the life of the subscription.';
+    earlyAdopterActive = d.early_adopter_active !== false && d.spots_left > 0;
+    renderPrices();
+
+    if (earlyAdopterActive) {
+      tickerText.textContent = d.spots_left + ' early adopter ' + (d.spots_left === 1 ? 'seat' : 'seats') + ' remaining';
+      tickerSub.innerHTML = 'The first ' + d.total + ' subscribers lock in this price permanently. <strong>' + d.taken + ' of ' + d.total + ' taken.</strong>';
+    } else {
+      const ticker = document.querySelector('.ticker');
+      ticker.style.background = 'rgba(90,114,136,0.1)';
+      ticker.style.borderColor = 'rgba(90,114,136,0.25)';
+      ticker.style.color = 'var(--muted)';
+      const dot = document.querySelector('.ticker-dot');
+      if (dot) dot.style.display = 'none';
+      tickerText.textContent = 'Early adopter seats are full';
+      tickerSub.textContent = 'Regular pricing now applies.';
+      // Future-note referenced the coming regular pricing — now it's the current
+      // pricing, so hide it to avoid contradicting the cards above.
+      if (futureNote) futureNote.style.display = 'none';
     }
   }
 
@@ -540,6 +580,7 @@
   });
 
   // Init
+  renderPrices();
   selectPlan('monthly');
   loadTicker();
 

@@ -124,6 +124,49 @@ const twilio = require('twilio')(
   process.env.TWILIO_AUTH_TOKEN
 );
 
+// ── Pricing / plan configuration ────────────────────────────
+// Two parallel price ladders in Stripe: early-adopter (first 30 paying captains)
+// and standard. Price IDs resolved lazily so missing env vars fail loudly at
+// checkout time rather than at boot.
+const EARLY_ADOPTER_SEAT_LIMIT = 30;
+const PLAN_SLUGS = ['biweekly', 'monthly', 'season'];
+
+function priceIdFor(plan, isEarlyAdopter) {
+  const table = {
+    biweekly: { ea: process.env.STRIPE_PRICE_EA_BIWEEKLY, std: process.env.STRIPE_PRICE_BIWEEKLY },
+    monthly:  { ea: process.env.STRIPE_PRICE_EA_MONTHLY,  std: process.env.STRIPE_PRICE_MONTHLY  },
+    season:   { ea: process.env.STRIPE_PRICE_EA_SEASON,   std: process.env.STRIPE_PRICE_SEASON   },
+  };
+  const row = table[plan];
+  if (!row) return null;
+  const picked = isEarlyAdopter ? row.ea : row.std;
+  // Fall back to the legacy single-price env var so the boot doesn't break
+  // if the new env vars haven't been set yet.
+  return picked || process.env.STRIPE_PRICE_ID || null;
+}
+
+function planFromPriceId(priceId) {
+  if (!priceId) return null;
+  for (const slug of PLAN_SLUGS) {
+    if (priceId === priceIdFor(slug, true) || priceId === priceIdFor(slug, false)) return slug;
+  }
+  return null;
+}
+
+function isEarlyAdopterPriceId(priceId) {
+  if (!priceId) return false;
+  return priceId === process.env.STRIPE_PRICE_EA_BIWEEKLY
+      || priceId === process.env.STRIPE_PRICE_EA_MONTHLY
+      || priceId === process.env.STRIPE_PRICE_EA_SEASON;
+}
+
+async function earlyAdopterSeatsLeft() {
+  const r = await db.query(
+    `SELECT COUNT(*)::int AS count FROM captains WHERE is_early_adopter = true AND subscription_active = true`
+  );
+  return Math.max(0, EARLY_ADOPTER_SEAT_LIMIT - r.rows[0].count);
+}
+
 // ============================================================
 // GOOGLE OAUTH
 // ============================================================
@@ -256,7 +299,10 @@ app.get('/auth/logout', (req, res, next) => {
 // Current session user (used by frontend to show login state)
 app.get('/api/me', (req, res) => {
   if (!req.user) return res.json({ user: null });
-  const { id, email, name, tier, subscription_active, phone_number, trial_ends_at, is_admin, email_verified, google_id } = req.user;
+  const { id, email, name, tier, subscription_active, phone_number, trial_ends_at,
+          is_admin, email_verified, google_id, plan_slug, is_early_adopter,
+          subscription_status, stripe_current_period_end, cancel_at_period_end,
+          stripe_customer_id } = req.user;
   const trialActive = trial_ends_at && new Date(trial_ends_at) > new Date();
   const trialDaysLeft = trialActive
     ? Math.ceil((new Date(trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24))
@@ -264,19 +310,51 @@ app.get('/api/me', (req, res) => {
   res.json({ user: { id, email, name, tier, subscription_active, phone_number,
                      trial_ends_at, trial_active: trialActive, trial_days_left: trialDaysLeft,
                      is_admin, email_verified: !!email_verified, has_google: !!google_id,
+                     plan_slug, is_early_adopter: !!is_early_adopter,
+                     subscription_status, stripe_current_period_end, cancel_at_period_end,
+                     has_billing: !!stripe_customer_id,
                      has_access: hasAccess(req.user) } });
 });
 
-// GET /api/early-adopter-spots — returns remaining early adopter seats (30 total)
+// POST /api/billing/portal — open Stripe customer portal for self-serve billing
+app.post('/api/billing/portal', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
+  if (!req.user.stripe_customer_id) {
+    return res.status(400).json({ error: 'No billing account on file.' });
+  }
+  try {
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: req.user.stripe_customer_id,
+      return_url: `${BASE_URL}/account`,
+    });
+    res.json({ url: portal.url });
+  } catch (err) {
+    console.error('billing portal error:', err);
+    res.status(500).json({ error: 'Could not open billing portal.' });
+  }
+});
+
+// GET /api/early-adopter-spots — returns remaining early adopter seats
 app.get('/api/early-adopter-spots', async (req, res) => {
   try {
-    const result = await db.query(
-      `SELECT COUNT(*) AS count FROM captains WHERE tier = 'pro' AND subscription_active = true`
+    const r = await db.query(
+      `SELECT COUNT(*)::int AS count FROM captains
+       WHERE is_early_adopter = true AND subscription_active = true`
     );
-    const taken = parseInt(result.rows[0].count, 10);
-    const total = 30;
+    const taken = r.rows[0].count;
+    const total = EARLY_ADOPTER_SEAT_LIMIT;
     const spots_left = Math.max(0, total - taken);
-    res.json({ spots_left, total, taken });
+    res.json({
+      spots_left,
+      total,
+      taken,
+      early_adopter_active: spots_left > 0,
+      prices: {
+        biweekly: { early_adopter: 30,  standard: 50  },
+        monthly:  { early_adopter: 50,  standard: 84  },
+        season:   { early_adopter: 240, standard: 400 },
+      },
+    });
   } catch (err) {
     console.error('early-adopter-spots error:', err);
     res.status(500).json({ error: 'Could not fetch spot count' });
@@ -290,12 +368,6 @@ app.post('/api/setup', express.json(), async (req, res) => {
   try {
     const { phone_number, plan } = req.body;
     if (!phone_number) return res.status(400).json({ error: 'Phone number required' });
-
-    const priceIdMap = {
-      monthly:   process.env.STRIPE_PRICE_ID_MONTHLY   || process.env.STRIPE_PRICE_ID,
-      quarterly: process.env.STRIPE_PRICE_ID_QUARTERLY || process.env.STRIPE_PRICE_ID,
-      yearly:    process.env.STRIPE_PRICE_ID_YEARLY    || process.env.STRIPE_PRICE_ID,
-    };
 
     // __existing__ sentinel: user already has phone saved — either grant trial or go to Stripe
     if (phone_number === '__existing__') {
@@ -321,18 +393,46 @@ app.post('/api/setup', express.json(), async (req, res) => {
         return res.json({ redirect: '/app', trial: true, trial_days: 7 });
       }
 
-      // Subscribe path: create Stripe checkout with chosen plan
-      const priceId = priceIdMap[plan] || priceIdMap.monthly;
-      const stripeSession = await stripe.checkout.sessions.create({
+      // Subscribe path: resolve plan + early-adopter pricing, then create checkout
+      const chosenPlan = PLAN_SLUGS.includes(plan) ? plan : 'monthly';
+      const seatsLeft = await earlyAdopterSeatsLeft();
+      const isEarlyAdopter = seatsLeft > 0;
+      const priceId = priceIdFor(chosenPlan, isEarlyAdopter);
+      if (!priceId) {
+        console.error(`No Stripe price configured for plan=${chosenPlan} ea=${isEarlyAdopter}`);
+        return res.status(500).json({ error: 'Billing is temporarily unavailable. Please try again later.' });
+      }
+
+      // Reuse an existing Stripe customer if we have one, else let Checkout create one.
+      const checkoutParams = {
         payment_method_types: ['card'],
         line_items: [{ price: priceId, quantity: 1 }],
         mode: 'subscription',
-        customer_email: req.user.email,
-        success_url: `${BASE_URL}/success?captain_id=${req.user.id}`,
+        allow_promotion_codes: true,
+        client_reference_id: req.user.id.toString(),
+        success_url: `${BASE_URL}/success?captain_id=${req.user.id}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url:  `${BASE_URL}/pricing`,
-        metadata: { captain_id: req.user.id.toString() },
-      });
-      return res.json({ redirect: stripeSession.url, trial: false });
+        metadata: {
+          captain_id: req.user.id.toString(),
+          plan: chosenPlan,
+          is_early_adopter: isEarlyAdopter ? 'true' : 'false',
+        },
+        subscription_data: {
+          metadata: {
+            captain_id: req.user.id.toString(),
+            plan: chosenPlan,
+            is_early_adopter: isEarlyAdopter ? 'true' : 'false',
+          },
+        },
+      };
+      if (req.user.stripe_customer_id) {
+        checkoutParams.customer = req.user.stripe_customer_id;
+      } else {
+        checkoutParams.customer_email = req.user.email;
+      }
+
+      const stripeSession = await stripe.checkout.sessions.create(checkoutParams);
+      return res.json({ redirect: stripeSession.url, trial: false, plan: chosenPlan, is_early_adopter: isEarlyAdopter });
     }
 
     // Normalize phone to E.164 (frontend also normalizes, this is a safety net)
@@ -642,6 +742,25 @@ async function initDatabase() {
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS sms_opted_in BOOLEAN DEFAULT false;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS sms_opted_in_at TIMESTAMPTZ;`);
+
+    // Plan / billing metadata — added for multi-tier pricing (biweekly | monthly | season)
+    // and early-adopter seat locking. plan_slug lets us tell Season subscribers apart
+    // (required for deckhand seat entitlement, per docs/plans/plan-deckhand-seats.md).
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS plan_slug TEXT;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS is_early_adopter BOOLEAN DEFAULT false;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS subscription_status TEXT;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS stripe_price_id VARCHAR(255);`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS stripe_current_period_end TIMESTAMPTZ;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN DEFAULT false;`);
+
+    // Idempotency ledger for Stripe webhooks — prevents double-processing retries.
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS stripe_events (
+        id VARCHAR(255) PRIMARY KEY,
+        type TEXT NOT NULL,
+        processed_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
 
     // SMS log
     await db.query(`
@@ -984,46 +1103,179 @@ app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (r
     return res.status(400).send('Webhook error');
   }
 
+  // Idempotency — Stripe retries on any 5xx, so short-circuit if we've processed this event.
+  try {
+    const seen = await db.query('SELECT id FROM stripe_events WHERE id = $1', [event.id]);
+    if (seen.rows.length) return res.json({ received: true, skipped: true });
+  } catch (e) {
+    console.error('stripe_events lookup failed:', e);
+  }
+
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        const captainId = session.metadata?.captain_id;
-
-        if (captainId) {
-          await db.query(
-            `UPDATE captains 
-             SET stripe_customer_id = $1, tier = $2, subscription_active = true
-             WHERE id = $3`,
-            [session.customer, 'pro', captainId]
-          );
-          console.log(`✓ Captain #${captainId} upgraded to pro`);
-        }
+      case 'checkout.session.completed':
+        await handleCheckoutCompleted(event.data.object);
         break;
-      }
 
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
-        await db.query(
-          `UPDATE captains 
-           SET tier = $1, subscription_active = false
-           WHERE stripe_customer_id = $2`,
-          ['free', subscription.customer]
-        );
-        console.log(`⚠️ Subscription cancelled`);
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object);
         break;
-      }
+
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object);
+        break;
+
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaymentSucceeded(event.data.object);
+        break;
+
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event.data.object);
+        break;
 
       default:
+        // Silence: Stripe emits many event types we don't care about.
         break;
     }
 
+    // Mark processed only on success — failures return 500 so Stripe retries.
+    await db.query(
+      'INSERT INTO stripe_events (id, type) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [event.id, event.type]
+    );
     res.sendStatus(200);
   } catch (err) {
-    console.error('Webhook processing error:', err);
+    console.error(`Webhook processing error (${event.type}):`, err);
     res.status(500).send('Error processing webhook');
   }
 });
+
+async function handleCheckoutCompleted(session) {
+  if (session.mode !== 'subscription') return;
+  const captainId = session.metadata?.captain_id || session.client_reference_id;
+  if (!captainId) {
+    console.warn('checkout.session.completed without captain_id metadata');
+    return;
+  }
+
+  // Always re-fetch the subscription — webhook payloads can be stale.
+  const subscription = await stripe.subscriptions.retrieve(session.subscription);
+  const priceId = subscription.items.data[0]?.price?.id;
+  const planSlug = session.metadata?.plan || planFromPriceId(priceId);
+  const isEarlyAdopter =
+    session.metadata?.is_early_adopter === 'true' || isEarlyAdopterPriceId(priceId);
+
+  await db.query(
+    `UPDATE captains
+     SET stripe_customer_id = $1,
+         stripe_subscription_id = $2,
+         stripe_price_id = $3,
+         stripe_current_period_end = to_timestamp($4),
+         cancel_at_period_end = $5,
+         subscription_status = $6,
+         subscription_active = $7,
+         plan_slug = $8,
+         is_early_adopter = COALESCE(is_early_adopter, false) OR $9,
+         tier = 'pro',
+         updated_at = NOW()
+     WHERE id = $10`,
+    [
+      session.customer,
+      subscription.id,
+      priceId,
+      subscription.current_period_end,
+      !!subscription.cancel_at_period_end,
+      subscription.status,
+      subscription.status === 'active' || subscription.status === 'trialing',
+      planSlug,
+      isEarlyAdopter,
+      captainId,
+    ]
+  );
+  console.log(`✓ Captain #${captainId} upgraded to pro (plan=${planSlug}, ea=${isEarlyAdopter})`);
+}
+
+async function handleSubscriptionUpdated(subscription) {
+  const priceId = subscription.items.data[0]?.price?.id;
+  const planSlug = planFromPriceId(priceId);
+  const active = subscription.status === 'active' || subscription.status === 'trialing';
+
+  // Prefer subscription ID, fall back to customer ID (e.g. subscription.created before DB has ID).
+  const bySub = await db.query(
+    `UPDATE captains
+     SET stripe_price_id = $1,
+         stripe_current_period_end = to_timestamp($2),
+         cancel_at_period_end = $3,
+         subscription_status = $4,
+         subscription_active = $5,
+         plan_slug = COALESCE($6, plan_slug),
+         tier = CASE WHEN $5 THEN 'pro' ELSE tier END,
+         updated_at = NOW()
+     WHERE stripe_subscription_id = $7
+     RETURNING id`,
+    [priceId, subscription.current_period_end, !!subscription.cancel_at_period_end,
+     subscription.status, active, planSlug, subscription.id]
+  );
+  if (bySub.rows.length) return;
+
+  await db.query(
+    `UPDATE captains
+     SET stripe_subscription_id = $1,
+         stripe_price_id = $2,
+         stripe_current_period_end = to_timestamp($3),
+         cancel_at_period_end = $4,
+         subscription_status = $5,
+         subscription_active = $6,
+         plan_slug = COALESCE($7, plan_slug),
+         tier = CASE WHEN $6 THEN 'pro' ELSE tier END,
+         updated_at = NOW()
+     WHERE stripe_customer_id = $8`,
+    [subscription.id, priceId, subscription.current_period_end,
+     !!subscription.cancel_at_period_end, subscription.status, active, planSlug,
+     subscription.customer]
+  );
+}
+
+async function handleSubscriptionDeleted(subscription) {
+  await db.query(
+    `UPDATE captains
+     SET subscription_active = false,
+         subscription_status = 'canceled',
+         tier = 'free',
+         cancel_at_period_end = false,
+         updated_at = NOW()
+     WHERE stripe_subscription_id = $1 OR stripe_customer_id = $2`,
+    [subscription.id, subscription.customer]
+  );
+  console.log(`⚠️ Subscription canceled: ${subscription.id}`);
+}
+
+async function handleInvoicePaymentSucceeded(invoice) {
+  if (!invoice.subscription) return;
+  await db.query(
+    `UPDATE captains
+     SET subscription_status = 'active',
+         subscription_active = true,
+         tier = 'pro',
+         stripe_current_period_end = to_timestamp($1),
+         updated_at = NOW()
+     WHERE stripe_subscription_id = $2`,
+    [invoice.period_end, invoice.subscription]
+  );
+}
+
+async function handleInvoicePaymentFailed(invoice) {
+  if (!invoice.subscription) return;
+  await db.query(
+    `UPDATE captains
+     SET subscription_status = 'past_due',
+         updated_at = NOW()
+     WHERE stripe_subscription_id = $1`,
+    [invoice.subscription]
+  );
+  console.warn(`Payment failed for subscription ${invoice.subscription} (attempt ${invoice.attempt_count})`);
+}
 
 // ============================================================
 // API ENDPOINTS
