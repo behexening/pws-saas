@@ -55,11 +55,17 @@ const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 const app = express();
 app.set('trust proxy', 1);
 app.use(compression());
+// Per-request CSP nonce — referenced by scriptSrc and injected into served HTML
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc:  ["'self'", "'unsafe-inline'", "unpkg.com"],
+      scriptSrc:  ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`, "unpkg.com"],
       styleSrc:   ["'self'", "'unsafe-inline'", "unpkg.com"],
       imgSrc:     ["'self'", "data:", "blob:", "*.basemaps.cartocdn.com"],
       connectSrc: ["'self'"],
@@ -69,6 +75,21 @@ app.use(helmet({
     },
   },
 }));
+
+// Serve an HTML page with a CSP nonce injected into every <script> tag.
+async function sendHtmlWithNonce(res, htmlFile) {
+  try {
+    const filePath = path.join(__dirname, 'public', htmlFile);
+    let html = await fs.readFile(filePath, 'utf8');
+    const nonce = res.locals.cspNonce;
+    html = html.replace(/<script\b/gi, `<script nonce="${nonce}"`);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (e) {
+    console.error('sendHtmlWithNonce error:', e);
+    res.status(500).send('Internal Server Error');
+  }
+}
 
 // Database — defined early so the session store can use it
 const db = new Pool({
@@ -1218,7 +1239,7 @@ app.use('/static', express.static(path.join(__dirname, 'public', 'static'), { ma
  */
 app.get('/account', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  res.sendFile(path.join(__dirname, 'public', 'account.html'));
+  sendHtmlWithNonce(res, 'account.html');
 });
 
 /**
@@ -1262,7 +1283,7 @@ app.patch('/api/account', express.json(), async (req, res) => {
  */
 app.get('/login', (req, res) => {
   if (req.user) return res.redirect(hasAccess(req.user) ? '/app' : '/setup');
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  sendHtmlWithNonce(res, 'login.html');
 });
 
 /**
@@ -1271,7 +1292,7 @@ app.get('/login', (req, res) => {
  */
 app.get(['/signup', '/signup.html'], (req, res) => {
   if (req.user) return res.redirect(hasAccess(req.user) ? '/app' : '/setup');
-  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+  sendHtmlWithNonce(res, 'signup.html');
 });
 
 /**
@@ -1281,7 +1302,7 @@ app.get(['/signup', '/signup.html'], (req, res) => {
 app.get('/app', (req, res) => {
   if (!req.user) return res.redirect('/login');
   if (!hasAccess(req.user)) return res.redirect('/pricing');
-  res.sendFile(path.join(__dirname, 'public', 'app.html'));
+  sendHtmlWithNonce(res, 'app.html');
 });
 
 /**
@@ -1293,7 +1314,7 @@ app.get('/setup', (req, res) => {
   if (req.user.phone_number) {
     return res.redirect(hasAccess(req.user) ? '/app' : '/pricing');
   }
-  res.sendFile(path.join(__dirname, 'public', 'setup.html'));
+  sendHtmlWithNonce(res, 'setup.html');
 });
 
 /**
@@ -1302,7 +1323,7 @@ app.get('/setup', (req, res) => {
  */
 app.get('/pricing', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  res.sendFile(path.join(__dirname, 'public', 'pricing.html'));
+  sendHtmlWithNonce(res, 'pricing.html');
 });
 
 /**
@@ -1310,7 +1331,7 @@ app.get('/pricing', (req, res) => {
  * Public about page — no auth required
  */
 app.get('/about', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'about.html'));
+  sendHtmlWithNonce(res, 'about.html');
 });
 
 /**
@@ -1318,7 +1339,7 @@ app.get('/about', (_req, res) => {
  * Privacy Policy — public, no auth required
  */
 app.get('/privacy', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
+  sendHtmlWithNonce(res, 'privacy.html');
 });
 
 /**
@@ -1326,7 +1347,7 @@ app.get('/privacy', (_req, res) => {
  * Terms of Service — public, no auth required
  */
 app.get('/terms', (_req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
+  sendHtmlWithNonce(res, 'terms.html');
 });
 
 /**
@@ -1339,6 +1360,21 @@ app.get('/health', (req, res) => {
 // ============================================================
 // STATIC FILES
 // ============================================================
+
+// Intercept HTML requests so we can inject the CSP nonce into <script> tags
+// before they're served. Non-HTML assets fall through to express.static below.
+app.use(async (req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  let rel = req.path === '/' ? '/index.html' : req.path;
+  if (!rel.endsWith('.html')) return next();
+  const publicDir = path.join(__dirname, 'public');
+  const resolved = path.resolve(publicDir, '.' + rel);
+  if (!resolved.startsWith(publicDir + path.sep)) return next();
+  try {
+    await fs.access(resolved);
+  } catch { return next(); }
+  return sendHtmlWithNonce(res, path.relative(publicDir, resolved));
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
