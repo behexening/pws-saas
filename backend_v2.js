@@ -1509,6 +1509,15 @@ app.patch('/api/account', express.json(), async (req, res) => {
 });
 
 /**
+ * GET /
+ * Landing page — redirect logged-in users straight to /app
+ */
+app.get('/', (req, res) => {
+  if (req.user && hasAccess(req.user)) return res.redirect('/app');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+/**
  * GET /login
  * Redirect already-authenticated users, otherwise serve login page
  */
