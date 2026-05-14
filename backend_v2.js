@@ -268,6 +268,14 @@ function isAlaskaGov(email) {
   return !!(email && email.toLowerCase().endsWith('@alaska.gov'));
 }
 
+// Express middleware: 403 unless the request belongs to an admin captain.
+function requireAdmin(req, res, next) {
+  if (!req.isAuthenticated || !req.isAuthenticated() || !req.user?.is_admin) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  next();
+}
+
 /** True if this captain has active access (admin, alaska.gov, pro, or in-trial) */
 function hasAccess(user) {
   if (!user) return false;
@@ -1670,7 +1678,7 @@ app.get('/api/result/:id/html', async (req, res) => {
  * Force re-run live_test_server.py on the original PDF for this result.
  * Updates html_content in DB with freshly generated HTML.
  */
-app.post('/api/result/:id/reparse', express.json(), async (req, res) => {
+app.post('/api/result/:id/reparse', requireAdmin, express.json(), async (req, res) => {
   try {
     // Get the announcement_id from the parsed result
     const prRow = await db.query(
@@ -1884,6 +1892,109 @@ app.get('/terms', (_req, res) => {
  */
 app.get('/health', (req, res) => {
   res.json({ ok: true });
+});
+
+// ============================================================
+// ADMIN PANEL
+// Read-mostly. The only write actions exposed are reparse (already in
+// /api/result/:id/reparse) and a self-only test DM. No bulk messaging,
+// no captain edits, no deletes — keep it that way.
+// ============================================================
+
+app.get('/admin', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  if (!req.user.is_admin) return res.status(403).send('Forbidden');
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  try {
+    const captainCounts = await db.query(`
+      SELECT
+        COUNT(*)::int                                                    AS total,
+        COUNT(*) FILTER (WHERE tier = 'pro' AND subscription_active)::int AS pro_active,
+        COUNT(*) FILTER (WHERE trial_ends_at > NOW())::int               AS trial_active,
+        COUNT(*) FILTER (WHERE telegram_chat_id IS NOT NULL)::int        AS telegram_linked,
+        COUNT(*) FILTER (WHERE is_early_adopter)::int                    AS early_adopters,
+        COUNT(*) FILTER (WHERE is_admin)::int                            AS admins
+      FROM captains
+    `);
+    const notif24h = await db.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'sent')::int   AS sent,
+        COUNT(*) FILTER (WHERE status = 'failed')::int AS failed
+      FROM notification_log
+      WHERE created_at > NOW() - INTERVAL '24 hours'
+    `);
+    res.json({
+      captains: captainCounts.rows[0],
+      notifications_24h: notif24h.rows[0],
+    });
+  } catch (err) {
+    console.error('admin stats error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/announcements', requireAdmin, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 30, 100);
+    const result = await db.query(
+      `SELECT pr.id            AS result_id,
+              pr.announcement_id,
+              pr.parsed_at,
+              pr.announcement_date,
+              pr.has_open_districts,
+              pr.districts,
+              pr.html_url,
+              a.source,
+              a.pdf_filename,
+              a.fetched_at
+         FROM parsed_results pr
+         LEFT JOIN announcements a ON a.id = pr.announcement_id
+        ORDER BY pr.parsed_at DESC
+        LIMIT $1`,
+      [limit]
+    );
+    res.json({ results: result.rows });
+  } catch (err) {
+    console.error('admin announcements error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/notifications', requireAdmin, async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+    const result = await db.query(
+      `SELECT n.id, n.captain_id, n.chat_id, n.status, n.error_message,
+              n.created_at, c.email, c.name
+         FROM notification_log n
+         LEFT JOIN captains c ON c.id = n.captain_id
+        ORDER BY n.created_at DESC
+        LIMIT $1`,
+      [limit]
+    );
+    res.json({ notifications: result.rows });
+  } catch (err) {
+    console.error('admin notifications error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Sends a sample alert ONLY to the calling admin's own linked Telegram chat.
+// Intentionally cannot target other users — keeps the panel safe.
+app.post('/api/admin/test-dm', requireAdmin, express.json(), async (req, res) => {
+  if (!req.user.telegram_chat_id) {
+    return res.status(400).json({ error: 'Your account has no linked Telegram chat. Link it first at /setup.' });
+  }
+  const text =
+    `🧪 <b>akFISHinfo test alert</b>\n` +
+    `If you can read this, Telegram delivery is working end-to-end.\n\n` +
+    `<i>Sent from /admin by ${req.user.email}</i>`;
+  const result = await sendTelegramMessage(req.user.telegram_chat_id, text);
+  if (!result.ok) return res.status(502).json({ ok: false, error: result.error });
+  res.json({ ok: true, message_id: result.message_id });
 });
 
 // ============================================================
