@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — akFISHinfo</title>
+  <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/theme.css"/>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; height: 50px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 19px; letter-spacing: 0.03em; color: var(--text); user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    .nav-links { display: flex; gap: 18px; align-items: center; }
+    .nav-link { color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 500; }
+    .nav-link:hover { color: var(--text); }
+
+    .page { max-width: 980px; margin: 30px auto; padding: 0 20px 60px; }
+    h1 { font-family: 'Blackbird', sans-serif; font-size: 1.6rem; margin-bottom: 4px; }
+    .page-sub { color: var(--muted); font-size: 12px; margin-bottom: 24px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 22px; }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 5px; padding: 12px 14px;
+    }
+    .stat-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat-value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 5px; padding: 16px 18px; margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 12px;
+    }
+
+    button, .btn {
+      font: inherit; font-size: 12px;
+      background: var(--surface-2, #11181f); color: var(--text);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 6px 12px; cursor: pointer;
+    }
+    button:hover, .btn:hover { border-color: var(--accent); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    td.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+    .pill {
+      display: inline-block; padding: 1px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 500;
+    }
+    .pill.ok    { background: rgba(60, 200, 120, 0.15); color: #4ad08a; }
+    .pill.fail  { background: rgba(220, 80, 80, 0.18); color: #f08585; }
+    .pill.muted { background: rgba(150, 150, 150, 0.15); color: var(--muted); }
+
+    .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 10px 14px; border-radius: 5px; font-size: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35); max-width: 320px;
+    }
+    .toast.ok   { border-color: #4ad08a; }
+    .toast.fail { border-color: #f08585; }
+
+    .empty { color: var(--muted); font-size: 12px; padding: 8px 0; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/app" class="wordmark">ak<em>FISH</em>info</a>
+    <div class="nav-links">
+      <a href="/app" class="nav-link">App</a>
+      <a href="/account" class="nav-link">Account</a>
+      <a href="/auth/logout" class="nav-link">Sign out</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1>Admin</h1>
+    <p class="page-sub">Read-only ops view. Reparse rebuilds an announcement's HTML; test DM only messages your own linked Telegram chat.</p>
+
+    <div class="grid" id="stats-grid">
+      <div class="stat"><div class="stat-label">Captains</div><div class="stat-value" id="s-total">—</div></div>
+      <div class="stat"><div class="stat-label">Pro active</div><div class="stat-value" id="s-pro">—</div></div>
+      <div class="stat"><div class="stat-label">Trial active</div><div class="stat-value" id="s-trial">—</div></div>
+      <div class="stat"><div class="stat-label">Telegram linked</div><div class="stat-value" id="s-tg">—</div></div>
+      <div class="stat"><div class="stat-label">Early adopters</div><div class="stat-value" id="s-ea">—</div></div>
+      <div class="stat"><div class="stat-label">Sent / Failed (24h)</div><div class="stat-value" id="s-notif">—</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Self-test</div>
+      <div class="actions">
+        <button id="btn-test-dm" class="btn-primary">Send test DM to my Telegram</button>
+        <span class="page-sub" style="margin: 0;">Only reaches your own linked chat. Use this to verify the bot end-to-end.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recent announcements</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Result #</th>
+            <th>Date</th>
+            <th>Districts</th>
+            <th>Open?</th>
+            <th>Source</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ann-tbody">
+          <tr><td colspan="6" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recent Telegram sends (latest 50)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Captain</th>
+            <th>Status</th>
+            <th>Error / msg id</th>
+          </tr>
+        </thead>
+        <tbody id="notif-tbody">
+          <tr><td colspan="4" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const fmtDate = (s) => {
+      if (!s) return '—';
+      const d = new Date(s);
+      return d.toLocaleString('en-US', { timeZone: 'America/Anchorage', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    };
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function toast(text, kind = 'ok') {
+      const el = document.createElement('div');
+      el.className = 'toast ' + kind;
+      el.textContent = text;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
+    }
+
+    async function loadStats() {
+      const r = await fetch('/api/admin/stats').then(r => r.json());
+      if (r.error) return;
+      document.getElementById('s-total').textContent = r.captains.total;
+      document.getElementById('s-pro').textContent   = r.captains.pro_active;
+      document.getElementById('s-trial').textContent = r.captains.trial_active;
+      document.getElementById('s-tg').textContent    = r.captains.telegram_linked;
+      document.getElementById('s-ea').textContent    = r.captains.early_adopters;
+      document.getElementById('s-notif').textContent = `${r.notifications_24h.sent} / ${r.notifications_24h.failed}`;
+    }
+
+    async function loadAnnouncements() {
+      const r = await fetch('/api/admin/announcements?limit=30').then(r => r.json());
+      const tbody = document.getElementById('ann-tbody');
+      if (!r.results || r.results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty">No announcements yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = r.results.map(a => `
+        <tr>
+          <td class="mono">#${a.result_id}</td>
+          <td>${esc(fmtDate(a.announcement_date || a.parsed_at))}</td>
+          <td>${esc((a.districts || []).join(', ') || '—')}</td>
+          <td>${a.has_open_districts ? '<span class="pill ok">open</span>' : '<span class="pill muted">closed</span>'}</td>
+          <td>${esc(a.pdf_filename || a.source || '—')}</td>
+          <td class="actions">
+            ${a.html_url ? `<a class="btn" href="${esc(a.html_url)}" target="_blank">View</a>` : ''}
+            <button data-reparse="${a.result_id}">Reparse</button>
+          </td>
+        </tr>
+      `).join('');
+      tbody.querySelectorAll('button[data-reparse]').forEach(btn => {
+        btn.addEventListener('click', () => reparse(btn));
+      });
+    }
+
+    async function reparse(btn) {
+      const id = btn.getAttribute('data-reparse');
+      if (!confirm(`Reparse result #${id}? This re-runs the Claude parser and overwrites the HTML for this announcement. It does NOT send any Telegram messages.`)) return;
+      btn.disabled = true;
+      btn.textContent = 'Reparsing…';
+      try {
+        const r = await fetch(`/api/result/${id}/reparse`, { method: 'POST' }).then(r => r.json());
+        if (r.error) {
+          toast('Reparse failed: ' + r.error, 'fail');
+        } else {
+          toast(r.message || 'Reparse started.');
+        }
+      } catch (e) {
+        toast('Reparse failed: ' + e.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Reparse';
+      }
+    }
+
+    async function loadNotifications() {
+      const r = await fetch('/api/admin/notifications?limit=50').then(r => r.json());
+      const tbody = document.getElementById('notif-tbody');
+      if (!r.notifications || r.notifications.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">No notifications sent yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = r.notifications.map(n => `
+        <tr>
+          <td>${esc(fmtDate(n.created_at))}</td>
+          <td>${esc(n.name || n.email || '#' + n.captain_id)}</td>
+          <td>${n.status === 'sent' ? '<span class="pill ok">sent</span>' : '<span class="pill fail">failed</span>'}</td>
+          <td class="mono">${esc(n.status === 'sent' ? ('msg ' + (n.telegram_message_id ?? '?')) : (n.error_message || '—'))}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('btn-test-dm').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/admin/test-dm', { method: 'POST' }).then(r => r.json());
+        if (r.ok) toast('Sent. Check your Telegram.');
+        else toast('Failed: ' + (r.error || 'unknown'), 'fail');
+      } catch (e) {
+        toast('Failed: ' + e.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = original;
+        loadNotifications();
+      }
+    });
+
+    loadStats();
+    loadAnnouncements();
+    loadNotifications();
+  </script>
+</body>
+</html>
