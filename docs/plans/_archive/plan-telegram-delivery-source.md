@@ -1,0 +1,5 @@
+the plan for telegram
+
+1. Remove everything from the backend that has some sort of reference to twilio API and stuff like that since its nixed, same thing with ToS, everything on the app page.
+2. After a user makes an account, theyll be prompted to connect with the telegram bot. Ideally this would show some sort of 6 digit code that theyll be type into some sort of telegram interface thing, and that would authorize their account to receive notifications. It would verify against the SQL database to see if "premium account" = true, and then allow them to start receiveing notifications. It should have everything to show someone who is functionally tech illiterate how to do this, and a prompt for a help bot (which i can code later inside using like a haiku api wrapper) 
+3. Users should be able to regenerate their auth code, that way if they switch devices or whatever itll be able to do that. It also needs to be some sort of 2fa code sent to telegram once they sign up to prevent dupes and trial metagaming stuff

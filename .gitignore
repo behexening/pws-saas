@@ -65,3 +65,11 @@ data/OSM&GNIS/
 
 # Large doc artifacts (debug output, not source)
 docs/**/*.html
+
+# Top-level scratch / debug
+/live_output*.html
+/log.svg
+/products.csv
+*.skill
+*.zip
+/railway
