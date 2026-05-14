@@ -1114,8 +1114,11 @@ function verifyMailgunSignature(timestamp, token, signature) {
  * Receives email from Mailgun, extracts PDF, queues parsing
  */
 app.post('/webhooks/email', upload.any(), async (req, res) => {
-  // Verify this request actually came from Mailgun
-  const { timestamp, token, signature } = req.body;
+  // Verify this request actually came from Mailgun.
+  // multer.any() leaves req.body undefined on non-multipart requests
+  // (probes, empty POSTs), so guard against that before destructuring.
+  const body = req.body || {};
+  const { timestamp, token, signature } = body;
   if (!verifyMailgunSignature(timestamp, token, signature)) {
     console.warn('⚠ Mailgun webhook signature mismatch — rejected');
     return res.status(403).send('Forbidden');
