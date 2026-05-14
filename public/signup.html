@@ -221,15 +221,12 @@
       <input type="email"    id="su-email"    placeholder="Email"                  required autocomplete="email" />
       <label for="su-password" class="sr-only">Password (minimum 8 characters)</label>
       <input type="password" id="su-password" placeholder="Password (min 8 chars)" required minlength="8" autocomplete="new-password" />
-      <label for="su-phone" class="sr-only">Phone number for SMS alerts (optional)</label>
-      <input type="tel"      id="su-phone"    placeholder="Phone number (for SMS alerts)" autocomplete="tel" />
-      <label class="opt-in-row">
-        <input type="checkbox" id="su-sms-consent" />
-        By checking this box, I agree to receive recurring automated SMS alerts from akFISHinfo about ADF&amp;G Prince William Sound fishing openings. Message frequency varies. Msg &amp; data rates may apply. Reply STOP to unsubscribe.
-      </label>
       <label class="remember-row">
         <input type="checkbox" id="su-remember" /> Stay signed in for 30 days
       </label>
+      <p style="font-size:0.74rem;color:var(--muted);margin:6px 0 14px;line-height:1.5">
+        After signup, you'll link your Telegram account so we can DM you when openings are announced. Free and takes about 30 seconds.
+      </p>
       <button type="submit" class="btn-submit">Create account</button>
     </form>
 
@@ -242,13 +239,6 @@
   <a href="/" class="back">Back to homepage</a>
 
   <script>
-    function normalizePhone(raw) {
-      const digits = raw.replace(/\D/g, '');
-      if (digits.length === 10) return '+1' + digits;
-      if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
-      return raw;
-    }
-
     function showError(msg) {
       const el = document.getElementById('errorMsg');
       el.textContent = msg;
@@ -261,25 +251,12 @@
       const email       = document.getElementById('su-email').value.trim();
       const password    = document.getElementById('su-password').value;
       const remember_me = document.getElementById('su-remember').checked;
-      const rawPhone    = document.getElementById('su-phone').value.trim();
-      const smsConsent  = document.getElementById('su-sms-consent').checked;
-
-      if (rawPhone && !smsConsent) {
-        showError('Please check the SMS consent box to receive alerts, or clear the phone field to skip for now.');
-        return;
-      }
-
-      const body = { name, email, password, remember_me };
-      if (rawPhone && smsConsent) {
-        body.phone_number = normalizePhone(rawPhone);
-        body.sms_consent  = true;
-      }
 
       try {
         const r = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ name, email, password, remember_me }),
         });
         const d = await r.json();
         if (!r.ok) { showError(d.error || 'Sign-up failed.'); return; }

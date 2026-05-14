@@ -117,12 +117,48 @@ passport.deserializeUser(async (id, done) => {
 // Anthropic
 const client = new Anthropic();
 
-// Stripe + Twilio
+// Stripe
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const twilio = require('twilio')(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+
+// Telegram bot — single bot DMs every captain. See docs/plans/plan-telegram-delivery.md.
+const TELEGRAM_BOT_TOKEN      = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_BOT_USERNAME   = process.env.TELEGRAM_BOT_USERNAME || '';
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+const TELEGRAM_API = TELEGRAM_BOT_TOKEN ? `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}` : null;
+const TELEGRAM_LINK_CODE_TTL_MS = 15 * 60 * 1000;
+
+async function sendTelegramMessage(chatId, text, opts = {}) {
+  if (!TELEGRAM_API) {
+    console.warn('TELEGRAM_BOT_TOKEN not set — skipping send');
+    return { ok: false, error: 'not_configured' };
+  }
+  try {
+    const res = await fetch(`${TELEGRAM_API}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: opts.parse_mode || 'HTML',
+        disable_web_page_preview: opts.disable_web_page_preview !== false,
+      }),
+    });
+    const json = await res.json();
+    if (!json.ok) return { ok: false, error: json.description || `tg_${res.status}` };
+    return { ok: true, message_id: json.result.message_id };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+function generateLinkCode() {
+  return String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+}
+
+function telegramDeepLink(code) {
+  if (!TELEGRAM_BOT_USERNAME) return null;
+  return `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${code}`;
+}
 
 // ── Pricing / plan configuration ────────────────────────────
 // Two parallel price ladders in Stripe: early-adopter (first 30 paying captains)
@@ -280,8 +316,9 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login?error=1' }),
   (req, res) => {
-    // alaska.gov and admins skip the phone/trial setup entirely
-    if (!req.user.phone_number && !isAlaskaGov(req.user.email) && !req.user.is_admin) {
+    // alaska.gov and admins skip the link/trial setup entirely.
+    // Everyone else lands on /setup if they haven't linked Telegram yet.
+    if (!req.user.telegram_chat_id && !isAlaskaGov(req.user.email) && !req.user.is_admin) {
       return res.redirect('/setup');
     }
     if (hasAccess(req.user)) return res.redirect('/app');
@@ -299,20 +336,22 @@ app.get('/auth/logout', (req, res, next) => {
 // Current session user (used by frontend to show login state)
 app.get('/api/me', (req, res) => {
   if (!req.user) return res.json({ user: null });
-  const { id, email, name, tier, subscription_active, phone_number, trial_ends_at,
+  const { id, email, name, tier, subscription_active, trial_ends_at,
           is_admin, email_verified, google_id, plan_slug, is_early_adopter,
           subscription_status, stripe_current_period_end, cancel_at_period_end,
-          stripe_customer_id } = req.user;
+          stripe_customer_id, telegram_chat_id, telegram_username } = req.user;
   const trialActive = trial_ends_at && new Date(trial_ends_at) > new Date();
   const trialDaysLeft = trialActive
     ? Math.ceil((new Date(trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
-  res.json({ user: { id, email, name, tier, subscription_active, phone_number,
+  res.json({ user: { id, email, name, tier, subscription_active,
                      trial_ends_at, trial_active: trialActive, trial_days_left: trialDaysLeft,
                      is_admin, email_verified: !!email_verified, has_google: !!google_id,
                      plan_slug, is_early_adopter: !!is_early_adopter,
                      subscription_status, stripe_current_period_end, cancel_at_period_end,
                      has_billing: !!stripe_customer_id,
+                     telegram_linked: !!telegram_chat_id,
+                     telegram_username: telegram_username || null,
                      has_access: hasAccess(req.user) } });
 });
 
@@ -361,105 +400,344 @@ app.get('/api/early-adopter-spots', async (req, res) => {
   }
 });
 
-// POST /api/setup — called from /setup page to save phone + determine next step
+// POST /api/setup — decides next step after signup.
+//   intent='trial'     → grant 7-day trial (requires email verified + telegram linked,
+//                        and the linked chat_id has never been used for a prior trial)
+//   intent='subscribe' → create Stripe Checkout session for the chosen plan
+// Telegram linkage itself is captured via POST /api/telegram/link-code + the bot.
 app.post('/api/setup', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
 
   try {
-    const { phone_number, plan } = req.body;
-    if (!phone_number) return res.status(400).json({ error: 'Phone number required' });
+    const intent = req.body.intent || (req.body.grant_trial ? 'trial' : 'subscribe');
+    const plan = req.body.plan;
 
-    // __existing__ sentinel: user already has phone saved — either grant trial or go to Stripe
-    if (phone_number === '__existing__') {
-      if (!req.user.phone_number) {
-        return res.status(400).json({ error: 'No phone number on file. Complete setup first.' });
+    if (intent === 'trial') {
+      if (!req.user.email_verified) {
+        return res.status(400).json({ error: 'Please verify your email address before starting a trial. Check your inbox for a verification link.' });
       }
-
-      // Trial path: check eligibility, then grant
-      if (req.body.grant_trial) {
-        if (!req.user.email_verified) {
-          return res.status(400).json({ error: 'Please verify your email address before starting a trial. Check your inbox for a verification link.' });
-        }
-        const priorTrial = await db.query(
-          'SELECT id FROM captains WHERE phone_number = $1 AND trial_ends_at IS NOT NULL AND id != $2',
-          [req.user.phone_number, req.user.id]
-        );
-        if (priorTrial.rows.length > 0) {
-          return res.status(400).json({ error: 'This phone number has already been used for a trial. Please subscribe to continue.' });
-        }
-        const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        await db.query('UPDATE captains SET trial_ends_at = $1, updated_at = NOW() WHERE id = $2',
-          [trialEndsAt, req.user.id]);
-        return res.json({ redirect: '/app', trial: true, trial_days: 7 });
+      if (!req.user.telegram_chat_id) {
+        return res.status(400).json({ error: 'Link your Telegram account first so we can deliver alerts.' });
       }
-
-      // Subscribe path: resolve plan + early-adopter pricing, then create checkout
-      const chosenPlan = PLAN_SLUGS.includes(plan) ? plan : 'monthly';
-      const seatsLeft = await earlyAdopterSeatsLeft();
-      const isEarlyAdopter = seatsLeft > 0;
-      const priceId = priceIdFor(chosenPlan, isEarlyAdopter);
-      if (!priceId) {
-        console.error(`No Stripe price configured for plan=${chosenPlan} ea=${isEarlyAdopter}`);
-        return res.status(500).json({ error: 'Billing is temporarily unavailable. Please try again later.' });
+      const priorTrial = await db.query(
+        `SELECT id FROM captains
+         WHERE telegram_chat_id = $1
+         AND trial_ends_at IS NOT NULL
+         AND id != $2`,
+        [req.user.telegram_chat_id, req.user.id]
+      );
+      if (priorTrial.rows.length > 0) {
+        return res.status(400).json({ error: 'This Telegram account has already been used for a trial. Please subscribe to continue.' });
       }
+      const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      await db.query('UPDATE captains SET trial_ends_at = $1, updated_at = NOW() WHERE id = $2',
+        [trialEndsAt, req.user.id]);
+      return res.json({ redirect: '/app', trial: true, trial_days: 7 });
+    }
 
-      // Reuse an existing Stripe customer if we have one, else let Checkout create one.
-      const checkoutParams = {
-        payment_method_types: ['card'],
-        line_items: [{ price: priceId, quantity: 1 }],
-        mode: 'subscription',
-        allow_promotion_codes: true,
-        client_reference_id: req.user.id.toString(),
-        success_url: `${BASE_URL}/success?captain_id=${req.user.id}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url:  `${BASE_URL}/pricing`,
+    // Subscribe path: resolve plan + early-adopter pricing, then create checkout.
+    const chosenPlan = PLAN_SLUGS.includes(plan) ? plan : 'monthly';
+    const seatsLeft = await earlyAdopterSeatsLeft();
+    const isEarlyAdopter = seatsLeft > 0;
+    const priceId = priceIdFor(chosenPlan, isEarlyAdopter);
+    if (!priceId) {
+      console.error(`No Stripe price configured for plan=${chosenPlan} ea=${isEarlyAdopter}`);
+      return res.status(500).json({ error: 'Billing is temporarily unavailable. Please try again later.' });
+    }
+
+    const checkoutParams = {
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: 'subscription',
+      allow_promotion_codes: true,
+      client_reference_id: req.user.id.toString(),
+      success_url: `${BASE_URL}/success?captain_id=${req.user.id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${BASE_URL}/pricing`,
+      metadata: {
+        captain_id: req.user.id.toString(),
+        plan: chosenPlan,
+        is_early_adopter: isEarlyAdopter ? 'true' : 'false',
+      },
+      subscription_data: {
         metadata: {
           captain_id: req.user.id.toString(),
           plan: chosenPlan,
           is_early_adopter: isEarlyAdopter ? 'true' : 'false',
         },
-        subscription_data: {
-          metadata: {
-            captain_id: req.user.id.toString(),
-            plan: chosenPlan,
-            is_early_adopter: isEarlyAdopter ? 'true' : 'false',
-          },
-        },
-      };
-      if (req.user.stripe_customer_id) {
-        checkoutParams.customer = req.user.stripe_customer_id;
-      } else {
-        checkoutParams.customer_email = req.user.email;
-      }
-
-      const stripeSession = await stripe.checkout.sessions.create(checkoutParams);
-      return res.json({ redirect: stripeSession.url, trial: false, plan: chosenPlan, is_early_adopter: isEarlyAdopter });
+      },
+    };
+    if (req.user.stripe_customer_id) {
+      checkoutParams.customer = req.user.stripe_customer_id;
+    } else {
+      checkoutParams.customer_email = req.user.email;
     }
 
-    // Normalize phone to E.164 (frontend also normalizes, this is a safety net)
-    let phone = phone_number.trim();
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length === 10) phone = '+1' + digits;
-    else if (digits.length === 11 && digits.startsWith('1')) phone = '+' + digits;
-
-    // Admin or already subscribed → save phone and go to app
-    if (req.user.is_admin || (req.user.tier === 'pro' && req.user.subscription_active)) {
-      await db.query('UPDATE captains SET phone_number = $1, updated_at = NOW() WHERE id = $2',
-        [phone, req.user.id]);
-      return res.json({ redirect: '/app' });
-    }
-
-    // Save phone + SMS opt-in consent (checkbox required on frontend)
-    await db.query(
-      `UPDATE captains SET phone_number = $1, sms_opted_in = true, sms_opted_in_at = NOW(), updated_at = NOW() WHERE id = $2`,
-      [phone, req.user.id]
-    );
-
-    res.json({ redirect: '/pricing' });
+    const stripeSession = await stripe.checkout.sessions.create(checkoutParams);
+    return res.json({ redirect: stripeSession.url, trial: false, plan: chosenPlan, is_early_adopter: isEarlyAdopter });
   } catch (err) {
     console.error('POST /api/setup error:', err);
     res.status(500).json({ error: 'Setup failed. Please try again.' });
   }
 });
+
+// ── Telegram linking ──────────────────────────────────────────
+
+// POST /api/telegram/link-code
+// Returns the captain's active 6-digit link code (mints a new one if missing/expired).
+// Idempotent: calling repeatedly returns the same code until expiry.
+app.post('/api/telegram/link-code', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+  try {
+    if (req.user.telegram_chat_id) {
+      return res.json({ already_linked: true, telegram_username: req.user.telegram_username });
+    }
+    let code = req.user.telegram_link_code;
+    const expiresAt = req.user.telegram_link_code_expires_at
+      ? new Date(req.user.telegram_link_code_expires_at) : null;
+    if (!code || !expiresAt || expiresAt < new Date()) {
+      // Mint a new unique code (collisions are rare but possible — retry a few times).
+      for (let i = 0; i < 5; i++) {
+        const candidate = generateLinkCode();
+        const conflict = await db.query(
+          'SELECT id FROM captains WHERE telegram_link_code = $1 AND id != $2',
+          [candidate, req.user.id]
+        );
+        if (conflict.rows.length === 0) { code = candidate; break; }
+      }
+      const newExpiry = new Date(Date.now() + TELEGRAM_LINK_CODE_TTL_MS);
+      await db.query(
+        `UPDATE captains SET telegram_link_code = $1, telegram_link_code_expires_at = $2,
+                              updated_at = NOW() WHERE id = $3`,
+        [code, newExpiry, req.user.id]
+      );
+      return res.json({
+        code,
+        bot_username: TELEGRAM_BOT_USERNAME,
+        deep_link: telegramDeepLink(code),
+        expires_at: newExpiry.toISOString(),
+      });
+    }
+    return res.json({
+      code,
+      bot_username: TELEGRAM_BOT_USERNAME,
+      deep_link: telegramDeepLink(code),
+      expires_at: expiresAt.toISOString(),
+    });
+  } catch (err) {
+    console.error('POST /api/telegram/link-code error:', err);
+    res.status(500).json({ error: 'Could not generate link code.' });
+  }
+});
+
+// POST /api/telegram/regenerate — invalidate current code and mint a new one.
+app.post('/api/telegram/regenerate', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+  try {
+    if (req.user.telegram_chat_id) {
+      return res.status(400).json({ error: 'Telegram is already linked. Unlink first if you want to re-link.' });
+    }
+    await db.query(
+      `UPDATE captains SET telegram_link_code = NULL, telegram_link_code_expires_at = NULL,
+                            updated_at = NOW() WHERE id = $1`,
+      [req.user.id]
+    );
+    // Force re-issue by calling the link-code endpoint logic inline.
+    let code = null;
+    for (let i = 0; i < 5; i++) {
+      const candidate = generateLinkCode();
+      const conflict = await db.query(
+        'SELECT id FROM captains WHERE telegram_link_code = $1 AND id != $2',
+        [candidate, req.user.id]
+      );
+      if (conflict.rows.length === 0) { code = candidate; break; }
+    }
+    const newExpiry = new Date(Date.now() + TELEGRAM_LINK_CODE_TTL_MS);
+    await db.query(
+      `UPDATE captains SET telegram_link_code = $1, telegram_link_code_expires_at = $2,
+                            updated_at = NOW() WHERE id = $3`,
+      [code, newExpiry, req.user.id]
+    );
+    res.json({
+      code,
+      bot_username: TELEGRAM_BOT_USERNAME,
+      deep_link: telegramDeepLink(code),
+      expires_at: newExpiry.toISOString(),
+    });
+  } catch (err) {
+    console.error('POST /api/telegram/regenerate error:', err);
+    res.status(500).json({ error: 'Could not regenerate code.' });
+  }
+});
+
+// POST /api/telegram/unlink — disconnect Telegram from this captain.
+app.post('/api/telegram/unlink', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+  try {
+    await db.query(
+      `UPDATE captains SET telegram_chat_id = NULL, telegram_username = NULL,
+                            telegram_linked_at = NULL, updated_at = NOW() WHERE id = $1`,
+      [req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /api/telegram/unlink error:', err);
+    res.status(500).json({ error: 'Could not unlink.' });
+  }
+});
+
+// POST /webhooks/telegram — receives bot updates.
+// Auth via Telegram's secret-token header (set in setWebhook).
+app.post('/webhooks/telegram', express.json(), async (req, res) => {
+  if (TELEGRAM_WEBHOOK_SECRET) {
+    const got = req.get('X-Telegram-Bot-Api-Secret-Token');
+    if (got !== TELEGRAM_WEBHOOK_SECRET) {
+      return res.status(401).send('bad secret');
+    }
+  }
+  // Always 200 quickly — process async so retries don't pile up.
+  res.status(200).send('ok');
+  try {
+    await processTelegramUpdate(req.body);
+  } catch (err) {
+    console.error('Telegram update error:', err);
+  }
+});
+
+async function processTelegramUpdate(update) {
+  const msg = update && update.message;
+  if (!msg || !msg.text || !msg.from || !msg.chat) return;
+  const chatId = msg.chat.id;
+  const text = msg.text.trim();
+  const username = msg.from.username || '';
+
+  // /start <code>  → link
+  const startMatch = text.match(/^\/start(?:@\S+)?(?:\s+(\d{6}))?\s*$/i);
+  if (startMatch) {
+    const code = startMatch[1];
+    if (!code) {
+      await sendTelegramMessage(chatId,
+        `Hi! To link your akFISHinfo account, paste your 6-digit code here (e.g. <code>123456</code>) ` +
+        `or tap the "Open Telegram" button on the akfishinfo.com setup page.`);
+      return;
+    }
+    return linkChatToCaptain(chatId, code, username);
+  }
+
+  // Bare 6-digit code as a fallback (in case the user pastes it)
+  const codeOnly = text.match(/^(\d{6})$/);
+  if (codeOnly) {
+    return linkChatToCaptain(chatId, codeOnly[1], username);
+  }
+
+  // /status
+  if (/^\/status(?:@\S+)?\s*$/i.test(text)) {
+    const r = await db.query(
+      'SELECT email, name FROM captains WHERE telegram_chat_id = $1',
+      [chatId]
+    );
+    if (r.rows.length === 0) {
+      await sendTelegramMessage(chatId,
+        `Not linked. Sign in at akfishinfo.com and paste your 6-digit code here.`);
+    } else {
+      await sendTelegramMessage(chatId,
+        `Linked to <b>${escapeHtml(r.rows[0].email)}</b>. You'll get alerts when openings are announced.`);
+    }
+    return;
+  }
+
+  // /unlink
+  if (/^\/unlink(?:@\S+)?\s*$/i.test(text)) {
+    const r = await db.query(
+      `UPDATE captains SET telegram_chat_id = NULL, telegram_username = NULL,
+                            telegram_linked_at = NULL, updated_at = NOW()
+       WHERE telegram_chat_id = $1 RETURNING email`,
+      [chatId]
+    );
+    if (r.rows.length === 0) {
+      await sendTelegramMessage(chatId, `You weren't linked. Nothing to do.`);
+    } else {
+      await sendTelegramMessage(chatId,
+        `Unlinked. You won't get alerts here anymore. Re-link any time at akfishinfo.com/account.`);
+    }
+    return;
+  }
+
+  // /help and free-text
+  if (/^\/help(?:@\S+)?\s*$/i.test(text)) {
+    await sendTelegramMessage(chatId,
+      `<b>Commands</b>\n` +
+      `/start &lt;code&gt; — link your akFISHinfo account\n` +
+      `/status — check link status\n` +
+      `/unlink — disconnect this Telegram\n\n` +
+      `Visit akfishinfo.com/account for billing and settings.`);
+    return;
+  }
+
+  // Anything else — placeholder until the Haiku help bot ships.
+  await sendTelegramMessage(chatId,
+    `I can't answer questions yet — that's coming soon. For help, visit akfishinfo.com or use /help.`);
+}
+
+async function linkChatToCaptain(chatId, code, username) {
+  // Look up captain by code
+  const r = await db.query(
+    `SELECT id, email, telegram_link_code_expires_at FROM captains WHERE telegram_link_code = $1`,
+    [code]
+  );
+  if (r.rows.length === 0) {
+    await sendTelegramMessage(chatId,
+      `That code isn't valid. Go to akfishinfo.com/setup or /account to get a fresh one.`);
+    return;
+  }
+  const captain = r.rows[0];
+  const expiresAt = captain.telegram_link_code_expires_at
+    ? new Date(captain.telegram_link_code_expires_at) : null;
+  if (!expiresAt || expiresAt < new Date()) {
+    await sendTelegramMessage(chatId,
+      `That code has expired. Get a fresh one at akfishinfo.com/setup or /account.`);
+    return;
+  }
+  // Refuse if this chat is already linked to a different captain (anti-meta-gaming).
+  const existing = await db.query(
+    'SELECT id, email FROM captains WHERE telegram_chat_id = $1',
+    [chatId]
+  );
+  if (existing.rows.length > 0 && existing.rows[0].id !== captain.id) {
+    await sendTelegramMessage(chatId,
+      `This Telegram is already linked to a different akFISHinfo account ` +
+      `(<b>${escapeHtml(existing.rows[0].email)}</b>). Unlink from that account first.`);
+    return;
+  }
+  try {
+    await db.query(
+      `UPDATE captains
+       SET telegram_chat_id = $1, telegram_username = $2,
+           telegram_linked_at = NOW(),
+           telegram_link_code = NULL, telegram_link_code_expires_at = NULL,
+           updated_at = NOW()
+       WHERE id = $3`,
+      [chatId, username || null, captain.id]
+    );
+  } catch (err) {
+    if (err.code === '23505') {
+      await sendTelegramMessage(chatId,
+        `This Telegram is already linked to another account. Unlink there first.`);
+      return;
+    }
+    throw err;
+  }
+  await sendTelegramMessage(chatId,
+    `✓ Linked to <b>${escapeHtml(captain.email)}</b>. ` +
+    `You'll get a DM here when ADF&amp;G announces an opening. ` +
+    `Type /unlink any time to stop.`);
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 // ── Email verification via Mailgun ────────────────────────────
 
@@ -503,20 +781,12 @@ const authLimiter = rateLimit({
 
 // POST /api/register — create account with email + password
 app.post('/api/register', authLimiter, express.json(), async (req, res) => {
-  const { name, email, password, remember_me, phone_number, sms_consent } = req.body;
+  const { name, email, password, remember_me } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
-  }
-
-  // Normalize phone if provided with consent
-  let normalizedPhone = null;
-  if (phone_number && sms_consent) {
-    const digits = phone_number.trim().replace(/\D/g, '');
-    if (digits.length === 10) normalizedPhone = '+1' + digits;
-    else if (digits.length === 11 && digits.startsWith('1')) normalizedPhone = '+' + digits;
   }
 
   const existing = await db.query('SELECT id FROM captains WHERE email = $1', [email.toLowerCase()]);
@@ -530,20 +800,11 @@ app.post('/api/register', authLimiter, express.json(), async (req, res) => {
     const verifyToken   = crypto.randomBytes(32).toString('hex');
     const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    let result;
-    if (normalizedPhone) {
-      result = await db.query(
-        `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires, phone_number, sms_opted_in, sms_opted_in_at)
-         VALUES ($1, $2, $3, 'free', $4, $5, $6, $7, true, NOW()) RETURNING *`,
-        [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires, normalizedPhone]
-      );
-    } else {
-      result = await db.query(
-        `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires)
-         VALUES ($1, $2, $3, 'free', $4, $5, $6) RETURNING *`,
-        [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires]
-      );
-    }
+    const result = await db.query(
+      `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires)
+       VALUES ($1, $2, $3, 'free', $4, $5, $6) RETURNING *`,
+      [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires]
+    );
     const user = result.rows[0];
 
     // Fire-and-forget verification email
@@ -553,8 +814,7 @@ app.post('/api/register', authLimiter, express.json(), async (req, res) => {
       if (err) return res.status(500).json({ error: 'Session error.' });
       if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
       if (isAlaskaGov(user.email) || user.is_admin) return res.json({ redirect: '/app' });
-      // Phone captured at registration — skip /setup, go straight to pricing
-      if (normalizedPhone) return res.json({ redirect: '/pricing' });
+      // Everyone else: go to /setup to link Telegram.
       res.json({ redirect: '/setup' });
     });
   } catch (err) {
@@ -586,7 +846,7 @@ app.post('/api/login', authLimiter, express.json(), async (req, res) => {
     req.login(user, err => {
       if (err) return res.status(500).json({ error: 'Session error.' });
       if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
-      if (!user.phone_number && !isAlaskaGov(user.email) && !user.is_admin) {
+      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin) {
         return res.json({ redirect: '/setup' });
       }
       if (hasAccess(user)) return res.json({ redirect: '/app' });
@@ -753,6 +1013,22 @@ async function initDatabase() {
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS stripe_current_period_end TIMESTAMPTZ;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN DEFAULT false;`);
 
+    // Telegram delivery — replaces SMS. See docs/plans/plan-telegram-delivery.md.
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_chat_id BIGINT;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_username VARCHAR(64);`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_link_code VARCHAR(8);`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_link_code_expires_at TIMESTAMPTZ;`);
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_linked_at TIMESTAMPTZ;`);
+    // Anti-meta-gaming: one chat per captain. Same chat trying to link a second account is rejected.
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_captains_telegram_chat_id
+      ON captains(telegram_chat_id) WHERE telegram_chat_id IS NOT NULL;
+    `);
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_captains_telegram_link_code
+      ON captains(telegram_link_code) WHERE telegram_link_code IS NOT NULL;
+    `);
+
     // Idempotency ledger for Stripe webhooks — prevents double-processing retries.
     await db.query(`
       CREATE TABLE IF NOT EXISTS stripe_events (
@@ -775,6 +1051,21 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_sms_log_captain ON sms_log(captain_id);
+    `);
+
+    // Telegram notification log — analogue of sms_log, used by notifyCaptains().
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS notification_log (
+        id SERIAL PRIMARY KEY,
+        captain_id INT REFERENCES captains(id),
+        chat_id BIGINT,
+        message TEXT,
+        status TEXT,
+        telegram_message_id BIGINT,
+        error_message TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_notification_log_captain ON notification_log(captain_id);
     `);
 
     console.log('✓ Database initialized');
@@ -917,8 +1208,8 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
     // Mark announcement as parsed
     await db.query('UPDATE announcements SET parsed = true WHERE id = $1', [announcementId]);
 
-    // Send SMS to pro users
-    await alertProUsers(districts);
+    // DM eligible captains via Telegram
+    await notifyCaptains(districts);
   } catch (err) {
     console.error(`Error in parseAnnouncementAsync:`, err);
   }
@@ -1002,65 +1293,63 @@ function extractDistrictsFromHTML(htmlPath) {
 }
 
 // ============================================================
-// SMS ALERTS
+// TELEGRAM ALERTS
 // ============================================================
 
 /**
- * Send SMS to all pro users subscribed to open districts
+ * DM all eligible captains via Telegram when openings are announced.
+ * Eligibility: paid + active subscription (or admin/alaska.gov via existing access
+ * predicates handled elsewhere) AND captain has a linked telegram_chat_id AND
+ * alerts_enabled is true AND captain subscribes to one of the open districts.
  */
-async function alertProUsers(districts) {
+async function notifyCaptains(districts) {
   if (!districts || districts.length === 0) {
     console.log('⚠ No districts to alert');
     return;
   }
 
   try {
-    // Find pro users in these districts
     const captains = await db.query(
-      `SELECT id, phone_number, name FROM captains
+      `SELECT id, telegram_chat_id, name FROM captains
        WHERE tier = 'pro'
        AND subscription_active = true
        AND alerts_enabled = true
-       AND sms_opted_in = true
+       AND telegram_chat_id IS NOT NULL
        AND (regions && $1 OR regions = ARRAY['PWS'])`,
       [districts]
     );
 
     if (captains.rows.length === 0) {
-      console.log('📵 No pro users to alert');
+      console.log('📵 No captains to alert');
       return;
     }
 
-    const message = `⚓ ADF&G UPDATE — ${districts.join(', ')} — Check akfishinfo.com for details. Not legal advice — verify at adfg.alaska.gov`;
+    const text =
+      `⚓ <b>ADF&amp;G UPDATE</b>\n` +
+      `Districts: ${districts.map(d => `<b>${d}</b>`).join(', ')}\n\n` +
+      `Open the live map: https://akfishinfo.com/app\n\n` +
+      `<i>Not legal advice — verify at adfg.alaska.gov</i>`;
 
     for (const captain of captains.rows) {
-      try {
-        const sms = await twilio.messages.create({
-          to: captain.phone_number,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          body: message,
-        });
-
-        // Log send
+      const result = await sendTelegramMessage(captain.telegram_chat_id, text);
+      if (result.ok) {
         await db.query(
-          `INSERT INTO sms_log (captain_id, phone_number, message, status, twilio_sid)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [captain.id, captain.phone_number, message, 'sent', sms.sid]
+          `INSERT INTO notification_log (captain_id, chat_id, message, status, telegram_message_id)
+           VALUES ($1, $2, $3, 'sent', $4)`,
+          [captain.id, captain.telegram_chat_id, text, result.message_id]
         );
-
-        console.log(`✓ SMS sent to ${captain.name} (${captain.phone_number})`);
-      } catch (err) {
+        console.log(`✓ Telegram sent to ${captain.name} (chat ${captain.telegram_chat_id})`);
+      } else {
         await db.query(
-          `INSERT INTO sms_log (captain_id, phone_number, message, status, error_message)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [captain.id, captain.phone_number, message, 'failed', err.message]
+          `INSERT INTO notification_log (captain_id, chat_id, message, status, error_message)
+           VALUES ($1, $2, $3, 'failed', $4)`,
+          [captain.id, captain.telegram_chat_id, text, result.error]
         );
-
-        console.error(`❌ SMS failed for ${captain.phone_number}: ${err.message}`);
+        console.error(`❌ Telegram failed for chat ${captain.telegram_chat_id}: ${result.error}`);
       }
     }
   } catch (err) {
-    console.error('Error in alertProUsers:', err);
+    console.error('Error in notifyCaptains:', err);
   }
 }
 
@@ -1551,7 +1840,7 @@ app.get('/app', (req, res) => {
  */
 app.get('/setup', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  if (req.user.phone_number) {
+  if (req.user.telegram_chat_id) {
     return res.redirect(hasAccess(req.user) ? '/app' : '/pricing');
   }
   res.sendFile(path.join(__dirname, 'public', 'setup.html'));

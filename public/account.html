@@ -269,12 +269,43 @@
       <label for="acc-email">Email</label>
       <input type="email" id="acc-email" readonly />
     </div>
-    <div class="field">
-      <label for="acc-phone">Phone</label>
-      <input type="text"  id="acc-phone" readonly />
-    </div>
     <div class="action-row">
       <button class="btn btn-primary" id="save-profile-btn">Save name</button>
+    </div>
+  </div>
+
+  <!-- Notifications (Telegram) -->
+  <div class="card">
+    <h2 class="card-title">Notifications</h2>
+    <div class="alert alert-ok"  id="tg-ok"></div>
+    <div class="alert alert-err" id="tg-err"></div>
+    <div id="tg-linked" style="display:none">
+      <div class="field" style="margin-bottom:8px">
+        <label>Telegram</label>
+        <div style="font-size:0.9rem">Linked as <strong id="tg-username">—</strong></div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;line-height:1.5">
+        You'll receive opening alerts as a direct message from our bot. To stop, click
+        <strong>Unlink</strong> below or send <code>/unlink</code> to the bot.
+      </p>
+      <div class="action-row">
+        <button class="btn btn-danger" id="tg-unlink-btn">Unlink Telegram</button>
+      </div>
+    </div>
+    <div id="tg-unlinked" style="display:none">
+      <p style="font-size:0.85rem;margin-bottom:12px;line-height:1.5">
+        Telegram is the only channel we use to send alerts (SMS via Twilio is no longer supported).
+        Link your account to receive opening notifications.
+      </p>
+      <div class="field">
+        <label>Your one-time code</label>
+        <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:1.4rem;letter-spacing:0.3em;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;text-align:center" id="tg-code">------</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px" id="tg-expires">—</div>
+      </div>
+      <div class="action-row" style="gap:8px;display:flex;flex-wrap:wrap">
+        <a class="btn btn-primary" id="tg-open-btn" href="#" target="_blank" rel="noopener" style="text-decoration:none">Open Telegram</a>
+        <button class="btn" id="tg-regen-btn" type="button">Get a new code</button>
+      </div>
     </div>
   </div>
 
@@ -346,14 +377,82 @@ async function loadAccount() {
   document.getElementById('acc-tier').innerHTML   = tierHtml;
   document.getElementById('acc-status').innerHTML = statusHtml;
 
-  document.getElementById('acc-name').value  = user.name         || '';
-  document.getElementById('acc-email').value = user.email        || '';
-  document.getElementById('acc-phone').value = user.phone_number || '—';
+  document.getElementById('acc-name').value  = user.name  || '';
+  document.getElementById('acc-email').value = user.email || '';
 
   if (user.has_google && !user.password_hash_exists) {
     document.getElementById('password-card').style.display = 'none';
   }
+
+  refreshTelegramPanel(user);
 }
+
+function refreshTelegramPanel(user) {
+  const linked   = document.getElementById('tg-linked');
+  const unlinked = document.getElementById('tg-unlinked');
+  if (user.telegram_linked) {
+    linked.style.display   = '';
+    unlinked.style.display = 'none';
+    document.getElementById('tg-username').textContent =
+      user.telegram_username ? '@' + user.telegram_username : 'connected';
+    return;
+  }
+  linked.style.display   = 'none';
+  unlinked.style.display = '';
+  fetchTelegramCode();
+}
+
+async function fetchTelegramCode() {
+  try {
+    const r = await fetch('/api/telegram/link-code', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not fetch code');
+    if (d.already_linked) {
+      refreshTelegramPanel({ telegram_linked: true, telegram_username: d.telegram_username });
+      return;
+    }
+    document.getElementById('tg-code').textContent = d.code;
+    const exp = new Date(d.expires_at);
+    document.getElementById('tg-expires').textContent = 'Expires ' + exp.toLocaleTimeString();
+    const link = d.deep_link || (d.bot_username ? `https://t.me/${d.bot_username}?start=${d.code}` : '#');
+    document.getElementById('tg-open-btn').href = link;
+  } catch (err) {
+    showAlert('tg-ok', 'tg-err', err.message);
+  }
+}
+
+document.getElementById('tg-regen-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('tg-regen-btn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  try {
+    const r = await fetch('/api/telegram/regenerate', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not regenerate');
+    document.getElementById('tg-code').textContent = d.code;
+    const exp = new Date(d.expires_at);
+    document.getElementById('tg-expires').textContent = 'Expires ' + exp.toLocaleTimeString();
+    const link = d.deep_link || (d.bot_username ? `https://t.me/${d.bot_username}?start=${d.code}` : '#');
+    document.getElementById('tg-open-btn').href = link;
+  } catch (err) {
+    showAlert('tg-ok', 'tg-err', err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Get a new code';
+  }
+});
+
+document.getElementById('tg-unlink-btn').addEventListener('click', async () => {
+  if (!confirm('Unlink Telegram? You will stop receiving opening alerts.')) return;
+  try {
+    const r = await fetch('/api/telegram/unlink', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not unlink');
+    showAlert('tg-ok', 'tg-err', null);
+    document.getElementById('tg-ok').textContent = 'Unlinked.';
+    refreshTelegramPanel({ telegram_linked: false });
+  } catch (err) {
+    showAlert('tg-ok', 'tg-err', err.message);
+  }
+});
 
 async function saveProfile() {
   const name = document.getElementById('acc-name').value.trim();

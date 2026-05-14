@@ -23,7 +23,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 80px 24px 24px;
     }
     nav {
       position: fixed;
@@ -34,6 +34,7 @@
       padding: 0 22px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
+      z-index: 50;
     }
     .wordmark {
       font-family: 'Blackbird', sans-serif;
@@ -49,7 +50,7 @@
       border-radius: 6px;
       padding: 28px 26px;
       width: 100%;
-      max-width: 400px;
+      max-width: 460px;
     }
     h1 {
       font-size: 1.1rem;
@@ -62,40 +63,80 @@
       color: var(--muted);
       font-size: 0.8rem;
       margin-bottom: 22px;
-      line-height: 1.5;
+      line-height: 1.55;
     }
-    label {
-      display: block;
-      font-size: 10px;
+
+    .code-display {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 18px 12px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .code-display .code {
+      font-family: ui-monospace, 'SF Mono', 'Menlo', monospace;
+      font-size: 2.2rem;
+      letter-spacing: 0.4em;
       font-weight: 700;
+      color: var(--text);
+      padding-left: 0.4em; /* offset the trailing letter-spacing so digits look centered */
+    }
+    .code-display .label {
+      font-size: 10px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
-    .hint {
-      font-weight: 400;
-      text-transform: none;
-      letter-spacing: 0;
-      font-size: 10px;
+    .code-display .expires {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
     }
-    input[type="tel"] {
-      width: 100%;
-      padding: 10px 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-family: inherit;
-      margin-bottom: 18px;
-      outline: none;
-      transition: border-color 0.15s;
+    .code-display .expires.warn { color: #f87171; }
+    .regen {
+      background: transparent;
+      border: 0;
+      color: var(--accent);
+      font: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
     }
-    input[type="tel"]:focus { border-color: var(--accent); }
+    .regen:hover { opacity: 0.8; }
+
+    ol.steps {
+      list-style: none;
+      padding: 0;
+      margin: 6px 0 18px;
+    }
+    ol.steps li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    ol.steps li:first-child { border-top: 0; }
+    ol.steps .num {
+      flex: 0 0 22px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.72rem;
+    }
     .btn {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background: var(--accent);
       border: none;
       border-radius: 4px;
@@ -106,10 +147,38 @@
       text-transform: uppercase;
       cursor: pointer;
       font-family: inherit;
+      text-decoration: none;
+      text-align: center;
+      display: inline-block;
       transition: opacity 0.15s;
     }
     .btn:hover { opacity: 0.85; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #f6d47b;
+      animation: pulse 1.4s infinite;
+    }
+    .dot.linked { background: #3fb950; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50%      { opacity: 1; }
+    }
+
     .error-msg {
       background: rgba(239,68,68,0.1);
       border: 1px solid rgba(239,68,68,0.25);
@@ -117,40 +186,20 @@
       border-radius: 4px;
       padding: 9px 12px;
       font-size: 0.8rem;
-      margin-bottom: 14px;
+      margin: 8px 0;
       display: none;
     }
     .price-note {
-      margin-top: 14px;
+      margin-top: 16px;
       text-align: center;
       font-size: 0.75rem;
       color: var(--muted);
     }
     .price-note strong { color: var(--text); }
-    .opt-in {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-top: 16px;
-      margin-bottom: 18px;
-    }
-    .opt-in input[type="checkbox"] {
-      margin-top: 2px;
-      flex-shrink: 0;
-      accent-color: var(--accent);
-      width: 14px;
-      height: 14px;
-      cursor: pointer;
-    }
-    .opt-in label {
-      font-size: 0.72rem;
-      color: var(--muted);
-      line-height: 1.55;
-      font-weight: 400;
-      text-transform: none;
-      letter-spacing: 0;
-      cursor: pointer;
-    }
+
+    .linked-state { display: none; }
+    .linked-state.active { display: block; }
+    .linking-state.hidden { display: none; }
 
     .skip-link {
       position: absolute; top: -40px; left: 8px;
@@ -172,25 +221,59 @@
   <main id="main">
   <div class="card">
     <h1>Welcome, <span class="greeting" id="greeting">captain</span></h1>
-    <p class="sub">Add your phone number to receive SMS alerts when a district opens.</p>
+    <p class="sub">
+      Link your Telegram so we can send opening alerts straight to your phone.
+      Free, no SMS carrier registration, no extra app to learn.
+    </p>
 
-    <form id="setupForm">
-      <label for="phone">Phone number <span class="hint">(US number — 10 digits)</span></label>
-      <input type="tel" id="phone" placeholder="907 555 0123" required autocomplete="tel" />
-      <div class="error-msg" id="errorMsg"></div>
-
-      <div class="opt-in">
-        <input type="checkbox" id="smsConsent" required />
-        <label for="smsConsent">
-          By checking this box, I agree to receive recurring automated SMS alerts from akFISHinfo about ADF&G Prince William Sound fishing openings. Message frequency varies. Message &amp; data rates may apply. Reply STOP to unsubscribe at any time.
-        </label>
+    <div class="linking-state" id="linkingState">
+      <div class="code-display">
+        <div class="label">your one-time code</div>
+        <div class="code" id="codeDisplay">------</div>
+        <div class="expires" id="expiresLine">Loading…</div>
       </div>
 
-      <button type="submit" class="btn" id="submitBtn" disabled>Continue</button>
-    </form>
+      <ol class="steps">
+        <li><span class="num">1</span>
+          <div>Tap the button below — it opens Telegram with our bot ready to go.
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">
+              Don't have Telegram? <a href="https://telegram.org/" target="_blank" rel="noopener" style="color:var(--accent)">Get it here</a> — free for iOS, Android, desktop.
+            </div>
+          </div>
+        </li>
+        <li><span class="num">2</span><div>In Telegram, hit the <b>Start</b> button at the bottom (or send your 6-digit code as a message).</div></li>
+        <li><span class="num">3</span><div>You'll get a confirmation reply, then this page will move you forward automatically.</div></li>
+      </ol>
 
-    <p class="price-note">7-day free trial, then <strong>$30/month</strong>. One trial per phone number.</p>
-    <p class="price-note" style="margin-top:6px">
+      <a id="openBotBtn" class="btn" href="#" target="_blank" rel="noopener">Open Telegram</a>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div class="status-row">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Waiting for you to link Telegram…</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);">
+        Code expired? <button type="button" class="regen" id="regenBtn">Get a new one</button>
+      </div>
+    </div>
+
+    <div class="linked-state" id="linkedState">
+      <div class="code-display" style="border-color:#3fb950">
+        <div class="label" style="color:#3fb950">✓ telegram linked</div>
+        <div style="font-size:0.95rem;margin-top:6px" id="linkedAs">Connected.</div>
+      </div>
+      <p class="sub" style="margin-top:10px">
+        You're set to receive alerts. Pick your next step:
+      </p>
+      <button type="button" class="btn" id="trialBtn" style="margin-bottom:8px">Start free 7-day trial</button>
+      <a href="/pricing" class="btn secondary">See plans &amp; pricing</a>
+      <p class="price-note" style="margin-top:14px">
+        Trial requires a verified email. One trial per Telegram account.
+      </p>
+    </div>
+
+    <p class="price-note">
       By continuing you agree to our
       <a href="/terms" style="color:var(--accent);text-decoration:none">Terms of Service</a>
       and <a href="/privacy" style="color:var(--accent);text-decoration:none">Privacy Policy</a>.
@@ -199,49 +282,155 @@
   </main>
 
   <script>
-    function normalizePhone(raw) {
-      const digits = raw.replace(/\D/g, '');
-      if (digits.length === 10) return '+1' + digits;
-      if (digits.length === 11 && digits.startsWith('1')) return '+' + digits;
-      return '+' + digits; // best effort
+    const codeDisplay  = document.getElementById('codeDisplay');
+    const expiresLine  = document.getElementById('expiresLine');
+    const openBotBtn   = document.getElementById('openBotBtn');
+    const regenBtn     = document.getElementById('regenBtn');
+    const statusText   = document.getElementById('statusText');
+    const statusDot    = document.getElementById('statusDot');
+    const errorMsg     = document.getElementById('errorMsg');
+    const linkingState = document.getElementById('linkingState');
+    const linkedState  = document.getElementById('linkedState');
+    const linkedAs     = document.getElementById('linkedAs');
+    const trialBtn     = document.getElementById('trialBtn');
+
+    let currentExpiresAt = null;
+    let countdownTimer = null;
+    let pollTimer = null;
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.style.display = 'block';
+    }
+    function clearError() { errorMsg.style.display = 'none'; }
+
+    function fmtCountdown(ms) {
+      if (ms <= 0) return 'expired';
+      const total = Math.floor(ms / 1000);
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `expires in ${m}:${String(s).padStart(2, '0')}`;
     }
 
-    document.getElementById('smsConsent').addEventListener('change', function () {
-      document.getElementById('submitBtn').disabled = !this.checked;
-    });
+    function startCountdown() {
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        if (!currentExpiresAt) return;
+        const ms = currentExpiresAt - Date.now();
+        expiresLine.textContent = fmtCountdown(ms);
+        expiresLine.classList.toggle('warn', ms < 2 * 60 * 1000);
+      }, 500);
+    }
 
-    fetch('/api/me').then(r => r.json()).then(({ user }) => {
-      if (!user) { location.href = '/login'; return; }
-      if (user.phone_number) {
-        location.href = user.has_access ? '/app' : '/pricing';
+    function applyCode(payload) {
+      if (!payload || !payload.code) {
+        showError('Could not generate a link code. Try the "Get a new one" link below.');
         return;
       }
-      const first = (user.name || '').split(' ')[0];
-      if (first) document.getElementById('greeting').textContent = first;
-    });
+      codeDisplay.textContent = payload.code;
+      currentExpiresAt = new Date(payload.expires_at).getTime();
+      if (payload.deep_link) {
+        openBotBtn.href = payload.deep_link;
+        openBotBtn.removeAttribute('aria-disabled');
+      } else if (payload.bot_username) {
+        openBotBtn.href = `https://t.me/${payload.bot_username}?start=${payload.code}`;
+      } else {
+        // Bot username not configured — degrade gracefully.
+        openBotBtn.href = '#';
+        openBotBtn.setAttribute('aria-disabled', 'true');
+        showError('Telegram bot not configured yet. Ask an admin to set TELEGRAM_BOT_USERNAME.');
+      }
+      startCountdown();
+    }
 
-    document.getElementById('setupForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      const err = document.getElementById('errorMsg');
-      err.style.display = 'none';
-      btn.disabled = true;
-      btn.textContent = 'Redirecting...';
+    async function fetchCode() {
+      clearError();
+      try {
+        const r = await fetch('/api/telegram/link-code', { method: 'POST' });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Could not fetch code');
+        if (d.already_linked) {
+          showLinked(d.telegram_username);
+          return;
+        }
+        applyCode(d);
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    async function regenerate() {
+      clearError();
+      regenBtn.disabled = true;
+      regenBtn.textContent = 'Generating…';
+      try {
+        const r = await fetch('/api/telegram/regenerate', { method: 'POST' });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Could not regenerate');
+        applyCode(d);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        regenBtn.disabled = false;
+        regenBtn.textContent = 'Get a new one';
+      }
+    }
+    regenBtn.addEventListener('click', regenerate);
+
+    function showLinked(username) {
+      linkingState.classList.add('hidden');
+      linkedState.classList.add('active');
+      linkedAs.textContent = username
+        ? `Connected as @${username}.`
+        : 'Connected.';
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    async function pollMe() {
+      try {
+        const r = await fetch('/api/me');
+        const { user } = await r.json();
+        if (!user) { location.href = '/login'; return; }
+        if (user.telegram_linked) {
+          statusDot.classList.add('linked');
+          statusText.textContent = 'Telegram linked.';
+          showLinked(user.telegram_username);
+        }
+      } catch (_) { /* network hiccup — keep polling */ }
+    }
+
+    trialBtn.addEventListener('click', async () => {
+      clearError();
+      trialBtn.disabled = true;
+      trialBtn.textContent = 'Starting trial…';
       try {
         const r = await fetch('/api/setup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone_number: normalizePhone(document.getElementById('phone').value) }),
+          body: JSON.stringify({ intent: 'trial' }),
         });
         const d = await r.json();
-        if (!r.ok) throw new Error(d.error || 'Setup failed');
+        if (!r.ok) throw new Error(d.error || 'Could not start trial');
         window.location.href = d.redirect;
-      } catch (e) {
-        err.textContent = e.message;
-        err.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Continue';
+      } catch (err) {
+        showError(err.message);
+        trialBtn.disabled = false;
+        trialBtn.textContent = 'Start free 7-day trial';
       }
+    });
+
+    // Boot
+    fetch('/api/me').then(r => r.json()).then(({ user }) => {
+      if (!user) { location.href = '/login'; return; }
+      const first = (user.name || '').split(' ')[0];
+      if (first) document.getElementById('greeting').textContent = first;
+      if (user.telegram_linked) {
+        showLinked(user.telegram_username);
+        return;
+      }
+      fetchCode();
+      pollTimer = setInterval(pollMe, 3000);
     });
   </script>
 </body>

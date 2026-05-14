@@ -235,7 +235,7 @@
         by the Alaska Department of Fish &amp; Game ("ADF&amp;G") for Prince William Sound
         commercial salmon fisheries. When an announcement is received, the Service uses
         automated AI-assisted parsing to extract district information, gear types, and
-        open/close windows, and delivers SMS alerts to active subscribers.
+        open/close windows, and delivers Telegram alerts to active subscribers.
       </p>
       <p>
         <strong>The Service is an information delivery tool, not an authoritative
@@ -272,19 +272,19 @@
         </thead>
         <tbody>
           <tr>
+            <td>Biweekly</td>
+            <td>$30.00 / 2 weeks</td>
+            <td><span class="badge-locked">Rate locked</span></td>
+          </tr>
+          <tr>
             <td>Monthly</td>
-            <td>$30.00 / month</td>
+            <td>$50.00 / month</td>
             <td><span class="badge-locked">Rate locked</span></td>
           </tr>
           <tr>
-            <td>Quarterly</td>
-            <td>$80.00 / quarter</td>
-            <td><span class="badge-locked">Rate locked</span></td>
-          </tr>
-          <tr>
-            <td>Yearly</td>
-            <td>$300.00 / year</td>
-            <td><span class="badge-locked">Rate locked</span></td>
+            <td>Season (May&ndash;September)</td>
+            <td>$240.00 / season</td>
+            <td><span class="badge-locked">Rate locked</span> &mdash; includes up to 3 deckhand seats</td>
           </tr>
         </tbody>
       </table>
@@ -298,10 +298,8 @@
       </p>
       <p>
         <strong>Standard Rates.</strong> After the first 30 subscriber slots are filled,
-        new subscribers will be charged at the then-current standard rate. The standard
-        monthly rate is $50.00 per month. Quarterly and yearly standard rates will be
-        announced at the same relative percentage discount to the standard monthly rate
-        as early adopter quarterly and yearly plans are to the early adopter monthly rate.
+        new subscribers will be charged at the then-current standard rates, which are:
+        $50.00 biweekly, $84.00 monthly, and $400.00 per season (May&ndash;September).
         <!-- [ATTORNEY REVIEW] — confirm this language is binding and clear enough to
              constitute a rate-lock commitment for early adopters. -->
       </p>
@@ -328,9 +326,9 @@
     </div>
   </div>
 
-  <!-- ── 4. SMS Alerts — CRITICAL SECTION ──────────────────── -->
+  <!-- ── 4. Telegram Alerts — CRITICAL SECTION ──────────────── -->
   <div class="card">
-    <h2 class="card-title">4 &mdash; SMS Alerts</h2>
+    <h2 class="card-title">4 &mdash; Telegram Alerts</h2>
     <div class="legal-body">
       <!-- [ATTORNEY REVIEW] — This is the highest-risk section. The liability limitation
            language must be reviewed by a licensed Alaska attorney before publication.
@@ -340,16 +338,17 @@
            modes rather than disclaiming the entire use case. See plan-legal-pages.md. -->
       <p>
         Alerts are derived directly from official ADF&amp;G opening announcements and are
-        intended to provide timely notification of district openings and closures.
-        Subscribers are expected to rely on these alerts as one input into their
-        fishing decisions.
+        delivered via Telegram direct message to subscribers who have linked their
+        Telegram account. Subscribers are expected to rely on these alerts as one input
+        into their fishing decisions.
       </p>
       <div class="warning">
         <strong>However, akFISHinfo does not guarantee:</strong><br>
         (a) the accuracy of AI-parsed announcement data — the parser may misread or
         incompletely render complex or ambiguous announcement language;<br>
-        (b) delivery timing — SMS delivery depends on Twilio and downstream carrier
-        networks that are outside our control;<br>
+        (b) delivery timing — Telegram delivery depends on Telegram's servers, your
+        device's network connection, and notification settings that are outside our
+        control;<br>
         (c) that all ADF&amp;G announcements will be received and processed — the Service
         depends on ADF&amp;G delivering announcements to a monitored inbox;<br>
         (d) that subsequent ADF&amp;G amendments, corrections, or emergency closures
@@ -362,9 +361,10 @@
         from a delayed, inaccurate, incomplete, or missed alert.
       </p>
       <p>
-        By providing your phone number and opting in to SMS alerts, you consent to
-        receive text messages from akFISHinfo at the number provided. Message and data
-        rates may apply. You may opt out by canceling your subscription.
+        By linking your Telegram account to akFISHinfo, you consent to receive direct
+        messages from the akFISHinfo bot. You may opt out at any time by sending
+        <code>/unlink</code> to the bot, by clicking "Unlink Telegram" on your account
+        page, or by canceling your subscription.
       </p>
     </div>
   </div>
@@ -437,14 +437,15 @@
     <h2 class="card-title">8 &mdash; Account Responsibilities</h2>
     <div class="legal-body">
       <p>
-        You are responsible for maintaining the accuracy of your account information,
-        including your phone number. SMS alerts are delivered to the number on file.
-        akFISHinfo is not liable for missed alerts resulting from an outdated or
-        incorrect phone number.
+        You are responsible for maintaining the accuracy of your account information
+        and for keeping your Telegram account linked. Alerts are delivered to the
+        Telegram account on file. akFISHinfo is not liable for missed alerts resulting
+        from an unlinked Telegram account, disabled notifications, or device issues.
       </p>
       <p>
-        One free trial is permitted per phone number. Attempts to circumvent this
-        restriction by using multiple phone numbers may result in account termination.
+        One free trial is permitted per linked Telegram account. Attempts to circumvent
+        this restriction by linking and unlinking multiple Telegram accounts may result
+        in account termination.
       </p>
       <p>
         Account sharing is not permitted. Your subscription is for your individual use.

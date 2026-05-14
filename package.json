@@ -1,7 +1,7 @@
 {
   "name": "pws-saas",
   "version": "1.0.0",
-  "description": "Prince William Sound Salmon Fishing SaaS - Real-time SMS alerts",
+  "description": "Prince William Sound Salmon Fishing SaaS - Real-time Telegram alerts",
   "main": "backend_v2.js",
   "scripts": {
     "start": "node backend_v2.js",
@@ -19,8 +19,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.11.0",
-    "stripe": "^14.0.0",
-    "twilio": "^4.0.0"
+    "stripe": "^14.0.0"
   },
   "engines": {
     "node": "20"
