@@ -688,6 +688,7 @@
 <script>
 // ── Map init ──
 const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true });
+map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
 function tileUrlForTheme() {
   var theme = (window.akfiTheme && window.akfiTheme.get()) ||
     (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
