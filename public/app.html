@@ -689,6 +689,105 @@
 // ── Map init ──
 const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true });
 map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
+
+// ── Live geolocation toggle ──
+(function initLocate() {
+  let watching = false;
+  let firstFix = true;
+  let lastFixAt = 0;
+  let marker = null;
+  let accCircle = null;
+  let staleTimer = null;
+
+  const ctrl = L.control({ position: 'topright' });
+  ctrl.onAdd = function() {
+    const div = L.DomUtil.create('div', 'locate-toggle');
+    div.id = 'locate-btn';
+    div.innerHTML = 'Locate Me';
+    div.style.cssText = 'background:rgba(6,10,15,0.9);color:#3498db;border:1px solid #3498db;' +
+      'padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;user-select:none;' +
+      'margin-top:6px;';
+    L.DomEvent.disableClickPropagation(div);
+    div.onclick = toggle;
+    return div;
+  };
+  ctrl.addTo(map);
+
+  function setBtn(state) {
+    const div = document.getElementById('locate-btn');
+    if (!div) return;
+    if (state === 'on')      { div.innerHTML='Tracking: ON';   div.style.color='#3498db'; div.style.borderColor='#3498db'; }
+    else if (state === 'stale') { div.innerHTML='Tracking: stale'; div.style.color='#777';    div.style.borderColor='#777'; }
+    else                     { div.innerHTML='Locate Me';      div.style.color='#3498db'; div.style.borderColor='#3498db'; }
+  }
+
+  function setStaleStyle(stale) {
+    if (!marker) return;
+    const color = stale ? '#777' : '#3498db';
+    marker.setStyle({ color: color, fillColor: color });
+    if (accCircle) accCircle.setStyle({ color: color, fillColor: color });
+    setBtn(stale ? 'stale' : 'on');
+  }
+
+  function toggle() {
+    if (watching) {
+      map.stopLocate();
+      watching = false;
+      if (marker)    { map.removeLayer(marker);    marker = null; }
+      if (accCircle) { map.removeLayer(accCircle); accCircle = null; }
+      if (staleTimer) { clearInterval(staleTimer); staleTimer = null; }
+      firstFix = true;
+      setBtn('off');
+      return;
+    }
+    if (!('geolocation' in navigator)) {
+      alert('Your browser does not support location.');
+      return;
+    }
+    watching = true;
+    firstFix = true;
+    setBtn('on');
+    map.locate({ watch: true, enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+    staleTimer = setInterval(function() {
+      if (!watching) return;
+      setStaleStyle(Date.now() - lastFixAt > 30000);
+    }, 5000);
+  }
+
+  map.on('locationfound', function(e) {
+    lastFixAt = Date.now();
+    const r = Math.max(e.accuracy || 0, 1);
+    if (!marker) {
+      marker = L.circleMarker(e.latlng, {
+        radius: 7, color: '#3498db', weight: 2,
+        fillColor: '#3498db', fillOpacity: 0.9,
+      }).bindTooltip('You', { direction: 'top' }).addTo(map);
+      accCircle = L.circle(e.latlng, {
+        radius: r, color: '#3498db', weight: 1,
+        fillColor: '#3498db', fillOpacity: 0.10,
+      }).addTo(map);
+    } else {
+      marker.setLatLng(e.latlng);
+      accCircle.setLatLng(e.latlng).setRadius(r);
+    }
+    setStaleStyle(false);
+    if (firstFix) {
+      firstFix = false;
+      map.setView(e.latlng, Math.max(map.getZoom(), 11));
+    }
+  });
+
+  map.on('locationerror', function(e) {
+    if (!watching) return;
+    if (e.code === 1) {
+      alert('Location permission denied. Enable it in your browser settings to use tracking.');
+      toggle();
+    } else {
+      setStaleStyle(true);
+    }
+  });
+})();
+
 function tileUrlForTheme() {
   var theme = (window.akfiTheme && window.akfiTheme.get()) ||
     (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
