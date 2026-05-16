@@ -1198,7 +1198,7 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
   console.log(`🔄 Parsing announcement #${announcementId} from ${pdfPath}...`);
 
   try {
-    const { htmlPath, districts, announcement_date, has_open, earliest_opens_at, latest_closes_at } = await runLiveTest(announcementId, pdfPath);
+    const { htmlPath, districts, district_details, announcement_date, has_open, earliest_opens_at, latest_closes_at } = await runLiveTest(announcementId, pdfPath);
 
     // Read HTML content to store in DB (Railway filesystem is ephemeral)
     const htmlContent = await fs.readFile(htmlPath, 'utf8');
@@ -1207,10 +1207,10 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
 
     await db.query(
       `INSERT INTO parsed_results
-         (announcement_id, html_filename, html_path, html_url, districts, html_content,
+         (announcement_id, html_filename, html_path, html_url, districts, parsed_json, html_content,
           announcement_date, has_open_districts, earliest_opens_at, latest_closes_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [announcementId, htmlFilename, htmlPath, htmlUrl, districts, htmlContent,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [announcementId, htmlFilename, htmlPath, htmlUrl, districts, JSON.stringify(district_details || []), htmlContent,
        announcement_date, has_open, earliest_opens_at, latest_closes_at]
     );
 
@@ -1220,7 +1220,7 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
     await db.query('UPDATE announcements SET parsed = true WHERE id = $1', [announcementId]);
 
     // DM eligible captains via Telegram
-    await notifyCaptains(districts);
+    await notifyCaptains(districts, district_details);
   } catch (err) {
     console.error(`Error in parseAnnouncementAsync:`, err);
   }
@@ -1257,7 +1257,7 @@ async function runLiveTest(announcementId, pdfPath) {
         console.error(`live_test_server.py failed (exit ${error.code}): ${stderr}`);
         return reject(error);
       }
-      let parsed = { districts: [], announcement_date: null, has_open: false, earliest_opens_at: null, latest_closes_at: null };
+      let parsed = { districts: [], district_details: [], announcement_date: null, has_open: false, earliest_opens_at: null, latest_closes_at: null };
       try {
         const raw = JSON.parse(stdout.trim());
         if (Array.isArray(raw)) {
@@ -1265,6 +1265,7 @@ async function runLiveTest(announcementId, pdfPath) {
         } else {
           parsed = {
             districts:          raw.districts           || [],
+            district_details:   raw.district_details    || [],
             announcement_date:  raw.announcement_date   || null,
             has_open:           raw.has_open            || false,
             earliest_opens_at:  raw.earliest_opens_at   || null,
@@ -1313,7 +1314,113 @@ function extractDistrictsFromHTML(htmlPath) {
  * predicates handled elsewhere) AND captain has a linked telegram_chat_id AND
  * alerts_enabled is true AND captain subscribes to one of the open districts.
  */
-async function notifyCaptains(districts) {
+const ALERT_DISTRICT_LIMIT = 5;
+const GEAR_LABELS = {
+  drift_gillnet: 'Drift gillnet',
+  purse_seine:   'Purse seine',
+  set_gillnet:   'Set gillnet',
+};
+
+function escapeHTML(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function fmtAKTime(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d)) return null;
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Anchorage',
+    weekday: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(d);
+}
+
+function fmtAKTzLabel(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Anchorage',
+    timeZoneName: 'short',
+  }).formatToParts(d);
+  const tz = parts.find(p => p.type === 'timeZoneName');
+  return tz ? tz.value : '';
+}
+
+function fmtAKDateHeader(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d)) return null;
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Anchorage',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(d);
+}
+
+function renderDistrictBlock(detail) {
+  const name = escapeHTML(detail.district || 'Unknown district');
+  const status = (detail.status || '').toUpperCase();
+  const lines = [`<b>${name}</b>${status ? ` — ${escapeHTML(status)}` : ''}`];
+
+  const opens = fmtAKTime(detail.opens_at);
+  const closes = fmtAKTime(detail.closes_at);
+  const tz = fmtAKTzLabel(detail.closes_at || detail.opens_at);
+  if (opens && closes) {
+    const dur = detail.duration_hours ? ` (${detail.duration_hours}h)` : '';
+    lines.push(`  ${escapeHTML(opens)} → ${escapeHTML(closes)}${tz ? ' ' + escapeHTML(tz) : ''}${dur}`);
+  } else if (opens) {
+    lines.push(`  Opens ${escapeHTML(opens)}${tz ? ' ' + escapeHTML(tz) : ''}`);
+  } else if (closes) {
+    lines.push(`  Closes ${escapeHTML(closes)}${tz ? ' ' + escapeHTML(tz) : ''}`);
+  }
+
+  const gear = (detail.gear_types || [])
+    .map(g => GEAR_LABELS[g] || g.replace(/_/g, ' '))
+    .filter(Boolean);
+  const excl = [
+    ...(detail.excluded_subdistricts || []),
+    ...(detail.excluded_hatchery_areas || []),
+  ];
+  const gearLine = [
+    gear.length ? gear.join(', ') : null,
+    excl.length ? `excl. ${excl.join(', ')}` : null,
+  ].filter(Boolean).join(' · ');
+  if (gearLine) lines.push(`  ${escapeHTML(gearLine)}`);
+
+  return lines.join('\n');
+}
+
+function buildAlertText(districts, details) {
+  const list = Array.isArray(details) && details.length ? details : districts.map(d => ({ district: d }));
+  const headerDate = list.map(d => d.opens_at).find(Boolean);
+  const headerStr = fmtAKDateHeader(headerDate);
+  const head = headerStr
+    ? `<b>ADF&amp;G UPDATE — ${escapeHTML(headerStr)}</b>`
+    : `<b>ADF&amp;G UPDATE</b>`;
+
+  const shown = list.slice(0, ALERT_DISTRICT_LIMIT);
+  const overflow = list.length - shown.length;
+  const blocks = shown.map(renderDistrictBlock).join('\n\n');
+  const more = overflow > 0 ? `\n\n+${overflow} more — see map` : '';
+
+  return [
+    head,
+    '',
+    blocks + more,
+    '',
+    'Map: https://akfishinfo.com/app',
+    '<i>Not legal advice — verify at adfg.alaska.gov</i>',
+  ].join('\n');
+}
+
+async function notifyCaptains(districts, district_details = []) {
   if (!districts || districts.length === 0) {
     console.log('⚠ No districts to alert');
     return;
@@ -1335,11 +1442,7 @@ async function notifyCaptains(districts) {
       return;
     }
 
-    const text =
-      `⚓ <b>ADF&amp;G UPDATE</b>\n` +
-      `Districts: ${districts.map(d => `<b>${d}</b>`).join(', ')}\n\n` +
-      `Open the live map: https://akfishinfo.com/app\n\n` +
-      `<i>Not legal advice — verify at adfg.alaska.gov</i>`;
+    const text = buildAlertText(districts, district_details);
 
     for (const captain of captains.rows) {
       const result = await sendTelegramMessage(captain.telegram_chat_id, text);
@@ -1992,9 +2095,9 @@ app.post('/api/admin/test-dm', requireAdmin, express.json(), async (req, res) =>
     return res.status(400).json({ error: 'Your account has no linked Telegram chat. Link it first at /setup.' });
   }
   const text =
-    `🧪 <b>akFISHinfo test alert</b>\n` +
+    `<b>akFISHinfo test alert</b>\n` +
     `If you can read this, Telegram delivery is working end-to-end.\n\n` +
-    `<i>Sent from /admin by ${req.user.email}</i>`;
+    `<i>Sent from /admin by ${escapeHTML(req.user.email)}</i>`;
   const result = await sendTelegramMessage(req.user.telegram_chat_id, text);
   if (!result.ok) return res.status(502).json({ ok: false, error: result.error });
   res.json({ ok: true, message_id: result.message_id });
