@@ -1164,12 +1164,14 @@ app.post('/webhooks/email', upload.any(), async (req, res) => {
       return res.status(200).send('OK (duplicate)');
     }
 
-    // Store announcement record
+    // Store announcement record. Persist the raw PDF bytes so /admin reparse
+    // can re-run the parser later — Railway's filesystem is ephemeral, so the
+    // multer temp file at pdfFile.path will be gone after the next restart.
     const result = await db.query(
-      `INSERT INTO announcements (source, raw_text, content_hash, published_at, pdf_filename)
-       VALUES ($1, $2, $3, NOW(), $4)
+      `INSERT INTO announcements (source, raw_text, content_hash, published_at, pdf_filename, pdf_data)
+       VALUES ($1, $2, $3, NOW(), $4, $5)
        RETURNING id`,
-      ['email', '', contentHash, pdfFile.originalname]
+      ['email', '', contentHash, pdfFile.originalname, pdfBuffer]
     );
 
     const announcementId = result.rows[0].id;
