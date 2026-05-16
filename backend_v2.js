@@ -1397,13 +1397,14 @@ function renderDistrictBlock(detail) {
   return lines.join('\n');
 }
 
-function buildAlertText(districts, details) {
+function buildAlertText(districts, details, opts = {}) {
   const list = Array.isArray(details) && details.length ? details : districts.map(d => ({ district: d }));
   const headerDate = list.map(d => d.opens_at).find(Boolean);
   const headerStr = fmtAKDateHeader(headerDate);
+  const label = opts.kind === 'correction' ? 'CORRECTION' : 'UPDATE';
   const head = headerStr
-    ? `<b>ADF&amp;G UPDATE — ${escapeHTML(headerStr)}</b>`
-    : `<b>ADF&amp;G UPDATE</b>`;
+    ? `<b>ADF&amp;G ${label} — ${escapeHTML(headerStr)}</b>`
+    : `<b>ADF&amp;G ${label}</b>`;
 
   const shown = list.slice(0, ALERT_DISTRICT_LIMIT);
   const overflow = list.length - shown.length;
@@ -1420,7 +1421,7 @@ function buildAlertText(districts, details) {
   ].join('\n');
 }
 
-async function notifyCaptains(districts, district_details = []) {
+async function notifyCaptains(districts, district_details = [], opts = {}) {
   if (!districts || districts.length === 0) {
     console.log('⚠ No districts to alert');
     return;
@@ -1442,7 +1443,7 @@ async function notifyCaptains(districts, district_details = []) {
       return;
     }
 
-    const text = buildAlertText(districts, district_details);
+    const text = buildAlertText(districts, district_details, opts);
 
     for (const captain of captains.rows) {
       const result = await sendTelegramMessage(captain.telegram_chat_id, text);
@@ -1839,14 +1840,49 @@ app.post('/api/result/:id/reparse', requireAdmin, express.json(), async (req, re
             async (error, stdout, stderr) => {
               console.log(`reparse stderr: ${stderr}`);
               if (error) { console.error(`reparse failed: ${stderr}`); return reject(error); }
+              let freshDistricts = [];
+              let freshDetails = [];
+              let freshOpens = null;
+              let freshCloses = null;
+              try {
+                const raw = JSON.parse(stdout.trim());
+                if (Array.isArray(raw)) {
+                  freshDistricts = raw;
+                } else {
+                  freshDistricts = raw.districts        || [];
+                  freshDetails   = raw.district_details || [];
+                  freshOpens     = raw.earliest_opens_at || null;
+                  freshCloses    = raw.latest_closes_at  || null;
+                }
+              } catch (_) {
+                console.warn('reparse: could not parse stdout JSON, falling back to HTML-only update');
+              }
               try {
                 const htmlContent = await fs.readFile(outputPath, 'utf8');
-                await db.query(
-                  `UPDATE parsed_results SET html_content = $1, html_filename = $2, html_url = $3 WHERE id = $4`,
-                  [htmlContent, outputFilename, `/results/${outputFilename}`, req.params.id]
-                );
+                if (freshDistricts.length) {
+                  await db.query(
+                    `UPDATE parsed_results
+                     SET html_content = $1, html_filename = $2, html_url = $3,
+                         districts = $4, parsed_json = $5,
+                         earliest_opens_at = $6, latest_closes_at = $7
+                     WHERE id = $8`,
+                    [htmlContent, outputFilename, `/results/${outputFilename}`,
+                     freshDistricts, JSON.stringify(freshDetails),
+                     freshOpens, freshCloses, req.params.id]
+                  );
+                } else {
+                  await db.query(
+                    `UPDATE parsed_results SET html_content = $1, html_filename = $2, html_url = $3 WHERE id = $4`,
+                    [htmlContent, outputFilename, `/results/${outputFilename}`, req.params.id]
+                  );
+                }
                 console.log(`✓ Reparse complete for result #${req.params.id}`);
               } catch (e) { console.error('reparse DB update failed:', e); }
+              if (freshDistricts.length) {
+                try {
+                  await notifyCaptains(freshDistricts, freshDetails, { kind: 'correction' });
+                } catch (e) { console.error('reparse correction alert failed:', e); }
+              }
               resolve();
             }
           );
