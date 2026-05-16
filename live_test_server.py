@@ -2040,9 +2040,26 @@ def main():
     earliest_opens_at = min(opens_times)  if opens_times  else None
     latest_closes_at  = max(closes_times) if closes_times else None
 
+    # Compact per-district details for downstream alerting (Telegram).
+    # Only fields the alert renderer needs — keeps stdout JSON small.
+    district_details = [
+        {
+            "district": d.get("district"),
+            "status": d.get("status"),
+            "gear_types": d.get("gear_types") or [],
+            "opens_at": d.get("opens_at"),
+            "closes_at": d.get("closes_at"),
+            "duration_hours": d.get("duration_hours"),
+            "excluded_subdistricts": d.get("excluded_subdistricts") or [],
+            "excluded_hatchery_areas": d.get("excluded_hatchery_areas") or [],
+        }
+        for d in districts if d.get("district")
+    ]
+
     # Print structured JSON to stdout for the Node.js backend to read
     print(json.dumps({
         "districts": district_names,
+        "district_details": district_details,
         "announcement_date": announcement_date,
         "has_open": has_open,
         "earliest_opens_at": earliest_opens_at,
