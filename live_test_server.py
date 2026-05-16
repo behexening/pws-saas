@@ -586,6 +586,61 @@ HATCHERY_ALIAS_TO_STAT_AREA = {
 }
 
 _HATCHERY_GEOMS = None  # stat_area_id → shapely geom (lazy-loaded)
+_PERMANENT_CLOSURES = None  # unary_union of all polygons in data/closedwaters/DONECLOSURES.shp
+
+
+def _load_permanent_closures():
+    """Lazy-load the permanent closed-waters mask (DONECLOSURES.shp).
+    These polygons are subtracted from every parsed open area so that
+    statutory closures from 5 AAC 24.350 (including their land extents
+    on the seaward side) never appear as open. Returns a single shapely
+    geometry (unary union) or None if the file is missing/unreadable."""
+    global _PERMANENT_CLOSURES
+    if _PERMANENT_CLOSURES is not None:
+        return _PERMANENT_CLOSURES
+    shp_path = DATA / "closedwaters" / "DONECLOSURES.shp"
+    if not shp_path.exists():
+        print(f"WARNING: permanent closures shapefile not found at {shp_path}", file=sys.stderr)
+        _PERMANENT_CLOSURES = None
+        return _PERMANENT_CLOSURES
+    # DONECLOSURES.shp is authored in NAD83 / Alaska Albers (EPSG:3338, meters).
+    # Reproject to WGS84 (EPSG:4326) so it lines up with district / open-area geoms.
+    try:
+        from pyproj import Transformer
+        from shapely.ops import transform as shp_transform
+        to_wgs84 = Transformer.from_crs("EPSG:3338", "EPSG:4326", always_xy=True).transform
+    except Exception as e:
+        print(f"WARNING: pyproj reprojection unavailable, skipping permanent closures: {e}",
+              file=sys.stderr)
+        _PERMANENT_CLOSURES = None
+        return _PERMANENT_CLOSURES
+
+    try:
+        sf = shapefile.Reader(str(shp_path))
+        geoms = []
+        for rec in sf.shapeRecords():
+            try:
+                g = shape(rec.shape.__geo_interface__)
+                g = shp_transform(to_wgs84, g)
+                if not g.is_valid:
+                    g = make_valid(g)
+                    g = _polys_only(g) or g
+                if g is not None and not g.is_empty:
+                    geoms.append(g)
+            except Exception as e:
+                print(f"WARNING: skipped a permanent-closure polygon: {e}", file=sys.stderr)
+        if not geoms:
+            _PERMANENT_CLOSURES = None
+            return _PERMANENT_CLOSURES
+        merged = unary_union(geoms)
+        if not merged.is_valid:
+            merged = make_valid(merged)
+        _PERMANENT_CLOSURES = merged
+        print(f"Loaded {len(geoms)} permanent closure polygon(s)", file=sys.stderr)
+    except Exception as e:
+        print(f"WARNING: failed to load permanent closures: {e}", file=sys.stderr)
+        _PERMANENT_CLOSURES = None
+    return _PERMANENT_CLOSURES
 
 
 def _load_hatchery_geoms():
@@ -1149,6 +1204,19 @@ def extract_open_geom(district_geom, closures, excl_geoms):
         except Exception as e:
             print(f"WARNING: closure subtraction failed ({c.get('name')}): {e}",
                   file=sys.stderr)
+
+    # Permanent statutory closures (5 AAC 24.350). Applied last so they win
+    # over any announcement-derived geometry, and never inflate the open area.
+    permanent = _load_permanent_closures()
+    if permanent is not None and not permanent.is_empty:
+        try:
+            g = g.difference(permanent)
+            if g.is_empty:
+                print("WARNING: district became empty after permanent-closure subtraction",
+                      file=sys.stderr)
+                return None
+        except Exception as e:
+            print(f"WARNING: permanent-closure subtraction failed: {e}", file=sys.stderr)
 
     return _polys_only(g)
 
