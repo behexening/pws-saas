@@ -590,11 +590,18 @@ _PERMANENT_CLOSURES = None  # unary_union of all polygons in data/closedwaters/D
 
 
 def _load_permanent_closures():
-    """Lazy-load the permanent closed-waters mask (DONECLOSURES.shp).
-    These polygons are subtracted from every parsed open area so that
-    statutory closures from 5 AAC 24.350 (including their land extents
-    on the seaward side) never appear as open. Returns a single shapely
-    geometry (unary union) or None if the file is missing/unreadable."""
+    """Lazy-load the permanent closed-waters mask.
+
+    Combines two sources:
+      • DONECLOSURES.shp        — hand-traced statutory closures (NAD83/Alaska
+                                  Albers, reprojected on load).
+      • buffer_closures.geojson — auto-generated stream/shore buffers from
+                                  5 AAC 24.350 clauses too tedious to trace
+                                  by hand. Built by
+                                  scripts/build_buffer_closures.py.
+
+    Returns a single shapely geometry (unary union) or None if neither source
+    is readable."""
     global _PERMANENT_CLOSURES
     if _PERMANENT_CLOSURES is not None:
         return _PERMANENT_CLOSURES
@@ -629,6 +636,26 @@ def _load_permanent_closures():
                     geoms.append(g)
             except Exception as e:
                 print(f"WARNING: skipped a permanent-closure polygon: {e}", file=sys.stderr)
+        # Add auto-generated buffer closures (WGS84 GeoJSON, no reprojection).
+        buf_path = DATA / "closedwaters" / "buffer_closures.geojson"
+        n_buffer = 0
+        if buf_path.exists():
+            try:
+                fc = json.loads(buf_path.read_text())
+                for feat in fc.get("features", []):
+                    try:
+                        g = shape(feat["geometry"])
+                        if not g.is_valid:
+                            g = make_valid(g)
+                            g = _polys_only(g) or g
+                        if g is not None and not g.is_empty:
+                            geoms.append(g)
+                            n_buffer += 1
+                    except Exception as e:
+                        print(f"WARNING: skipped buffer-closure feature: {e}", file=sys.stderr)
+            except Exception as e:
+                print(f"WARNING: failed to read buffer_closures.geojson: {e}", file=sys.stderr)
+
         if not geoms:
             _PERMANENT_CLOSURES = None
             return _PERMANENT_CLOSURES
@@ -636,7 +663,8 @@ def _load_permanent_closures():
         if not merged.is_valid:
             merged = make_valid(merged)
         _PERMANENT_CLOSURES = merged
-        print(f"Loaded {len(geoms)} permanent closure polygon(s)", file=sys.stderr)
+        print(f"Loaded {len(geoms) - n_buffer} hand-traced + {n_buffer} buffer permanent closure polygon(s)",
+              file=sys.stderr)
     except Exception as e:
         print(f"WARNING: failed to load permanent closures: {e}", file=sys.stderr)
         _PERMANENT_CLOSURES = None
