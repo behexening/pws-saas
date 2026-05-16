@@ -203,7 +203,7 @@
           <td>${a.has_open_districts ? '<span class="pill ok">open</span>' : '<span class="pill muted">closed</span>'}</td>
           <td>${esc(a.pdf_filename || a.source || '—')}</td>
           <td class="actions">
-            ${a.html_url ? `<a class="btn" href="${esc(a.html_url)}" target="_blank">View</a>` : ''}
+            <a class="btn" href="/api/result/${a.result_id}/html" target="_blank">View</a>
             <button data-reparse="${a.result_id}">Reparse</button>
           </td>
         </tr>
@@ -215,7 +215,7 @@
 
     async function reparse(btn) {
       const id = btn.getAttribute('data-reparse');
-      if (!confirm(`Reparse result #${id}? This re-runs the Claude parser and overwrites the HTML for this announcement. It does NOT send any Telegram messages.`)) return;
+      if (!confirm(`Reparse result #${id}? This re-runs the Claude parser, overwrites the HTML, and DMs every eligible pro captain a "Correction" alert on Telegram.`)) return;
       btn.disabled = true;
       btn.textContent = 'Reparsing…';
       try {
