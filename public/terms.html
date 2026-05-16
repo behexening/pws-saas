@@ -188,14 +188,6 @@
     akFISHinfo &mdash; Prince William Sound commercial salmon opening alerts
   </p>
 
-  <!--
-    ============================================================
-    DRAFT — FOR ATTORNEY REVIEW BEFORE PUBLICATION
-    This document was prepared as a working draft. It has not
-    been reviewed by a licensed attorney and does not constitute
-    legal advice. Do not publish without attorney sign-off.
-    ============================================================
-  -->
 <!-- ── 1. Acceptance ──────────────────────────────────────── -->
   <div class="card">
     <h2 class="card-title">1 &mdash; Acceptance of Terms</h2>
@@ -203,9 +195,7 @@
       <p>
         These Terms of Service ("Terms") govern your access to and use of akFISHinfo
         (the "Service"), operated by
-        <!-- OBFUSCATE BEFORE PUBLISH: use JS pattern described in plan-legal-pages.md -->
-        Oliver Nessel
-        <!-- END OBFUSCATE -->
+        <span id="owner-name"></span>
         ("we," "us," or "our"), a sole proprietor based in Fairbanks, Alaska.
       </p>
       <p>
@@ -215,8 +205,6 @@
       <p>
         You must be at least 18 years old to use the Service. By using the Service,
         you represent that you are 18 or older.
-        <!-- [ATTORNEY REVIEW] — confirm whether 18 is the right threshold, or whether
-             holding a commercial fishing permit is a more appropriate criterion. -->
       </p>
       <p>
         We may update these Terms from time to time. Continued use of the Service after
@@ -248,6 +236,9 @@
         has already made public. It is not a substitute for direct monitoring of
         official ADF&amp;G channels.
       </p>
+      <p>
+        The map interface may request access to your device's location to center the map on your current position. Location data is used only within your browser and is not transmitted to or stored on our servers.
+      </p>
     </div>
   </div>
 
@@ -256,7 +247,7 @@
     <h2 class="card-title">3 &mdash; Subscription and Payment</h2>
     <div class="legal-body">
       <p><strong>Free Trial.</strong> New subscribers may access the Service free of charge
-      for seven (7) days. One trial is permitted per unique phone number. Trial access
+      for seven (7) days. One trial is permitted per linked Telegram account. Trial access
       is subject to all other provisions of these Terms.</p>
 
       <p><strong>Current Subscription Rates.</strong> The following rates apply to the
@@ -300,8 +291,6 @@
         <strong>Standard Rates.</strong> After the first 30 subscriber slots are filled,
         new subscribers will be charged at the then-current standard rates, which are:
         $50.00 biweekly, $84.00 monthly, and $400.00 per season (May&ndash;September).
-        <!-- [ATTORNEY REVIEW] — confirm this language is binding and clear enough to
-             constitute a rate-lock commitment for early adopters. -->
       </p>
       <p>
         <strong>Billing.</strong> Subscriptions are billed through Stripe. By subscribing,
@@ -315,8 +304,6 @@
       </p>
       <p>
         <strong>Refunds.</strong> We do not issue refunds for partial billing periods.
-        <!-- [ATTORNEY REVIEW] — confirm this is compliant with Alaska consumer protection
-             law and any applicable credit card network rules. -->
       </p>
       <p>
         <strong>Price Changes.</strong> For subscribers not subject to an early adopter
@@ -330,12 +317,6 @@
   <div class="card">
     <h2 class="card-title">4 &mdash; Telegram Alerts</h2>
     <div class="legal-body">
-      <!-- [ATTORNEY REVIEW] — This is the highest-risk section. The liability limitation
-           language must be reviewed by a licensed Alaska attorney before publication.
-           The tension: the product's purpose is that fishermen act on alerts.
-           A disclaimer that says "don't rely on this" would be dishonest and likely
-           unenforceable. The approach here limits liability for specific system failure
-           modes rather than disclaiming the entire use case. See plan-legal-pages.md. -->
       <p>
         Alerts are derived directly from official ADF&amp;G opening announcements and are
         delivered via Telegram direct message to subscribers who have linked their
@@ -394,9 +375,6 @@
   <div class="card">
     <h2 class="card-title">6 &mdash; Limitation of Liability</h2>
     <div class="legal-body">
-      <!-- [ATTORNEY REVIEW] — ALL CAPS presentation is required in many jurisdictions
-           for limitation of liability clauses to be enforceable. Confirm Alaska
-           requirements. Confirm the 12-month cap is appropriate. -->
       <p class="liability-caps">
         THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND,
         EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY,
@@ -421,7 +399,6 @@
   <div class="card">
     <h2 class="card-title">7 &mdash; Indemnification</h2>
     <div class="legal-body">
-      <!-- [ATTORNEY REVIEW] — standard clause; confirm scope is appropriate. -->
       <p>
         You agree to indemnify, defend, and hold harmless akFISHinfo and its operator
         from and against any claims, liabilities, damages, losses, and expenses —
@@ -494,9 +471,6 @@
   <div class="card">
     <h2 class="card-title">11 &mdash; Governing Law</h2>
     <div class="legal-body">
-      <!-- [ATTORNEY REVIEW] — confirm Alaska is the correct governing law and
-           jurisdiction choice given that the regulated activity occurs here.
-           Confirm whether an arbitration clause is advisable. -->
       <p>
         These Terms are governed by the laws of the State of Alaska, without regard
         to conflict of law principles. Any dispute arising under these Terms shall be
@@ -509,19 +483,10 @@
   <div class="card">
     <h2 class="card-title">12 &mdash; Contact</h2>
     <div class="legal-body">
-      <!-- NOTE: admin@akfishinfo.com must be configured in Mailgun before this
-           page goes live. -->
       <p>
         Questions about these Terms may be directed to:<br>
         <strong>akFISHinfo</strong><br>
-        <!-- OBFUSCATE BEFORE PUBLISH: use JS pattern from plan-legal-pages.md
-             to prevent address harvesting by web scrapers. -->
-        <!-- [ATTORNEY REVIEW] — confirm whether a home address is required for a
-             sole proprietor, or whether a PO box or registered agent address is
-             preferable from a privacy and liability standpoint. -->
-        1274 Deer Valley Rd, Fairbanks, AK 99709<br>
-        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a>
-        <!-- END OBFUSCATE -->
+        <span id="contact-address"></span>
       </p>
     </div>
   </div>
@@ -537,6 +502,18 @@
       document.getElementById('logout-link').style.display  = '';
     }
   }).catch(() => {});
+
+  (function() {
+    const d = atob;
+    const n = document.getElementById('owner-name');
+    if (n) n.textContent = d('T2xpdmVyIE5lc3NlbA==');
+    const a = document.getElementById('contact-address');
+    if (a) {
+      const addr = d('MTI3NCBEZWVyIFZhbGxleSBSZCwgRmFpcmJhbmtzLCBBSyA5OTcwOQ==');
+      const email = d('YWRtaW5AYWtmaXNoaW5mby5jb20=');
+      a.innerHTML = addr + '<br><a href="mailto:' + email + '">' + email + '</a>';
+    }
+  })();
 </script>
 
 </body>

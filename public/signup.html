@@ -187,6 +187,63 @@
     }
     .skip-link:focus { top: 0; }
     main { display: contents; }
+    .tos-box {
+      height: 260px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 14px;
+      background: var(--bg);
+    }
+    .tos-box h3 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      margin: 12px 0 4px;
+    }
+    .tos-box h3:first-child { margin-top: 0; }
+    .tos-box p { margin-bottom: 8px; }
+    .tos-box p:last-child { margin-bottom: 0; }
+    .tos-scroll-hint {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 10px;
+      transition: opacity 0.3s;
+    }
+    .btn-accept {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      color: #000;
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+      margin-bottom: 8px;
+    }
+    .btn-accept:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-accept:not(:disabled):hover { opacity: 0.85; }
+    .tos-full-link {
+      display: block;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--accent);
+      text-decoration: none;
+      margin-top: 6px;
+    }
+    .tos-full-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -196,49 +253,101 @@
   <a href="/" class="wordmark">akFISH<em>info.</em></a>
 
   <main id="main">
-  <div class="card">
-    <h1>Create account</h1>
-    <p class="sub">Real-time alerts for PWS commercial openings.</p>
+    <!-- Step 1: ToS acceptance -->
+    <div class="card" id="step-tos">
+      <h1>Create account</h1>
+      <p class="sub">Please read and accept the Terms of Service to continue.</p>
+      <div class="tos-box" id="tos-scroll-box">
+        <h3>What akFISHinfo does</h3>
+        <p>akFISHinfo monitors ADF&amp;G announcements for Prince William Sound commercial salmon openings and delivers alerts to your Telegram account. It is an information delivery tool — not an authoritative regulatory source.</p>
 
-    <div class="error-msg" id="errorMsg"></div>
+        <h3>Subscription &amp; billing</h3>
+        <p>Subscriptions are billed through Stripe on a recurring basis. Early adopter rates are locked for the first 30 subscribers as long as the subscription stays active. We do not issue refunds for partial billing periods. Subscriptions renew automatically; you may cancel at any time.</p>
 
-    <a href="/auth/google" class="btn-google" aria-label="Sign up with Google">
-      <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
-        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-        <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
-        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
-      </svg>
-      Continue with Google
-    </a>
+        <h3>No guarantee of delivery or accuracy</h3>
+        <p>akFISHinfo does not guarantee: (a) the accuracy of AI-parsed announcement data; (b) Telegram delivery timing; (c) that all ADF&amp;G announcements will be received; or (d) that amendments issued after an initial alert will be reflected in prior messages. You are responsible for verifying that a fishery is open before deploying gear.</p>
 
-    <div class="divider">or</div>
+        <h3>Limitation of liability</h3>
+        <p>THE SERVICE IS PROVIDED "AS IS." TO THE MAXIMUM EXTENT PERMITTED BY LAW, AKFISHINFO SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST CATCH, FINES, OR VESSEL DAMAGE. TOTAL LIABILITY IS CAPPED AT FEES PAID IN THE PRECEDING 12 MONTHS.</p>
 
-    <form id="signup-form">
-      <label for="su-name" class="sr-only">Full name</label>
-      <input type="text"     id="su-name"     placeholder="Full name"              required autocomplete="name" />
-      <label for="su-email" class="sr-only">Email address</label>
-      <input type="email"    id="su-email"    placeholder="Email"                  required autocomplete="email" />
-      <label for="su-password" class="sr-only">Password (minimum 8 characters)</label>
-      <input type="password" id="su-password" placeholder="Password (min 8 chars)" required minlength="8" autocomplete="new-password" />
-      <label class="remember-row">
-        <input type="checkbox" id="su-remember" /> Stay signed in for 30 days
-      </label>
-      <p style="font-size:0.74rem;color:var(--muted);margin:6px 0 14px;line-height:1.5">
-        After signup, you'll link your Telegram account so we can DM you when openings are announced. Free and takes about 30 seconds.
-      </p>
-      <button type="submit" class="btn-submit">Create account</button>
-    </form>
+        <h3>Location data</h3>
+        <p>The map interface may request access to your device's location to center the map. Location data is not transmitted to or stored on our servers.</p>
 
-    <div class="toggle-row">
-      Already have an account?<a href="/login">Sign in</a>
+        <h3>Governing law</h3>
+        <p>These Terms are governed by the laws of the State of Alaska. Disputes shall be resolved in Alaska courts.</p>
+      </div>
+      <p class="tos-scroll-hint" id="tos-hint">Scroll to the bottom to continue</p>
+      <button class="btn-accept" id="btn-accept-tos" disabled>I have read and agree to the Terms of Service</button>
+      <a href="/terms" class="tos-full-link" target="_blank" rel="noopener">View full Terms of Service</a>
     </div>
-  </div>
+
+    <!-- Step 2: Signup form -->
+    <div class="card" id="step-form" style="display:none">
+      <h1>Create account</h1>
+      <p class="sub">Real-time alerts for PWS commercial openings.</p>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <a href="/auth/google" class="btn-google" id="btn-google" aria-label="Sign up with Google">
+        <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+          <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+        </svg>
+        Continue with Google
+      </a>
+
+      <div class="divider">or</div>
+
+      <form id="signup-form">
+        <label for="su-name" class="sr-only">Full name</label>
+        <input type="text"     id="su-name"     placeholder="Full name"              required autocomplete="name" />
+        <label for="su-email" class="sr-only">Email address</label>
+        <input type="email"    id="su-email"    placeholder="Email"                  required autocomplete="email" />
+        <label for="su-password" class="sr-only">Password (minimum 8 characters)</label>
+        <input type="password" id="su-password" placeholder="Password (min 8 chars)" required minlength="8" autocomplete="new-password" />
+        <label class="remember-row">
+          <input type="checkbox" id="su-remember" /> Stay signed in for 30 days
+        </label>
+        <p style="font-size:0.74rem;color:var(--muted);margin:6px 0 14px;line-height:1.5">
+          After signup, you'll link your Telegram account so we can DM you when openings are announced. Free and takes about 30 seconds.
+        </p>
+        <button type="submit" class="btn-submit">Create account</button>
+      </form>
+
+      <div class="toggle-row">
+        Already have an account?<a href="/login">Sign in</a>
+      </div>
+    </div>
   </main>
 
   <a href="/" class="back">Back to homepage</a>
 
   <script>
+    // ToS step
+    const tosBox   = document.getElementById('tos-scroll-box');
+    const btnAccept = document.getElementById('btn-accept-tos');
+    const tosHint  = document.getElementById('tos-hint');
+    const stepTos  = document.getElementById('step-tos');
+    const stepForm = document.getElementById('step-form');
+
+    function checkTosScroll() {
+      const atBottom = tosBox.scrollTop + tosBox.clientHeight >= tosBox.scrollHeight - 8;
+      if (atBottom) {
+        btnAccept.disabled = false;
+        tosHint.style.opacity = '0';
+      }
+    }
+    tosBox.addEventListener('scroll', checkTosScroll);
+    checkTosScroll();
+
+    btnAccept.addEventListener('click', () => {
+      stepTos.style.display  = 'none';
+      stepForm.style.display = '';
+    });
+
+    // Signup form
     function showError(msg) {
       const el = document.getElementById('errorMsg');
       el.textContent = msg;

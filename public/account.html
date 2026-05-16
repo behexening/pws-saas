@@ -254,6 +254,9 @@
       <span class="info-label">Trial ends</span>
       <span id="acc-trial-end">—</span>
     </div>
+    <div class="action-row" id="billing-portal-row" style="display:none;margin-top:10px">
+      <button class="btn btn-ghost" id="billing-portal-btn">Manage billing</button>
+    </div>
   </div>
 
   <!-- Profile -->
@@ -376,6 +379,10 @@ async function loadAccount() {
   }
   document.getElementById('acc-tier').innerHTML   = tierHtml;
   document.getElementById('acc-status').innerHTML = statusHtml;
+
+  if (user.has_billing) {
+    document.getElementById('billing-portal-row').style.display = 'flex';
+  }
 
   document.getElementById('acc-name').value  = user.name  || '';
   document.getElementById('acc-email').value = user.email || '';
@@ -510,6 +517,19 @@ loadAccount();
 document.getElementById('resend-verify-btn')?.addEventListener('click', resendVerification);
 document.getElementById('save-profile-btn')?.addEventListener('click', saveProfile);
 document.getElementById('change-password-btn')?.addEventListener('click', changePassword);
+document.getElementById('billing-portal-btn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('billing-portal-btn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+  try {
+    const r = await fetch('/api/billing/portal', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not open billing portal');
+    window.location.href = d.url;
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Manage billing';
+    alert(err.message);
+  }
+});
 </script>
 </body>
 </html>
