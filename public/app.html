@@ -116,6 +116,10 @@
     }
     .nav-link:hover { color: var(--text); }
 
+    /* Desktop: the hamburger button is hidden, .nav-menu items flow inline */
+    .nav-menu-btn { display: none; }
+    .nav-menu { display: contents; }
+
     /* ── Main split ── */
     .main-split {
       display: grid;
@@ -499,18 +503,79 @@
       body { height: auto; overflow: auto; }
 
       .app-layout {
-        grid-template-rows: 44px 1fr;
+        grid-template-rows: auto 1fr;
         height: auto;
         min-height: 100dvh;
       }
 
-      /* Topbar: tighten spacing, hide nav text links */
-      .topbar { padding: 0 12px; }
-      .wordmark { font-size: 15px; }
-      .live-badge { display: none; }
-      .topbar-right { gap: 8px; }
+      /* Topbar: single row — three tabs fill the width, hamburger on the right.
+         Wordmark is hidden (redundant inside the app), nav links collapse into a dropdown. */
+      .topbar {
+        padding: 6px 10px;
+        gap: 8px;
+        position: relative; /* anchor the dropdown */
+        align-items: center;
+      }
+      .topbar-left { display: contents; }
+      .wordmark, .live-badge { display: none; }
       #trial-badge { display: none !important; } /* shown in map overlay instead */
-      .nav-link { font-size: 11px; }
+      .topbar-tabs {
+        order: 1;
+        flex: 1 1 auto;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+      }
+      .tab-btn { padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+      .topbar-right {
+        order: 2;
+        gap: 0;
+        flex-shrink: 0;
+        position: static; /* dropdown is positioned off .topbar */
+      }
+      /* Hamburger button */
+      .nav-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        border-radius: 0;
+      }
+      .nav-menu-btn:hover { border-color: var(--muted); }
+      /* Dropdown: hidden by default, anchored to top-right corner of topbar */
+      .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 8px;
+        min-width: 160px;
+        flex-direction: column;
+        gap: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 4px 0;
+        z-index: 1100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      .topbar-right.menu-open .nav-menu { display: flex; }
+      .nav-menu .nav-link {
+        font-size: 13px;
+        padding: 10px 14px;
+        white-space: nowrap;
+      }
+      .nav-menu .nav-link:hover { background: var(--surface2); }
+      .nav-menu .theme-toggle {
+        margin: 6px 14px;
+        align-self: flex-start;
+      }
 
       /* Stack map on top, cards below */
       .main-split {
@@ -624,13 +689,18 @@
     </div>
     <div class="topbar-right" id="topbar-right">
       <span id="trial-badge" style="display:none; font-size:11px; font-weight:600; color:#f39c12; background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.3); padding:3px 8px; border-radius: 0; letter-spacing:-0.01em;"></span>
-      <a href="/about"   class="nav-link">about</a>
-      <a href="/account" class="nav-link" id="account-link" style="display:none">account</a>
-      <a href="/auth/logout" class="nav-link" id="logout-link" style="display:none">sign out</a>
-      <a href="/login" class="nav-link" id="login-link">login</a>
-      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
-        <span class="icon-sun" aria-hidden="true">☀</span><span class="icon-moon" aria-hidden="true">☾</span>
+      <button type="button" class="nav-menu-btn" id="nav-menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+        <span aria-hidden="true">☰</span>
       </button>
+      <div class="nav-menu" id="nav-menu">
+        <a href="/about"   class="nav-link">about</a>
+        <a href="/account" class="nav-link" id="account-link" style="display:none">account</a>
+        <a href="/auth/logout" class="nav-link" id="logout-link" style="display:none">sign out</a>
+        <a href="/login" class="nav-link" id="login-link">login</a>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+          <span class="icon-sun" aria-hidden="true">☀</span><span class="icon-moon" aria-hidden="true">☾</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1531,6 +1601,28 @@ setInterval(() => { if (currentTab === 'live' || currentTab === 'upcoming') load
 // On mobile the grid reflows after DOMContentLoaded, so we wait a tick.
 setTimeout(() => map.invalidateSize(), 50);
 window.addEventListener('resize', () => map.invalidateSize());
+
+// Mobile hamburger dropdown — toggles .menu-open on .topbar-right
+(() => {
+  const btn = document.getElementById('nav-menu-btn');
+  const right = document.getElementById('topbar-right');
+  if (!btn || !right) return;
+  const close = () => { right.classList.remove('menu-open'); btn.setAttribute('aria-expanded', 'false'); };
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = right.classList.toggle('menu-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if (!right.classList.contains('menu-open')) return;
+    if (!right.contains(e.target)) close();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  // Close after tapping a link inside the menu
+  document.getElementById('nav-menu').addEventListener('click', (e) => {
+    if (e.target.closest('a')) close();
+  });
+})();
 
 // Session: show/hide nav links + trial badge
 fetch('/api/me').then(r => r.json()).then(({ user }) => {
