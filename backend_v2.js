@@ -343,6 +343,7 @@ app.get('/auth/google',
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login?error=1' }),
   (req, res) => {
+    req.session.cookie.maxAge = THIRTY_DAYS;
     // alaska.gov and admins skip the link/trial setup entirely.
     // Everyone else lands on /setup if they haven't linked Telegram yet.
     if (!req.user.telegram_chat_id && !isAlaskaGov(req.user.email) && !req.user.is_admin) {
