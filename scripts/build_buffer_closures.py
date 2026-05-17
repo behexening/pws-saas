@@ -259,6 +259,20 @@ def build(awc, districts):
     )
     if f: features.append(f)
 
+    # ── Named-waterbody permanent closures ───────────────────────────────
+    # (1)(A) Boswell Bay — "at all times within sloughs and in Boswell Bay
+    # within the bay". No coords in the statute; uses a hand-drawn envelope.
+    boswell = load_geojson_polygon(ROOT / "data" / "closedwaters" / "boswell_bay.geojson")
+    if boswell is not None:
+        features.append({
+            "type": "Feature",
+            "geometry": _round_coords(mapping(boswell)),
+            "properties": {
+                "rule": "5 AAC 24.350(1)(A) Boswell Bay — permanent closure",
+                "kind": "permanent",
+            },
+        })
+
     # ── Shore-buffer closures ────────────────────────────────────────────
     eastern = districts.get("Eastern District")
     montague = districts.get("Montague District")
