@@ -834,17 +834,25 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
   const streamLayer = L.layerGroup().addTo(map);
   let visible = true;
 
-  fetch('/awc-points.json')
-    .then(r => r.json())
-    .then(function(pts) {
+  Promise.all([
+    fetch('/awc-points.json').then(r => r.json()),
+    fetch('/awc-point-overrides.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+  ])
+    .then(function(results) {
+      var pts = results[0];
+      var overrides = results[1];
+      var YARDS_TO_M = 0.9144;
       pts.forEach(function(pt) {
+        var override = overrides[pt.awc];
+        var yards = override ? override.radius_yds : 500;
         L.circle([pt.lat, pt.lon], {
           renderer: canvasRenderer,
-          radius: 457,
+          radius: yards * YARDS_TO_M,
           color: '#e67e22', weight: 1, opacity: 0.7,
           fillColor: '#060a0f', fillOpacity: 0.70,
         }).bindTooltip(
-          '⛔ Anadromous Stream<br><b>' + pt.name + '</b><br>500 yd closure buffer',
+          '⛔ Anadromous Stream<br><b>' + pt.name + '</b><br>' + yards + ' yd closure buffer' +
+          (override ? '<br><i>per ' + override.rule + '</i>' : ''),
           { direction: 'top', sticky: true }
         ).addTo(streamLayer);
       });
