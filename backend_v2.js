@@ -1100,12 +1100,16 @@ function verifyMailgunSignature(timestamp, token, signature) {
     console.warn('⚠ MAILGUN_WEBHOOK_SIGNING_KEY/MAILGUN_WEBHOOK_SECRET not set — skipping webhook signature check');
     return true;
   }
-  const expected = crypto
-    .createHmac('sha256', signingKey)
-    .update(timestamp + token)
-    .digest('hex');
+  if (typeof timestamp !== 'string' || typeof token !== 'string' || typeof signature !== 'string') {
+    console.warn('⚠ Mailgun webhook missing signature fields — cannot verify');
+    return false;
+  }
   try {
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature || ''));
+    const expected = crypto
+      .createHmac('sha256', signingKey)
+      .update(timestamp + token)
+      .digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
   } catch {
     return false;
   }
@@ -1120,9 +1124,13 @@ app.post('/webhooks/email', upload.any(), async (req, res) => {
   // multer.any() leaves req.body undefined on non-multipart requests
   // (probes, empty POSTs), so guard against that before destructuring.
   const body = req.body || {};
-  const { timestamp, token, signature } = body;
+  // Mailgun sends signature fields top-level for inbound route forwards,
+  // but some configurations nest them under `signature[...]`. Try both.
+  const timestamp = body.timestamp || body['signature[timestamp]'];
+  const token     = body.token     || body['signature[token]'];
+  const signature = body.signature || body['signature[signature]'];
   if (!verifyMailgunSignature(timestamp, token, signature)) {
-    console.warn('⚠ Mailgun webhook signature mismatch — rejected');
+    console.warn(`⚠ Mailgun webhook signature mismatch — rejected. body keys: ${Object.keys(body).join(',')}`);
     return res.status(403).send('Forbidden');
   }
   const sender = (body.sender || body.from || '').toLowerCase();
