@@ -364,7 +364,9 @@
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Could not fetch code');
         if (d.already_linked) {
-          showLinked(d.telegram_username);
+          // Defer to pollMe so the has_access short-circuit kicks in if the
+          // user is a beta tester/admin/etc.
+          pollMe();
           return;
         }
         applyCode(d);
@@ -407,6 +409,9 @@
         const { user } = await r.json();
         if (!user) { location.href = '/login'; return; }
         if (user.telegram_linked) {
+          // Beta testers, admins, alaska.gov, active trials, and paid pros
+          // already have access — skip the trial/subscribe gate entirely.
+          if (user.has_access) { location.href = '/app'; return; }
           statusDot.classList.add('linked');
           statusText.textContent = 'Telegram linked.';
           showLinked(user.telegram_username);
@@ -440,6 +445,9 @@
       const first = (user.name || '').split(' ')[0];
       if (first) document.getElementById('greeting').textContent = first;
       if (user.telegram_linked) {
+        // Beta testers, admins, alaska.gov, trials, pros already have access
+        // — don't even render the trial/subscribe gate.
+        if (user.has_access) { location.href = '/app'; return; }
         showLinked(user.telegram_username);
         return;
       }

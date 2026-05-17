@@ -225,20 +225,26 @@ passport.use(new GoogleStrategy({
     let result = await db.query('SELECT * FROM captains WHERE google_id = $1', [googleId]);
 
     if (result.rows.length === 0) {
-      // 2. Existing account signed up manually — link it
+      // 2. Existing account signed up manually — link it. Google has proven
+      // they own the address, so flip email_verified too.
       result = await db.query('SELECT * FROM captains WHERE email = $1', [email]);
       if (result.rows.length > 0) {
         await db.query(
-          'UPDATE captains SET google_id = $1, is_admin = $2, updated_at = NOW() WHERE id = $3',
+          `UPDATE captains
+           SET google_id = $1, is_admin = $2, email_verified = true,
+               updated_at = NOW()
+           WHERE id = $3`,
           [googleId, admin, result.rows[0].id]
         );
-        result.rows[0].google_id = googleId;
-        result.rows[0].is_admin  = admin;
+        result.rows[0].google_id      = googleId;
+        result.rows[0].is_admin       = admin;
+        result.rows[0].email_verified = true;
       } else {
-        // 3. Brand-new user — create free-tier record
+        // 3. Brand-new user — create free-tier record. Google OAuth = email
+        // already verified, so don't make them click a verification link.
         result = await db.query(
-          `INSERT INTO captains (email, name, google_id, tier, is_admin)
-           VALUES ($1, $2, $3, 'free', $4) RETURNING *`,
+          `INSERT INTO captains (email, name, google_id, tier, is_admin, email_verified)
+           VALUES ($1, $2, $3, 'free', $4, true) RETURNING *`,
           [email, name, googleId, admin]
         );
       }
