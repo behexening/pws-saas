@@ -1093,9 +1093,11 @@ async function initDatabase() {
  * Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/#securing-webhooks
  */
 function verifyMailgunSignature(timestamp, token, signature) {
-  const signingKey = process.env.MAILGUN_WEBHOOK_SIGNING_KEY;
+  const signingKey =
+    process.env.MAILGUN_WEBHOOK_SIGNING_KEY ||
+    process.env.MAILGUN_WEBHOOK_SECRET;
   if (!signingKey) {
-    console.warn('⚠ MAILGUN_WEBHOOK_SIGNING_KEY not set — skipping webhook signature check');
+    console.warn('⚠ MAILGUN_WEBHOOK_SIGNING_KEY/MAILGUN_WEBHOOK_SECRET not set — skipping webhook signature check');
     return true;
   }
   const expected = crypto
@@ -1123,7 +1125,7 @@ app.post('/webhooks/email', upload.any(), async (req, res) => {
     console.warn('⚠ Mailgun webhook signature mismatch — rejected');
     return res.status(403).send('Forbidden');
   }
-  const sender = (req.body.sender || req.body.from || '').toLowerCase();
+  const sender = (body.sender || body.from || '').toLowerCase();
   const trusted =
     TRUSTED_SENDER_DOMAINS.some(d => sender.endsWith(d)) ||
     EXTRA_ALLOWED_SENDERS.some(s => sender.includes(s));
@@ -1132,8 +1134,8 @@ app.post('/webhooks/email', upload.any(), async (req, res) => {
     return res.status(200).send('OK');
   }
   try {
-    const subject = req.body.subject || '';
-    const attachmentCount = parseInt(req.body['attachment-count'] || '0', 10);
+    const subject = body.subject || '';
+    const attachmentCount = parseInt(body['attachment-count'] || '0', 10);
 
     console.log(`📨 Email received — subject: "${subject}", attachments: ${attachmentCount}, files: ${req.files?.length || 0}`);
 
