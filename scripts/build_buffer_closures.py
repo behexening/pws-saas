@@ -73,10 +73,13 @@ def load_awc():
 
 
 def filter_awc(awc, *, lat_min=None, lat_max=None, lon_min=None, lon_max=None,
-               bbox=None, name_substring=None):
+               bbox=None, name_substring=None, exclude_awc_ids=None):
     """Returns the full AWC point dicts that pass the filter."""
+    exclude_awc_ids = set(exclude_awc_ids or [])
     pts = []
     for p in awc:
+        if p.get("awc") in exclude_awc_ids:
+            continue
         if lat_min is not None and p["lat"] < lat_min:
             continue
         if lat_max is not None and p["lat"] > lat_max:
@@ -183,10 +186,12 @@ def shore_buffer_feature(district_geom, p1, p2, yards, rule):
 # unexpected leakage.
 SCOPE_BBOXES = {
     "jack_bay":           box(-146.65, 61.00, -146.50, 61.07),
-    # South edge anchored at Kononoff Creek's latitude — regulation scopes
+    # South edge anchored at Brizgaloff Creek's latitude — regulation scopes
     # to "streams in Dangerous Passage" and per local guidance anything south
-    # of Kononoff Creek is outside the passage.
-    "dangerous_passage":  box(-148.18, 60.29446, -148.00, 60.42),
+    # of Brizgaloff Creek is outside the passage. Chenega Creek sits inside
+    # the bbox geographically but is also outside the passage and is
+    # explicitly excluded in the rule below.
+    "dangerous_passage":  box(-148.18, 60.31629, -148.00, 60.42),
 }
 
 
@@ -231,8 +236,11 @@ def build(awc, districts):
     if f: features.append(f)
 
     # (9)(A) Dangerous Passage — 1,000 yds, all streams between two longitudes.
+    # Chenega Creek (226-20-16280) sits inside the bbox but isn't part of
+    # the passage per local guidance — excluded.
     f = stream_buffer_feature(
         awc, 1000, bbox=SCOPE_BBOXES["dangerous_passage"],
+        exclude_awc_ids={"226-20-16280"},
         rule="5 AAC 24.350(9)(A) Dangerous Passage — 1000yd stream buffers (provisional bbox)",
         overrides=overrides,
     )
