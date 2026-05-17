@@ -1742,10 +1742,11 @@ app.get('/api/latest', async (req, res) => {
 
 /**
  * GET /api/results/live
- * Currently active, today's, or upcoming (within 48h) announcements.
- * - Openings that close within the last 12h (still relevant)
- * - Openings that haven't started yet but start within 48h
- * - Fallback: announcement_date = today or tomorrow (AKDT)
+ * Openings happening right now (between earliest_opens_at and latest_closes_at,
+ * plus a 12h grace after close so a captain glancing at the app after the
+ * window doesn't see "no live announcements" while gear is still being pulled).
+ * Falls back to "announcement_date = today/tomorrow AKDT" for legacy rows
+ * where the parser didn't extract a window.
  */
 app.get('/api/results/live', async (req, res) => {
   try {
@@ -1754,16 +1755,42 @@ app.get('/api/results/live', async (req, res) => {
               announcement_date, has_open_districts, earliest_opens_at, latest_closes_at
        FROM parsed_results
        WHERE
-         -- Opening window not yet fully past (allow 12h grace after close)
-         (latest_closes_at IS NOT NULL AND latest_closes_at >= NOW() - INTERVAL '12 hours')
-         -- Upcoming with known open time (within 48h)
-         OR (earliest_opens_at IS NOT NULL AND earliest_opens_at <= NOW() + INTERVAL '48 hours' AND (latest_closes_at IS NULL OR latest_closes_at >= NOW()))
-         -- Fallback: announcement date is today or tomorrow in AKDT
-         OR announcement_date = (NOW() AT TIME ZONE 'America/Anchorage')::date
-         OR announcement_date = ((NOW() AT TIME ZONE 'America/Anchorage') + INTERVAL '1 day')::date
+         (earliest_opens_at IS NOT NULL
+          AND earliest_opens_at <= NOW()
+          AND (latest_closes_at IS NULL OR latest_closes_at >= NOW() - INTERVAL '12 hours'))
+         OR (
+           earliest_opens_at IS NULL
+           AND (
+             announcement_date = (NOW() AT TIME ZONE 'America/Anchorage')::date
+             OR announcement_date = ((NOW() AT TIME ZONE 'America/Anchorage') + INTERVAL '1 day')::date
+           )
+         )
        ORDER BY
          COALESCE(earliest_opens_at, parsed_at) DESC
        LIMIT 10`
+    );
+    res.json({ results: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/results/upcoming
+ * Announcements that have been published but whose opening hasn't started yet
+ * (earliest_opens_at > NOW()). Sorted nearest-first.
+ */
+app.get('/api/results/upcoming', async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT id, announcement_id, html_url, districts, parsed_at,
+              announcement_date, has_open_districts, earliest_opens_at, latest_closes_at
+       FROM parsed_results
+       WHERE earliest_opens_at IS NOT NULL
+       AND earliest_opens_at > NOW()
+       ORDER BY earliest_opens_at ASC
+       LIMIT 20`
     );
     res.json({ results: result.rows });
   } catch (err) {

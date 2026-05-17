@@ -618,6 +618,7 @@
       <span class="live-badge">live</span>
       <div class="topbar-tabs">
         <button class="tab-btn active" id="tab-btn-live">live</button>
+        <button class="tab-btn" id="tab-btn-upcoming">upcoming</button>
         <button class="tab-btn" id="tab-btn-old">old</button>
       </div>
     </div>
@@ -938,7 +939,9 @@ function fmtDate(r) {
 // ── Load and render for a given tab ──
 async function loadTab(tab) {
   try {
-    const endpoint = tab === 'live' ? '/api/results/live' : '/api/results/all';
+    const endpoint = tab === 'live'     ? '/api/results/live'
+                   : tab === 'upcoming' ? '/api/results/upcoming'
+                   :                      '/api/results/all';
     const resp = await fetch(endpoint);
     const data = await resp.json();
     allResults = data.results || [];
@@ -1155,8 +1158,11 @@ function renderPanel(result) {
 
   if (!result || !result._html) {
     header.style.display = 'none';
-    container.innerHTML = currentTab === 'live'
-      ? '<div class="no-data"><strong>No live announcements</strong>No openings match today\'s date in AKDT.</div>'
+    container.innerHTML =
+        currentTab === 'live'
+      ? '<div class="no-data"><strong>No live announcements</strong>Nothing is currently open. Check the upcoming tab for scheduled openings.</div>'
+      : currentTab === 'upcoming'
+      ? '<div class="no-data"><strong>No upcoming announcements</strong>No openings scheduled for the future right now.</div>'
       : '<div class="no-data"><strong>No past announcements</strong>Send a PDF email to get started.</div>';
     return;
   }
@@ -1512,13 +1518,14 @@ function highlightDistrict(key) {
 
 // Init
 document.getElementById('tab-btn-live').addEventListener('click', function(){ setTab('live', this); });
+document.getElementById('tab-btn-upcoming').addEventListener('click', function(){ setTab('upcoming', this); });
 document.getElementById('tab-btn-old').addEventListener('click', function(){ setTab('old', this); });
 document.getElementById('date-slider').addEventListener('input', function(){ onSliderInput(this.value); });
 document.getElementById('scrubber-prev').addEventListener('click', () => stepSlider(-1));
 document.getElementById('scrubber-next').addEventListener('click', () => stepSlider(1));
 
 loadTab('live');
-setInterval(() => { if (currentTab === 'live') loadTab('live'); }, 60000);
+setInterval(() => { if (currentTab === 'live' || currentTab === 'upcoming') loadTab(currentTab); }, 60000);
 
 // Leaflet needs to know the real container size after layout settles.
 // On mobile the grid reflows after DOMContentLoaded, so we wait a tick.
