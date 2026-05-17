@@ -183,7 +183,10 @@ def shore_buffer_feature(district_geom, p1, p2, yards, rule):
 # unexpected leakage.
 SCOPE_BBOXES = {
     "jack_bay":           box(-146.65, 61.00, -146.50, 61.07),
-    "dangerous_passage":  box(-148.18, 60.10, -148.00, 60.42),
+    # South edge anchored at Kononoff Creek's latitude — regulation scopes
+    # to "streams in Dangerous Passage" and per local guidance anything south
+    # of Kononoff Creek is outside the passage.
+    "dangerous_passage":  box(-148.18, 60.29446, -148.00, 60.42),
 }
 
 
