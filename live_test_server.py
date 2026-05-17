@@ -884,13 +884,22 @@ def _load_bboxes():
         except Exception as e:
             print(f"WARNING: bad bbox geometry for {name!r}: {e}", file=sys.stderr)
             continue
-        key = _normalize_feature_name(name)
-        if not key:
-            continue
-        _BBOXES.setdefault(key, []).append({
-            'polygon': poly,
-            'district': (props.get('district') or '').strip().lower() or None,
-        })
+        district = (props.get('district') or '').strip().lower() or None
+        keys = [name]
+        aliases = props.get('aliases') or []
+        if isinstance(aliases, str):
+            aliases = [a.strip() for a in aliases.split(',') if a.strip()]
+        keys.extend(aliases)
+        seen = set()
+        for raw in keys:
+            key = _normalize_feature_name(raw)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            _BBOXES.setdefault(key, []).append({
+                'polygon': poly,
+                'district': district,
+            })
     return _BBOXES
 
 

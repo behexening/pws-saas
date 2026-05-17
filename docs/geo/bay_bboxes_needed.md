@@ -58,6 +58,7 @@ them if time-constrained.
 | 10 | **Landlocked Bay**     | Eastern | `-146.587222, 60.834444` | Order text uses a latitude cut (`north of 60° 50.76' N`); the bbox should cover the full pocket so the cut gets clipped correctly. |
 | 11 | **Irish Cove**         | Eastern | `-146.445556, 60.772222` | **⚠️ Name collision** — another Irish Cove at `-147.291111, 60.885556` is inside Northern District. The Eastern one is the regulated feature; label accordingly. |
 | 12 | **St. Matthews Bay**   | Eastern | `-146.32, 60.750833`     | Small. GNIS stores as "Saint Matthews Bay"; our normalizer handles `St. ↔ Saint`, so either label works. |
+| 13 | **Eshamy Bay**         | Eshamy  | `-147.984167, 60.468889` | Confirmed clipping issue — orders scope "waters of Eshamy Bay, east/west of a line…". Normalization fix (`_normalize_feature_name`) now finds the gazetteer entry but the 0.035° circular scope is undersized. Bbox: roughly `lon -148.10 → -147.96, lat 60.44 → 60.48`. |
 
 
 ## Features to watch but not yet drawn
@@ -79,7 +80,7 @@ When you're done drawing in QGIS, export as **GeoJSON** (not shapefile —
 we'll avoid the shp/shx/dbf sidecar dance) to:
 
 ```
-data/pws_bay_bboxes.geojson
+data/pws_bboxes.geojson
 ```
 
 Schema per feature — keep it this exact shape so the Python loader can
@@ -110,4 +111,4 @@ original GNIS point if we want to.
 
 Once the file is in place, I'll add a loader to `live_test_server.py`
 that prefers the hand-drawn bbox over the GNIS circular buffer whenever
-the closure name matches a feature in `pws_bay_bboxes.geojson`.
+the closure name matches a feature in `pws_bboxes.geojson`.
