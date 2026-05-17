@@ -748,9 +748,20 @@ async function linkChatToCaptain(chatId, code, username) {
     throw err;
   }
   await sendTelegramMessage(chatId,
-    `✓ Linked to <b>${escapeHtml(captain.email)}</b>. ` +
-    `You'll get a DM here when ADF&amp;G announces an opening. ` +
-    `Type /unlink any time to stop.`);
+    `<b>You're signed up.</b>\n` +
+    `Linked to <b>${escapeHtml(captain.email)}</b>.\n\n` +
+    `<b>What happens next</b>\n` +
+    `Every time ADF&amp;G publishes a PWS commercial salmon opening, ` +
+    `I'll DM you here with:\n` +
+    `• Which districts are open\n` +
+    `• When the opening starts and ends (AKDT)\n` +
+    `• Gear types and any subdistrict/hatchery exclusions\n` +
+    `• A tap-through link to the live map at akfishinfo.com/app\n\n` +
+    `<b>Commands</b>\n` +
+    `/status — confirm you're still linked\n` +
+    `/unlink — stop receiving alerts\n` +
+    `/help — list these again\n\n` +
+    `<i>Alerts are informational only — verify the official notice at adfg.alaska.gov before fishing.</i>`);
 }
 
 function escapeHtml(s) {
