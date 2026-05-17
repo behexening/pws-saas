@@ -72,6 +72,20 @@ def load_awc():
     return json.loads(AWC_PATH.read_text())
 
 
+def load_geojson_polygon(path):
+    """Load a single Feature/FeatureCollection GeoJSON and return its shapely geom."""
+    p = Path(path)
+    if not p.exists():
+        return None
+    data = json.loads(p.read_text())
+    if data.get("type") == "FeatureCollection":
+        geoms = [shape(f["geometry"]) for f in data["features"]]
+        return unary_union(geoms) if geoms else None
+    if data.get("type") == "Feature":
+        return shape(data["geometry"])
+    return shape(data)
+
+
 def filter_awc(awc, *, lat_min=None, lat_max=None, lon_min=None, lon_max=None,
                bbox=None, name_substring=None, exclude_awc_ids=None):
     """Returns the full AWC point dicts that pass the filter."""
@@ -209,23 +223,22 @@ def build(awc, districts):
     )
     if f: features.append(f)
 
-    # (4)(H) Unakwik Inlet — 1,000 yds, north of 60.86617.
-    f = stream_buffer_feature(
-        awc, 1000, lat_min=60.86617,
-        scope_geom=districts.get("Northern District"),
-        rule="5 AAC 24.350(4)(H) Unakwik Inlet — 1000yd stream buffers north of 60.86617",
-        overrides=overrides,
+    # (4)(H) + (5)(A) Unakwik Inlet — 1,000 yds on every salmon stream
+    # between 60.86617 N (Northern District side) and 61.08283 N (Unakwik
+    # District side). A single hand-drawn polygon scopes geographically
+    # to the inlet itself; statute lat bounds kept as safety.
+    unakwik_scope = load_geojson_polygon(
+        ROOT / "data" / "closedwaters" / "unakwik_inlet_bbox.geojson"
     )
-    if f: features.append(f)
-
-    # (5)(A) Unakwik District — 1,000 yds, south of 61.08283.
-    f = stream_buffer_feature(
-        awc, 1000, lat_max=61.08283,
-        scope_geom=districts.get("Unakwik District"),
-        rule="5 AAC 24.350(5)(A) Unakwik District — 1000yd stream buffers south of 61.08283",
-        overrides=overrides,
-    )
-    if f: features.append(f)
+    if unakwik_scope is not None:
+        f = stream_buffer_feature(
+            awc, 1000,
+            scope_geom=unakwik_scope,
+            lat_min=60.86617, lat_max=61.08283,
+            rule="5 AAC 24.350(4)(H)+(5)(A) Unakwik Inlet — 1000yd stream buffers",
+            overrides=overrides,
+        )
+        if f: features.append(f)
 
     # (8)(B) Gumboot Creek — 750 yds, single named creek.
     f = stream_buffer_feature(
