@@ -8,7 +8,7 @@ COPY . .
 
 RUN npm install
 
-RUN pip3 install --break-system-packages pdfplumber pyshp shapely anthropic
+RUN pip3 install --break-system-packages pdfplumber pyshp shapely pyproj anthropic
 
 EXPOSE 3000
 CMD ["node", "backend_v2.js"]
