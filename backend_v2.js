@@ -264,6 +264,18 @@ function isAdminEmail(email) {
   return admins.includes(email.toLowerCase());
 }
 
+// Beta testers — same access as pro tier, but NOT admin. Parsed once at
+// startup, comma-separated emails. Used by hasAccess() and the alert
+// recipient query.
+const BETA_TESTERS = (process.env.BETA_TESTERS || '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean);
+
+function isBetaTester(email) {
+  return !!(email && BETA_TESTERS.includes(email.toLowerCase()));
+}
+
 function isAlaskaGov(email) {
   return !!(email && email.toLowerCase().endsWith('@alaska.gov'));
 }
@@ -276,10 +288,11 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/** True if this captain has active access (admin, alaska.gov, pro, or in-trial) */
+/** True if this captain has active access (admin, beta, alaska.gov, pro, or in-trial) */
 function hasAccess(user) {
   if (!user) return false;
   if (user.is_admin) return true;
+  if (isBetaTester(user.email)) return true;
   if (isAlaskaGov(user.email)) return true;
   if (user.tier === 'pro' && user.subscription_active) return true;
   if (user.trial_ends_at && new Date(user.trial_ends_at) > new Date()) return true;
@@ -1440,14 +1453,20 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
   }
 
   try {
+    // Recipients = pro subscribers, admins, and beta testers — anyone who
+    // should see what the app is producing. Beta testers and admins are
+    // identified by email lists (BETA_TESTERS env var + is_admin flag).
     const captains = await db.query(
       `SELECT id, telegram_chat_id, name FROM captains
-       WHERE tier = 'pro'
-       AND subscription_active = true
+       WHERE telegram_chat_id IS NOT NULL
        AND alerts_enabled = true
-       AND telegram_chat_id IS NOT NULL
-       AND (regions && $1 OR regions = ARRAY['PWS'])`,
-      [districts]
+       AND (regions && $1 OR regions = ARRAY['PWS'])
+       AND (
+         (tier = 'pro' AND subscription_active = true)
+         OR is_admin = true
+         OR LOWER(email) = ANY($2::text[])
+       )`,
+      [districts, BETA_TESTERS]
     );
 
     if (captains.rows.length === 0) {
