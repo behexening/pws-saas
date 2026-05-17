@@ -35,6 +35,7 @@ ROOT = Path(__file__).resolve().parent.parent
 AWC_PATH = ROOT / "public" / "awc-points.json"
 DISTRICTS_SHP = ROOT / "data" / "PWS_Districts_2024" / "districts.shp"
 OUT_PATH = ROOT / "data" / "closedwaters" / "buffer_closures.geojson"
+OVERRIDES_PATH = ROOT / "public" / "awc-point-overrides.json"
 
 YARDS_TO_M = 0.9144
 TO_M = Transformer.from_crs("EPSG:4326", "EPSG:3338", always_xy=True).transform
@@ -73,6 +74,7 @@ def load_awc():
 
 def filter_awc(awc, *, lat_min=None, lat_max=None, lon_min=None, lon_max=None,
                bbox=None, name_substring=None):
+    """Returns the full AWC point dicts that pass the filter."""
     pts = []
     for p in awc:
         if lat_min is not None and p["lat"] < lat_min:
@@ -87,7 +89,7 @@ def filter_awc(awc, *, lat_min=None, lat_max=None, lon_min=None, lon_max=None,
             continue
         if name_substring is not None and name_substring.lower() not in p["name"].lower():
             continue
-        pts.append((p["lon"], p["lat"]))
+        pts.append(p)
     return pts
 
 
@@ -101,15 +103,28 @@ def _round_coords(obj, precision=6):
     return obj
 
 
-def stream_buffer_feature(awc, yards, *, scope_geom=None, rule, **filter_kwargs):
+def stream_buffer_feature(awc, yards, *, scope_geom=None, rule, overrides=None,
+                          **filter_kwargs):
+    """Build a stream-buffer feature AND, if `overrides` dict provided, record
+    `{awc_id: {radius_yds, rule}}` for each matched point so the frontend
+    AWC overlay can draw correctly-sized circles."""
     pts = filter_awc(awc, **filter_kwargs)
     # Pre-filter to scope so we don't buffer streams from unrelated waters,
     # then clip the buffer to scope to trim any spillover into adjacent waters.
     if scope_geom is not None:
-        pts = [c for c in pts if scope_geom.contains(Point(*c))]
+        pts = [p for p in pts if scope_geom.contains(Point(p["lon"], p["lat"]))]
     if not pts:
         return None
-    multi = unary_union([Point(*c) for c in pts])
+    if overrides is not None:
+        for p in pts:
+            awc_id = p.get("awc")
+            if not awc_id:
+                continue
+            prev = overrides.get(awc_id)
+            # If two rules cover the same stream, keep the more-restrictive radius.
+            if prev is None or yards > prev["radius_yds"]:
+                overrides[awc_id] = {"radius_yds": yards, "rule": rule}
+    multi = unary_union([Point(p["lon"], p["lat"]) for p in pts])
     buf = buffer_yards(multi, yards)
     if scope_geom is not None:
         buf = buf.intersection(scope_geom)
@@ -174,6 +189,7 @@ SCOPE_BBOXES = {
 
 def build(awc, districts):
     features = []
+    overrides = {}  # {awc_id: {radius_yds, rule}}
 
     # ── Stream-buffer closures ───────────────────────────────────────────
     # (3)(U) Jack Bay — 1,000 yds of all OTHER salmon streams of the bay.
@@ -181,6 +197,7 @@ def build(awc, districts):
         awc, 1000, bbox=SCOPE_BBOXES["jack_bay"],
         scope_geom=districts.get("Eastern District"),
         rule="5 AAC 24.350(3)(U) Jack Bay — 1000yd stream buffers",
+        overrides=overrides,
     )
     if f: features.append(f)
 
@@ -189,6 +206,7 @@ def build(awc, districts):
         awc, 1000, lat_min=60.86617,
         scope_geom=districts.get("Northern District"),
         rule="5 AAC 24.350(4)(H) Unakwik Inlet — 1000yd stream buffers north of 60.86617",
+        overrides=overrides,
     )
     if f: features.append(f)
 
@@ -197,6 +215,7 @@ def build(awc, districts):
         awc, 1000, lat_max=61.08283,
         scope_geom=districts.get("Unakwik District"),
         rule="5 AAC 24.350(5)(A) Unakwik District — 1000yd stream buffers south of 61.08283",
+        overrides=overrides,
     )
     if f: features.append(f)
 
@@ -204,6 +223,7 @@ def build(awc, districts):
     f = stream_buffer_feature(
         awc, 750, name_substring="Gumboot Creek",
         rule="5 AAC 24.350(8)(B) Gumboot Creek — 750yd",
+        overrides=overrides,
     )
     if f: features.append(f)
 
@@ -211,6 +231,7 @@ def build(awc, districts):
     f = stream_buffer_feature(
         awc, 1000, bbox=SCOPE_BBOXES["dangerous_passage"],
         rule="5 AAC 24.350(9)(A) Dangerous Passage — 1000yd stream buffers (provisional bbox)",
+        overrides=overrides,
     )
     if f: features.append(f)
 
@@ -265,16 +286,18 @@ def build(awc, districts):
             )
             if f: features.append(f)
 
-    return features
+    return features, overrides
 
 
 def main():
     districts = load_districts()
     awc = load_awc()
-    features = build(awc, districts)
+    features, overrides = build(awc, districts)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps({"type": "FeatureCollection", "features": features}))
+    OVERRIDES_PATH.write_text(json.dumps(overrides))
     print(f"wrote {len(features)} features → {OUT_PATH.relative_to(ROOT)}")
+    print(f"wrote {len(overrides)} AWC radius overrides → {OVERRIDES_PATH.relative_to(ROOT)}")
     for f in features:
         p = f["properties"]
         extra = f" (n_streams={p['n_streams']})" if "n_streams" in p else ""
