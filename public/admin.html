@@ -91,6 +91,11 @@
     .toast.fail { border-color: #f08585; }
 
     .empty { color: var(--muted); font-size: 12px; padding: 8px 0; }
+
+    .feedback-row { border-bottom: 1px solid var(--border); padding: 10px 0; }
+    .feedback-row:last-child { border-bottom: none; }
+    .feedback-meta { font-size: 11px; color: var(--muted); }
+    .feedback-body { margin: 4px 0 0; font-size: 13px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -158,6 +163,11 @@
           <tr><td colspan="4" class="empty">Loading…</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Feedback (latest 200)</div>
+      <div id="feedback-list" class="empty">Loading…</div>
     </div>
   </div>
 
@@ -268,9 +278,30 @@
       }
     });
 
+    async function loadFeedback() {
+      const el = document.getElementById('feedback-list');
+      try {
+        const r = await fetch('/api/admin/feedback').then(r => r.json());
+        if (!r.feedback || r.feedback.length === 0) {
+          el.textContent = 'No feedback yet.';
+          return;
+        }
+        el.innerHTML = r.feedback.map(f => {
+          const who = f.email ? esc(f.email) : '(unlinked)';
+          return `<div class="feedback-row">`
+            + `<span class="feedback-meta">${esc(fmtDate(f.created_at))} — ${who} via ${esc(f.source)}</span>`
+            + `<p class="feedback-body">${esc(f.body)}</p>`
+            + `</div>`;
+        }).join('');
+      } catch (e) {
+        el.textContent = 'Error loading feedback.';
+      }
+    }
+
     loadStats();
     loadAnnouncements();
     loadNotifications();
+    loadFeedback();
   </script>
 </body>
 </html>

@@ -670,6 +670,76 @@
 
     /* topbar on light mode: subtle separation from body bg */
     [data-theme="light"] .topbar { box-shadow: 0 1px 0 var(--border); }
+
+    #feedback-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      z-index: 900;
+      user-select: none;
+    }
+    #feedback-btn:hover { background: var(--hover, var(--border)); }
+    #feedback-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #feedback-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      width: 420px;
+      max-width: calc(100vw - 32px);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    #feedback-header {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    #feedback-body {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      border: none;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+    }
+    #feedback-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      gap: 8px;
+    }
+    #feedback-char { font-size: 11px; color: var(--muted); }
+    #feedback-footer button {
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+    }
+    #feedback-footer button:hover { background: var(--hover, var(--border)); }
   </style>
 </head>
 <body>
@@ -1635,7 +1705,75 @@ fetch('/api/me').then(r => r.json()).then(({ user }) => {
     badge.textContent = `Trial — ${user.trial_days_left}d left`;
     badge.style.display = 'inline';
   }
+  initFeedbackWidget(user);
 });
+
+function initFeedbackWidget(user) {
+  if (!user) return;
+  const btn = document.getElementById('feedback-btn');
+  const overlay = document.getElementById('feedback-overlay');
+  const textarea = document.getElementById('feedback-body');
+  const charEl = document.getElementById('feedback-char');
+  const submitBtn = document.getElementById('feedback-submit');
+  const cancelBtn = document.getElementById('feedback-cancel');
+  if (!btn) return;
+  btn.style.display = '';
+  btn.addEventListener('click', () => {
+    overlay.style.display = 'flex';
+    textarea.focus();
+  });
+  cancelBtn.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    textarea.value = '';
+    charEl.textContent = '0 / 2000';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send';
+  });
+  textarea.addEventListener('input', () => {
+    charEl.textContent = `${textarea.value.length} / 2000`;
+  });
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) cancelBtn.click();
+  });
+  submitBtn.addEventListener('click', async () => {
+    const body = textarea.value.trim();
+    if (!body) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    try {
+      const r = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body })
+      });
+      if (r.ok) {
+        submitBtn.textContent = 'Sent';
+        setTimeout(() => cancelBtn.click(), 800);
+      } else {
+        submitBtn.textContent = 'Error — try again';
+        submitBtn.disabled = false;
+      }
+    } catch {
+      submitBtn.textContent = 'Error — try again';
+      submitBtn.disabled = false;
+    }
+  });
+}
 </script>
+
+<div id="feedback-btn" style="display:none">Feedback</div>
+<div id="feedback-overlay" style="display:none">
+  <div id="feedback-box">
+    <div id="feedback-header">Send feedback</div>
+    <textarea id="feedback-body" placeholder="Bug, suggestion, or anything on your mind..." maxlength="2000"></textarea>
+    <div id="feedback-footer">
+      <span id="feedback-char">0 / 2000</span>
+      <div>
+        <button id="feedback-cancel">Cancel</button>
+        <button id="feedback-submit">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

@@ -597,6 +597,34 @@ app.post('/api/telegram/regenerate', express.json(), async (req, res) => {
   }
 });
 
+// POST /api/feedback — beta tester feedback from the web widget.
+app.post('/api/feedback', express.json(), async (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ error: 'not_authenticated' });
+  }
+  if (!hasAccess(req.user)) {
+    return res.status(403).json({ error: 'no_access' });
+  }
+  const { body, category } = req.body || {};
+  if (!body || typeof body !== 'string' || body.trim().length === 0) {
+    return res.status(400).json({ error: 'body_required' });
+  }
+  if (body.trim().length > 2000) {
+    return res.status(400).json({ error: 'too_long' });
+  }
+  try {
+    await db.query(
+      `INSERT INTO feedback (captain_id, source, category, body)
+       VALUES ($1, 'web', $2, $3)`,
+      [req.user.id, category || null, body.trim()]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /api/feedback error:', err);
+    res.status(500).json({ error: 'Could not save feedback.' });
+  }
+});
+
 // POST /api/telegram/unlink — disconnect Telegram from this captain.
 app.post('/api/telegram/unlink', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
@@ -696,8 +724,28 @@ async function processTelegramUpdate(update) {
       `<b>Commands</b>\n` +
       `/start &lt;code&gt; — link your akFISHinfo account\n` +
       `/status — check link status\n` +
-      `/unlink — disconnect this Telegram\n\n` +
+      `/unlink — disconnect this Telegram\n` +
+      `/feedback &lt;message&gt; — send feedback or report a bug\n\n` +
       `Visit akfishinfo.com/account for billing and settings.`);
+    return;
+  }
+
+  // /feedback <message>
+  if (/^\/feedback(?:@\S+)?(?:\s|$)/i.test(text)) {
+    const body = text.replace(/^\/feedback(?:@\S+)?\s*/i, '').trim();
+    if (!body) {
+      await sendTelegramMessage(chatId,
+        `Usage: <code>/feedback your message here</code>\n\nSend any feedback, bug report, or suggestion.`);
+      return;
+    }
+    const r = await db.query(
+      'SELECT id FROM captains WHERE telegram_chat_id = $1', [chatId]);
+    const captainId = r.rows[0]?.id || null;
+    await db.query(
+      `INSERT INTO feedback (captain_id, source, body) VALUES ($1, 'telegram', $2)`,
+      [captainId, body.slice(0, 2000)]
+    );
+    await sendTelegramMessage(chatId, `Feedback received. Thank you.`);
     return;
   }
 
@@ -1105,6 +1153,17 @@ async function initDatabase() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_notification_log_captain ON notification_log(captain_id);
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS feedback (
+        id           SERIAL PRIMARY KEY,
+        captain_id   INT REFERENCES captains(id) ON DELETE SET NULL,
+        source       TEXT NOT NULL CHECK (source IN ('web', 'telegram')),
+        category     TEXT,
+        body         TEXT NOT NULL,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
     `);
 
     console.log('✓ Database initialized');
@@ -2178,6 +2237,23 @@ app.get('/api/admin/announcements', requireAdmin, async (req, res) => {
     res.json({ results: result.rows });
   } catch (err) {
     console.error('admin announcements error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/feedback', requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT f.id, f.source, f.category, f.body, f.created_at,
+              c.email, c.name
+         FROM feedback f
+         LEFT JOIN captains c ON c.id = f.captain_id
+        ORDER BY f.created_at DESC
+        LIMIT 200`
+    );
+    res.json({ feedback: rows });
+  } catch (err) {
+    console.error('admin feedback error:', err);
     res.status(500).json({ error: err.message });
   }
 });
