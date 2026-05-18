@@ -422,14 +422,17 @@
       letter-spacing: 0.04em;
       margin-bottom: 4px;
     }
+    /* Closure entries describe regulation reference LINES, not closed areas —
+       so they use neutral surface tone, not red. Red is reserved for the
+       closed-side warning (which actually points at closed water). */
     .closure-entry {
-      background: rgba(231,76,60,0.06);
-      border: 1px solid rgba(231,76,60,0.2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
       border-radius: 0;
       padding: 6px 8px;
       margin-bottom: 4px;
     }
-    .closure-name { font-size: 10px; font-weight: 700; color: #ff9999; }
+    .closure-name { font-size: 10px; font-weight: 700; color: var(--text); }
     .closed-side-warning {
       font-size: 10px;
       font-weight: 700;
@@ -449,8 +452,12 @@
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
-    .applies-badge.period { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
-    .applies-badge.allperiods { background: rgba(231,76,60,0.3); color: #ff4444; border: 1px solid rgba(231,76,60,0.5); }
+    /* "This period" closures are time-relevant rules — warn amber, not closed-red */
+    .applies-badge.period { background: rgba(245,158,11,0.12); color: var(--warn); border: 1px solid rgba(245,158,11,0.28); }
+    /* "All periods" / permanent closures are non-actionable filler in the info
+       card (captains already know about them) — hide them. The line still
+       renders on the map; the entry is just dropped from the per-card list. */
+    .closure-entry:has(.applies-badge.allperiods) { display: none; }
 
     .points-table { width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 4px; }
     .points-table th { color: var(--muted); font-weight: 700; text-align: left; padding: 2px 5px; border-bottom: 1px solid var(--border); }
@@ -801,10 +808,9 @@
       color: var(--closed);
       border-color: rgba(185,28,28,0.25);
     }
-    [data-theme="light"] .closure-name       { color: var(--closed); }
+    [data-theme="light"] .closure-name        { color: var(--text); }
     [data-theme="light"] .closed-side-warning { color: var(--closed); border-left-color: var(--closed); background: rgba(185,28,28,0.1); }
-    [data-theme="light"] .applies-badge.period     { color: var(--closed); background: rgba(185,28,28,0.12); border-color: rgba(185,28,28,0.3); }
-    [data-theme="light"] .applies-badge.allperiods { color: #fff; background: var(--closed); border-color: var(--closed); }
+    [data-theme="light"] .applies-badge.period { color: var(--warn); background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.32); }
     [data-theme="light"] .points-table td     { color: var(--text); }
     [data-theme="light"] .closed-pill          { color: var(--closed); }
 
