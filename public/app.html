@@ -138,9 +138,9 @@
     .left-panel::-webkit-scrollbar-track { background: transparent; }
     .left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
 
-    /* ── Panel header ── */
+    /* ── Panel header (PSA bulletin framing) ── */
     .panel-header {
-      padding: 14px 16px 10px;
+      padding: 12px 16px 10px;
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
@@ -148,17 +148,133 @@
       z-index: 10;
     }
 
-    .panel-meta {
-      font-size: 11px;
+    /* Eyebrow: tiny uppercase masthead, thin underline */
+    .panel-eyebrow {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
       color: var(--muted);
-      letter-spacing: -0.01em;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .panel-eyebrow .eb-dot {
+      width: 4px; height: 4px;
+      background: var(--accent);
+      display: inline-block;
+      flex: none;
+    }
+    .panel-eyebrow .eb-sep { color: var(--border); }
+
+    /* Headline: date + status badge in one row */
+    .panel-headline {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
       margin-bottom: 8px;
     }
+    .panel-meta {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .panel-headline #panel-status-badge { flex: 0 0 auto; }
 
     .panel-stats {
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
     }
+
+    /* Action strip — links to source documents */
+    .panel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .action-btn {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: transparent;
+      border: 1px solid rgba(0,180,216,0.4);
+      padding: 4px 9px;
+      border-radius: 0;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      line-height: 1.3;
+    }
+    .action-btn:hover {
+      background: rgba(0,180,216,0.08);
+      border-color: var(--accent);
+    }
+    .action-btn[aria-disabled="true"] {
+      color: var(--muted);
+      border-color: var(--border);
+      pointer-events: none;
+      cursor: default;
+    }
+
+    /* District statcodes — industrial part-number treatment */
+    .panel-statcodes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+      margin-top: 8px;
+    }
+    .statcode {
+      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      background: rgba(0,180,216,0.06);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      line-height: 1.4;
+    }
+    .statcode::before { content: '['; color: var(--muted); margin-right: 2px; }
+    .statcode::after  { content: ']'; color: var(--muted); margin-left: 2px; }
+
+    /* Telemetry footer strip — small monospace provenance */
+    .panel-telemetry {
+      margin-top: 9px;
+      padding-top: 7px;
+      border-top: 1px solid var(--border);
+      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      line-height: 1.4;
+    }
+    .panel-telemetry .tm-label { color: #3d566e; }
+    .panel-telemetry .tm-sep { color: var(--border); }
 
     .stat-pill {
       font-size: 10px;
@@ -346,7 +462,31 @@
     .conf-bar { height: 5px; border-radius: 0; }
     .conf-label { font-size: 9px; color: var(--muted); margin-left: 5px; min-width: 24px; }
     .conf-notes { font-size: 9px; color: var(--warn); font-style: italic; }
-    .card-notes { font-size: 9px; color: var(--muted); font-style: italic; }
+    /* Per-district notes: hidden in compact view, revealed when card is expanded */
+    .card-notes { display: none; }
+    .district-card.expanded .card-notes {
+      display: block;
+      font-size: 11px;
+      font-style: normal;
+      color: var(--text);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: rgba(245,158,11,0.05);
+      border-left: 2px solid var(--warn);
+    }
+    /* Subtle disclosure cue — small caret in card header */
+    .card-chevron {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-left: 8px;
+      line-height: 1;
+      user-select: none;
+      flex: none;
+    }
+    .district-card.expanded .card-chevron { color: var(--accent); }
 
     /* ── Status badge ── */
     .status-badge {
@@ -795,9 +935,22 @@
         <div id="ann-list"></div>
       </div>
       <div class="panel-header" id="panel-header" style="display:none">
-        <div id="panel-status-badge"></div>
-        <div class="panel-meta" id="panel-meta"></div>
+        <div class="panel-eyebrow">
+          <span class="eb-dot"></span>
+          <span>ADVISORY</span>
+          <span class="eb-sep">/</span>
+          <span>PWS Commercial Salmon</span>
+        </div>
+        <div class="panel-headline">
+          <div class="panel-meta" id="panel-meta"></div>
+          <div id="panel-status-badge"></div>
+        </div>
         <div class="panel-stats" id="panel-stats"></div>
+        <div class="panel-statcodes" id="panel-statcodes"></div>
+        <div class="panel-actions" id="panel-actions">
+          <a class="action-btn" id="panel-pdf-btn" target="_blank" rel="noopener" href="#" aria-disabled="true">Source PDF</a>
+        </div>
+        <div class="panel-telemetry" id="panel-telemetry"></div>
       </div>
       <div id="cards-container">
         <div class="no-data">
@@ -992,7 +1145,7 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
           color: '#e67e22', weight: 1, opacity: 0.7,
           fillColor: '#060a0f', fillOpacity: 0.70,
         }).bindTooltip(
-          '⛔ Anadromous Stream<br><b>' + pt.name + '</b><br>' + yards + ' yd closure buffer' +
+          'Stream Closure<br><b>' + pt.name + '</b><br>' + yards + ' yd buffer' +
           (override ? '<br><i>per ' + override.rule + '</i>' : ''),
           { direction: 'top', sticky: true }
         ).addTo(streamLayer);
@@ -1001,13 +1154,14 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
       const toggleBtn = L.control({ position: 'topright' });
       toggleBtn.onAdd = function() {
         const div = L.DomUtil.create('div', 'stream-toggle');
-        div.innerHTML = '⛔ AWC Buffers: ON';
+        div.innerHTML = 'STREAM CLOSURES: ON';
         div.style.cssText = 'background:rgba(6,10,15,0.9);color:#e67e22;border:1px solid #e67e22;' +
-          'padding:5px 10px;border-radius: 0;font-size:11px;font-weight:700;cursor:pointer;user-select:none;';
+          'padding:5px 10px;border-radius:0;font-size:11px;font-weight:700;letter-spacing:0.06em;' +
+          'cursor:pointer;user-select:none;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;';
         div.onclick = function() {
           visible = !visible;
-          if (visible) { streamLayer.addTo(map); div.innerHTML='⛔ AWC Buffers: ON'; div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
-          else { map.removeLayer(streamLayer); div.innerHTML='○ AWC Buffers: OFF'; div.style.color='#555'; div.style.borderColor='#555'; }
+          if (visible) { streamLayer.addTo(map); div.innerHTML='STREAM CLOSURES: ON';  div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
+          else         { map.removeLayer(streamLayer); div.innerHTML='STREAM CLOSURES: OFF'; div.style.color='#555';    div.style.borderColor='#555'; }
         };
         return div;
       };
@@ -1339,7 +1493,51 @@ function renderPanel(result) {
   }
 
   header.style.display = 'block';
-  meta.textContent = `${fmtDate(result)} — ADF&G PWS Commercial Salmon`;
+  meta.textContent = fmtDate(result);
+
+  // Source PDF action link
+  const pdfBtn = document.getElementById('panel-pdf-btn');
+  if (pdfBtn && result.id != null) {
+    pdfBtn.href = `/api/result/${result.id}/pdf`;
+    pdfBtn.removeAttribute('aria-disabled');
+    pdfBtn.title = 'Open the original ADF&G PDF in a new tab';
+  } else if (pdfBtn) {
+    pdfBtn.setAttribute('aria-disabled', 'true');
+    pdfBtn.removeAttribute('href');
+  }
+
+  // District statcodes — industrial part-number chips
+  const statcodesEl = document.getElementById('panel-statcodes');
+  if (statcodesEl) {
+    const codes = Array.isArray(result.districts) ? result.districts : [];
+    statcodesEl.innerHTML = codes
+      .map(c => `<span class="statcode">${String(c).replace(/[<>&"']/g, '')}</span>`)
+      .join('');
+    statcodesEl.style.display = codes.length ? 'flex' : 'none';
+  }
+
+  // Telemetry strip — visible provenance for commercial users
+  const telemetryEl = document.getElementById('panel-telemetry');
+  if (telemetryEl) {
+    const annId = result.announcement_id != null ? `#${result.announcement_id}` : '—';
+    const resId = result.id != null ? `#${result.id}` : '—';
+    let parsedStr = '—';
+    if (result.parsed_at) {
+      try {
+        parsedStr = new Date(result.parsed_at).toLocaleString('en-US', {
+          timeZone: 'America/Anchorage',
+          month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', hour12: false,
+        }) + ' AKDT';
+      } catch(_) { parsedStr = String(result.parsed_at).substring(0, 16); }
+    }
+    telemetryEl.innerHTML =
+      `<span><span class="tm-label">ANN</span> ${annId}</span>` +
+      `<span class="tm-sep">·</span>` +
+      `<span><span class="tm-label">REC</span> ${resId}</span>` +
+      `<span class="tm-sep">·</span>` +
+      `<span><span class="tm-label">PARSED</span> ${parsedStr}</span>`;
+  }
 
   // Show reparse button if OPEN_AREAS_GJ is absent (old record)
   const hasOAGJ = result._html && /OPEN_AREAS_GJ\s*=\s*\{/.test(result._html) &&
@@ -1370,12 +1568,54 @@ function renderPanel(result) {
   container.appendChild(grid);
 
   container.querySelectorAll('.district-card').forEach(card => {
+    const districtId = card.dataset.district || 'district';
     card.setAttribute('tabindex', '0');
     card.setAttribute('role', 'button');
-    card.setAttribute('aria-label', (card.dataset.district || 'district') + ' — view on map');
-    card.addEventListener('click', () => highlightDistrict(card.dataset.district));
+    card.setAttribute('aria-expanded', 'false');
+    card.setAttribute('aria-label', districtId + ' — view on map, tap to read source notes');
+
+    // Add a small disclosure chevron, but only if the card has notes to reveal
+    const hasNotes = !!card.querySelector('.card-notes');
+    if (hasNotes) {
+      const header = card.querySelector('.card-header');
+      if (header && !header.querySelector('.card-chevron')) {
+        const chev = document.createElement('span');
+        chev.className = 'card-chevron';
+        chev.setAttribute('aria-hidden', 'true');
+        chev.textContent = '+';
+        header.appendChild(chev);
+      }
+    }
+
+    const toggle = (collapseOnly) => {
+      const expanded = card.classList.contains('expanded');
+      if (collapseOnly && expanded) {
+        card.classList.remove('expanded');
+        card.setAttribute('aria-expanded', 'false');
+        const chev = card.querySelector('.card-chevron'); if (chev) chev.textContent = '+';
+        return true;
+      }
+      if (!expanded && hasNotes) {
+        card.classList.add('expanded');
+        card.setAttribute('aria-expanded', 'true');
+        const chev = card.querySelector('.card-chevron'); if (chev) chev.textContent = '−';
+      }
+      return false;
+    };
+
+    card.addEventListener('click', (e) => {
+      // Click on header of an already-expanded card → collapse only (suppress pan)
+      const onHeader = !!e.target.closest('.card-header');
+      const collapsed = toggle(onHeader);
+      if (collapsed) return;
+      highlightDistrict(districtId);
+    });
     card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); highlightDistrict(card.dataset.district); }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle(false);
+        highlightDistrict(districtId);
+      }
     });
   });
 

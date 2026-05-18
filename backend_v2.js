@@ -1917,6 +1917,34 @@ app.get('/api/result/:id/html', async (req, res) => {
 });
 
 /**
+ * GET /api/result/:id/pdf
+ * Stream the original ADF&G PDF for a parsed result. Public — ADF&G
+ * announcements are public records, mirrors the /html route's auth posture.
+ */
+app.get('/api/result/:id/pdf', async (req, res) => {
+  try {
+    const r = await db.query(
+      `SELECT a.pdf_data, a.pdf_filename
+         FROM parsed_results pr
+         JOIN announcements a ON a.id = pr.announcement_id
+        WHERE pr.id = $1`,
+      [req.params.id]
+    );
+    if (!r.rows.length || !r.rows[0].pdf_data) {
+      return res.status(404).send('PDF not found');
+    }
+    const filename = r.rows[0].pdf_filename || `adfg-result-${req.params.id}.pdf`;
+    const safeName = String(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${safeName}"`);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(r.rows[0].pdf_data);
+  } catch (err) {
+    res.status(500).send('Error');
+  }
+});
+
+/**
  * POST /api/result/:id/reparse
  * Force re-run live_test_server.py on the original PDF for this result.
  * Updates html_content in DB with freshly generated HTML.
