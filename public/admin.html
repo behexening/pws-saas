@@ -122,6 +122,21 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Broadcast to all linked Telegram users</div>
+      <p class="page-sub" style="margin-bottom: 10px;">Sends your message as a DM to every captain who has linked Telegram. Plain text only — no HTML. Logged in notification_log.</p>
+      <textarea id="broadcast-text" rows="4" placeholder="Write your message…" style="
+        width: 100%; resize: vertical; font: inherit; font-size: 13px;
+        background: var(--surface-2, #11181f); color: var(--text);
+        border: 1px solid var(--border); border-radius: 0;
+        padding: 8px 10px; margin-bottom: 8px;
+      "></textarea>
+      <div class="actions">
+        <button id="btn-broadcast" class="btn-primary">Send to all linked Telegram users</button>
+        <span class="page-sub" id="broadcast-count" style="margin: 0;"></span>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Self-test</div>
       <div class="actions">
         <button id="btn-test-dm" class="btn-primary">Send test DM to my Telegram</button>
@@ -259,6 +274,37 @@
         </tr>
       `).join('');
     }
+
+    document.getElementById('btn-broadcast').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const ta = document.getElementById('broadcast-text');
+      const text = (ta.value || '').trim();
+      if (!text) { toast('Write a message first.', 'fail'); return; }
+      if (!confirm(`Send this message to every captain with a linked Telegram chat?\n\n${text}`)) return;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/admin/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text }),
+        }).then(r => r.json());
+        if (r.error) {
+          toast('Broadcast failed: ' + r.error, 'fail');
+        } else {
+          toast(`Broadcast: ${r.sent} sent, ${r.failed} failed (of ${r.total}).`, r.failed > 0 ? 'fail' : 'ok');
+          ta.value = '';
+          loadNotifications();
+          loadStats();
+        }
+      } catch (err) {
+        toast('Broadcast failed: ' + err.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    });
 
     document.getElementById('btn-test-dm').addEventListener('click', async (e) => {
       const btn = e.currentTarget;
