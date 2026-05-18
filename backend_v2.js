@@ -2203,6 +2203,56 @@ app.get('/api/admin/notifications', requireAdmin, async (req, res) => {
 
 // Sends a sample alert ONLY to the calling admin's own linked Telegram chat.
 // Intentionally cannot target other users — keeps the panel safe.
+// POST /api/admin/broadcast — send a plain-text message to every captain with
+// a linked Telegram chat. Body: { message: string }. Returns per-chat results.
+app.post('/api/admin/broadcast', requireAdmin, express.json(), async (req, res) => {
+  const raw = typeof req.body?.message === 'string' ? req.body.message.trim() : '';
+  if (!raw) return res.status(400).json({ error: 'Message is required.' });
+  if (raw.length > 3500) return res.status(400).json({ error: 'Message too long (max 3500 chars).' });
+
+  try {
+    const captains = await db.query(
+      `SELECT id, telegram_chat_id, name, email FROM captains
+        WHERE telegram_chat_id IS NOT NULL`
+    );
+
+    if (captains.rows.length === 0) {
+      return res.json({ ok: true, sent: 0, failed: 0, total: 0 });
+    }
+
+    const text = escapeHTML(raw);
+    let sent = 0;
+    let failed = 0;
+    const failures = [];
+
+    for (const captain of captains.rows) {
+      const result = await sendTelegramMessage(captain.telegram_chat_id, text);
+      if (result.ok) {
+        sent++;
+        await db.query(
+          `INSERT INTO notification_log (captain_id, chat_id, message, status, telegram_message_id)
+           VALUES ($1, $2, $3, 'sent', $4)`,
+          [captain.id, captain.telegram_chat_id, text, result.message_id]
+        );
+      } else {
+        failed++;
+        failures.push({ captain: captain.name || captain.email, error: result.error });
+        await db.query(
+          `INSERT INTO notification_log (captain_id, chat_id, message, status, error_message)
+           VALUES ($1, $2, $3, 'failed', $4)`,
+          [captain.id, captain.telegram_chat_id, text, result.error]
+        );
+      }
+    }
+
+    console.log(`📣 Broadcast by ${req.user.email}: ${sent} sent, ${failed} failed (${captains.rows.length} total)`);
+    res.json({ ok: true, sent, failed, total: captains.rows.length, failures });
+  } catch (err) {
+    console.error('POST /api/admin/broadcast error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.post('/api/admin/test-dm', requireAdmin, express.json(), async (req, res) => {
   if (!req.user.telegram_chat_id) {
     return res.status(400).json({ error: 'Your account has no linked Telegram chat. Link it first at /setup.' });
