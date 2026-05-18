@@ -73,3 +73,19 @@ docs/**/*.html
 *.skill
 *.zip
 /railway
+
+# Claude Code session-local data
+.claude/
+
+# Accidental Finder duplicates
+* copy/
+* copy
+
+# Regenerable PDF render artifacts
+public/pdf_pngs/
+
+# Stray build copy (canonical lives in data/)
+public/pdf_gcps.json
+
+# QGIS workspace state (per-user)
+*.qmd

@@ -8,7 +8,7 @@ The checklist is in priority order. Items marked **(blocker)** must be true befo
 
 ## 1. End-to-end delivery — must work for one real announcement
 
-- [ ] **(blocker)** Force-reparse one historical announcement from `/admin` and confirm the bot DMs the linked admin/test account. This proves `notifyCaptains()` → `sendTelegramMessage()` → real device.
+- [ ] **(blocker)** Force-reparse one historical announcement from `/admin` and confirm the bot DMs the linked admin/test account. This proves `notifyCaptains()` → `sendTelegramMessage()` → real device. 
 - [ ] **(blocker)** When the next live ADF&G PDF arrives, watch the logs to confirm: Mailgun webhook → parser → `notifyCaptains` → Telegram DM received within ~10 seconds.
 - [ ] Smoke-test the link flow with a *brand new* email (not your own admin account):
   - sign up → land on `/setup` → 6-digit code shows

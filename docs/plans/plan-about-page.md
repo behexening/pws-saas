@@ -390,14 +390,14 @@ These pages have minimal navs (just sign out / no nav links). Add "about" only i
 
 ## Phase 4: Fill in personal content
 
-**This phase is for the user, not an LLM.**
+**This phase has been filled out by the user — refine the prose for tone and clarity while preserving the intended meaning.**
 
 Open `public/about.html` and replace the four `[FILL IN: ...]` placeholder paragraphs with real content:
 
-1. **What it is** — 2–3 sentences on what akFISHinfo does
-2. **Who it's for** — describe the target fisherman; mention PWS districts
+1. **What it is** — akfishinfo is a tool built by fishermen, for fishermen, designed to help them make quicker, actionable decisions based on the content of the announcement. It takes walls of texts, email notifications, and games of telephone, and turns it into instant data straight to your phone, ready to be used. 
+2. **Who it's for** — Its for people who want the most information, the quickest. Who want to be able to see exactly where they can and cant fish
 3. *(How it works is already written — review for accuracy)*
-4. **The team** — your story: fisherman background, why you built it, who's involved
+4. **The team** — My name is Oliver and I began working as in cordova as a deckhand starting in 2023. I've always had an interest in optimizing things, and my love of fishing and my other love happened to combine this way.
 
 After filling in content, review the pipeline steps (card 3) for accuracy against the real system. The current text is accurate based on the codebase but may need rewording to match your preferred framing.
 
