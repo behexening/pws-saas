@@ -976,6 +976,7 @@ async function sendMailgun({ to, subject, text, html }) {
   }
   const body = new URLSearchParams({
     from: `akFISHinfo <noreply@${domain}>`,
+    'h:Reply-To': 'admin@akfishinfo.com',
     to, subject, text, html,
   }).toString();
   return new Promise((resolve, reject) => {
@@ -1022,12 +1023,12 @@ function renderBetaApprovalEmail({ requesterEmail, signupUrl }) {
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#0d1520;border:1px solid #1a2d3f;">
         <tr><td style="padding:22px 28px;border-bottom:1px solid #1a2d3f;">
-          <span style="font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:0.03em;color:#dde8f4;">akFISH<span style="color:#00b4d8;">info.</span></span>
+          <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:18px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:#dde8f4;">akFISH<span style="color:#00b4d8;">info.</span></span>
         </td></tr>
 
         <tr><td style="padding:36px 28px 16px;">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.14em;color:#00b4d8;margin-bottom:10px;">2026 PWS season</div>
-          <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.08;color:#dde8f4;font-weight:normal;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#00b4d8;margin-bottom:14px;">2026 PWS season</div>
+          <h1 style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:36px;line-height:1.05;letter-spacing:-0.01em;color:#dde8f4;font-weight:800;">
             You've been<br><span style="color:#00b4d8;">accepted.</span>
           </h1>
         </td></tr>
