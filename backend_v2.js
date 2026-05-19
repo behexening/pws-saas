@@ -2802,6 +2802,21 @@ app.post('/api/admin/beta-requests/:id/approve', requireAdmin, express.json(), a
   }
 });
 
+// POST /api/admin/beta-requests/test-email — send the approval email
+// template to the admin's own email address. Lets us preview rendering +
+// reply flow without creating a fake beta request.
+app.post('/api/admin/beta-requests/test-email', requireAdmin, express.json(), async (req, res) => {
+  const to = req.user?.email;
+  if (!to) return res.status(400).json({ error: 'no_admin_email' });
+  try {
+    await sendBetaApprovalEmail(to);
+    res.json({ ok: true, sent_to: to });
+  } catch (err) {
+    console.error('test approval email error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/admin/beta-requests/:id/resend-email — re-send the approval
 // email for a request already marked approved. Useful if the original
 // landed in spam or the requester typo'd their email and we fix it.
