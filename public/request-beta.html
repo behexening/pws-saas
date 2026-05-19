@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request beta access — akFISHinfo</title>
+  <meta name="description" content="Real-time PWS opening alerts. Request free beta access during the 2026 season.">
+  <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/theme.js"></script>
+  <link rel="stylesheet" href="/static/theme.css"/>
+  <style>
+    @font-face {
+      font-family: 'Blackbird';
+      src: url('/static/projekt-blackbird-v2.otf') format('opentype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wordmark {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 22px; letter-spacing: 0.03em;
+      color: var(--text); text-decoration: none; user-select: none;
+    }
+    .wordmark em { font-style: normal; color: var(--accent); }
+    nav .nav-right a {
+      color: var(--muted); text-decoration: none; font-size: 13px;
+      margin-left: 18px;
+    }
+    nav .nav-right a:hover { color: var(--text); }
+
+    main {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 36px 20px 60px;
+    }
+    .card {
+      width: 100%; max-width: 460px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 28px 26px;
+    }
+    .eyebrow {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--accent); margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 1.7rem; line-height: 1.1; margin-bottom: 10px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede {
+      color: var(--muted); font-size: 14px; line-height: 1.5;
+      margin-bottom: 22px;
+    }
+    .lede strong { color: var(--text); font-weight: 500; }
+
+    label {
+      display: block;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin: 14px 0 6px;
+    }
+    input[type=email], input[type=text] {
+      width: 100%;
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font: inherit; font-size: 15px;
+      border-radius: 0;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+
+    .source-pill {
+      display: inline-block; margin-top: 6px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .source-pill strong { color: var(--accent); font-weight: 500; }
+
+    button.submit {
+      margin-top: 22px; width: 100%;
+      background: var(--accent); color: #000;
+      border: 1px solid var(--accent); border-radius: 0;
+      padding: 12px 14px;
+      font: inherit; font-size: 14px; font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+    }
+    button.submit:hover { filter: brightness(1.05); }
+    button.submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .footnote {
+      margin-top: 14px;
+      font-size: 12px; color: var(--muted); line-height: 1.5;
+    }
+    .footnote a { color: var(--accent); }
+
+    .msg {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      font-size: 13px;
+    }
+    .msg.ok   { border-color: #4ad08a; color: #4ad08a; }
+    .msg.fail { border-color: #f08585; color: #f08585; }
+    .hidden { display: none; }
+
+    .success-panel { text-align: center; }
+    .success-panel h2 {
+      font-family: 'Blackbird', sans-serif;
+      font-size: 1.4rem; margin-bottom: 10px; color: var(--accent);
+    }
+    .success-panel p { color: var(--muted); font-size: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="wordmark">akFISH<em>info.</em></a>
+    <div class="nav-right">
+      <a href="/about">about</a>
+      <a href="/login">sign in</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="card" id="form-card">
+      <div class="eyebrow" id="eyebrow-text">2026 PWS season — beta access</div>
+      <h1>Real-time openings,<br><em>before</em> you leave the dock.</h1>
+      <p class="lede">
+        akFISHinfo turns every ADF&amp;G Prince William Sound opening announcement
+        into a live map and a Telegram alert. <strong>Free during the 2026 beta.</strong>
+      </p>
+
+      <form id="beta-form" novalidate>
+        <label for="name">Name (or boat name)</label>
+        <input id="name" name="name" type="text" autocomplete="name" maxlength="120" placeholder="e.g. Captain Olsen / F/V Northern Light">
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+
+        <div class="source-pill" id="source-pill"></div>
+
+        <button class="submit" type="submit" id="submit-btn">Request access</button>
+        <div id="msg" class="msg hidden"></div>
+
+        <p class="footnote">
+          We'll email you the moment you're approved. You can also pre-link Telegram
+          now at <a href="/login">akfishinfo.com/login</a> so alerts start the instant access lands.
+        </p>
+      </form>
+    </div>
+
+    <div class="card success-panel hidden" id="success-card">
+      <h2>You're on the list.</h2>
+      <p id="success-msg">
+        Oliver will approve manually — usually within an hour. You'll get an email
+        when you're in. Want to fish the next opener? Sign up now and link Telegram
+        so alerts start the second you're approved.
+      </p>
+      <button class="submit" type="button" onclick="location.href='/signup'">Create my account</button>
+      <p class="footnote">Already have one? <a href="/login">Sign in</a>.</p>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const VALID_SOURCES = ['whittier', 'valdez', 'cordova', 'direct', 'other'];
+      const params = new URLSearchParams(location.search);
+      let src = (params.get('src') || params.get('port') || '').toLowerCase().trim();
+      if (!VALID_SOURCES.includes(src)) src = src ? 'other' : 'direct';
+
+      const PORT_LABELS = {
+        whittier: 'Whittier',
+        valdez:   'Valdez',
+        cordova:  'Cordova',
+        direct:   'direct link',
+        other:    'unknown port',
+      };
+      const pill = document.getElementById('source-pill');
+      if (src === 'whittier' || src === 'valdez' || src === 'cordova') {
+        pill.innerHTML = `Scanned at <strong>${PORT_LABELS[src]} harbor</strong>`;
+        document.getElementById('eyebrow-text').textContent =
+          `2026 PWS season — ${PORT_LABELS[src]} beta access`;
+      } else {
+        pill.textContent = '';
+      }
+
+      // Fire-and-forget scan ping
+      fetch('/api/qr-scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: src }),
+      }).catch(() => {});
+
+      const form = document.getElementById('beta-form');
+      const btn  = document.getElementById('submit-btn');
+      const msg  = document.getElementById('msg');
+
+      function showMsg(text, kind) {
+        msg.textContent = text;
+        msg.className = 'msg ' + (kind || '');
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.classList.add('hidden');
+        const email = document.getElementById('email').value.trim();
+        const name  = document.getElementById('name').value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showMsg('Enter a valid email address.', 'fail');
+          msg.classList.remove('hidden');
+          return;
+        }
+        btn.disabled = true;
+        const orig = btn.textContent;
+        btn.textContent = 'Sending…';
+        try {
+          const r = await fetch('/api/beta-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, name, source: src }),
+          }).then(r => r.json());
+
+          if (r.error) {
+            showMsg('Could not send: ' + r.error, 'fail');
+            msg.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = orig;
+            return;
+          }
+          if (r.already_has_access) {
+            document.getElementById('form-card').classList.add('hidden');
+            const sc = document.getElementById('success-card');
+            document.getElementById('success-msg').textContent =
+              'You already have access on this email. Sign in to start using the app.';
+            sc.classList.remove('hidden');
+            return;
+          }
+          document.getElementById('form-card').classList.add('hidden');
+          document.getElementById('success-card').classList.remove('hidden');
+        } catch (err) {
+          showMsg('Network error. Try again.', 'fail');
+          msg.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = orig;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

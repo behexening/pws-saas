@@ -242,11 +242,27 @@ passport.use(new GoogleStrategy({
       } else {
         // 3. Brand-new user — create free-tier record. Google OAuth = email
         // already verified, so don't make them click a verification link.
+        const preApprovedBeta = await hasApprovedBetaRequest(email.toLowerCase());
         result = await db.query(
-          `INSERT INTO captains (email, name, google_id, tier, is_admin, email_verified)
-           VALUES ($1, $2, $3, 'free', $4, true) RETURNING *`,
-          [email, name, googleId, admin]
+          `INSERT INTO captains (email, name, google_id, tier, is_admin, email_verified, beta_access)
+           VALUES ($1, $2, $3, 'free', $4, true, $5) RETURNING *`,
+          [email, name, googleId, admin, preApprovedBeta]
         );
+        if (preApprovedBeta) {
+          await linkApprovedBetaRequestToCaptain(email.toLowerCase(), result.rows[0].id);
+        }
+      }
+      // Existing captain matched on email: also flip beta_access if pre-approved.
+      if (result.rows.length > 0 && !result.rows[0].beta_access) {
+        const pre = await hasApprovedBetaRequest(email.toLowerCase());
+        if (pre) {
+          await db.query(
+            `UPDATE captains SET beta_access = true, updated_at = NOW() WHERE id = $1`,
+            [result.rows[0].id]
+          );
+          await linkApprovedBetaRequestToCaptain(email.toLowerCase(), result.rows[0].id);
+          result.rows[0].beta_access = true;
+        }
       }
     } else if (admin && !result.rows[0].is_admin) {
       // Sync admin flag if env var was added after account creation
@@ -270,16 +286,51 @@ function isAdminEmail(email) {
   return admins.includes(email.toLowerCase());
 }
 
-// Beta testers — same access as pro tier, but NOT admin. Parsed once at
-// startup, comma-separated emails. Used by hasAccess() and the alert
-// recipient query.
+// Beta testers — same access as pro tier, but NOT admin. Now stored as
+// captains.beta_access (admin-toggleable from the /admin page). The legacy
+// BETA_TESTERS env var is backfilled into the column at startup so any
+// emails set there before this migration still get access without manual work.
 const BETA_TESTERS = (process.env.BETA_TESTERS || '')
   .split(',')
   .map(e => e.trim().toLowerCase())
   .filter(Boolean);
 
-function isBetaTester(email) {
-  return !!(email && BETA_TESTERS.includes(email.toLowerCase()));
+function isBetaTester(user) {
+  if (!user) return false;
+  if (user.beta_access === true) return true;
+  // Env var fallback covers the brief window between deploy and DB backfill,
+  // and also any captain row not yet written when an env-listed user first hits hasAccess().
+  return !!(user.email && BETA_TESTERS.includes(user.email.toLowerCase()));
+}
+
+// Returns true if there's an approved beta_request for this email but no
+// captain has been linked yet. Used at signup time to auto-grant access.
+async function hasApprovedBetaRequest(email) {
+  if (!email) return false;
+  try {
+    const r = await db.query(
+      `SELECT 1 FROM beta_requests
+        WHERE LOWER(email) = LOWER($1) AND status = 'approved'
+        LIMIT 1`,
+      [email]
+    );
+    return r.rows.length > 0;
+  } catch (err) {
+    console.error('hasApprovedBetaRequest error:', err);
+    return false;
+  }
+}
+
+async function linkApprovedBetaRequestToCaptain(email, captainId) {
+  try {
+    await db.query(
+      `UPDATE beta_requests SET captain_id = $2
+        WHERE LOWER(email) = LOWER($1) AND status = 'approved' AND captain_id IS NULL`,
+      [email, captainId]
+    );
+  } catch (err) {
+    console.error('linkApprovedBetaRequestToCaptain error:', err);
+  }
 }
 
 function isAlaskaGov(email) {
@@ -298,7 +349,7 @@ function requireAdmin(req, res, next) {
 function hasAccess(user) {
   if (!user) return false;
   if (user.is_admin) return true;
-  if (isBetaTester(user.email)) return true;
+  if (isBetaTester(user)) return true;
   if (isAlaskaGov(user.email)) return true;
   if (user.tier === 'pro' && user.subscription_active) return true;
   if (user.trial_ends_at && new Date(user.trial_ends_at) > new Date()) return true;
@@ -625,6 +676,63 @@ app.post('/api/feedback', express.json(), async (req, res) => {
   }
 });
 
+// POST /api/qr-scan — public, fired on /request-beta page load to track
+// how many people scan QR codes at each port even if they don't submit.
+app.post('/api/qr-scan', qrScanLimiter, express.json(), async (req, res) => {
+  try {
+    const source = normalizeBetaSource(req.body?.source);
+    const ua = (req.get('user-agent') || '').slice(0, 500);
+    await db.query(
+      `INSERT INTO qr_scans (source, ip, user_agent) VALUES ($1, $2, $3)`,
+      [source, req.ip || null, ua]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /api/qr-scan error:', err);
+    res.status(500).json({ error: 'scan_log_failed' });
+  }
+});
+
+// POST /api/beta-request — public submission from the /request-beta page.
+// Captures email + name + source (port from QR), DMs admins on Telegram.
+app.post('/api/beta-request', betaRequestLimiter, express.json(), async (req, res) => {
+  const { email, name, source } = req.body || {};
+  const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+  const cleanName  = typeof name  === 'string' ? name.trim().slice(0, 120) : '';
+  if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ error: 'email_invalid' });
+  }
+  const src = normalizeBetaSource(source);
+  const ua  = (req.get('user-agent') || '').slice(0, 500);
+  try {
+    // If this email already has access (admin / @alaska.gov / existing beta),
+    // shortcut so they know to just sign in.
+    const existing = await db.query(
+      `SELECT id, beta_access, is_admin FROM captains WHERE LOWER(email) = $1`,
+      [cleanEmail]
+    );
+    if (existing.rows.length > 0) {
+      const u = existing.rows[0];
+      if (u.is_admin || u.beta_access) {
+        return res.json({ ok: true, already_has_access: true });
+      }
+    }
+    const ins = await db.query(
+      `INSERT INTO beta_requests (email, name, source, ip, user_agent)
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [cleanEmail, cleanName || null, src, req.ip || null, ua]
+    );
+    const requestId = ins.rows[0].id;
+    // Fire-and-forget admin DM
+    notifyAdminsOfBetaRequest({ name: cleanName, email: cleanEmail, source: src, requestId })
+      .catch(err => console.error('beta-request admin DM failed:', err));
+    res.json({ ok: true, request_id: requestId });
+  } catch (err) {
+    console.error('POST /api/beta-request error:', err);
+    res.status(500).json({ error: 'submit_failed' });
+  }
+});
+
 // POST /api/telegram/unlink — disconnect Telegram from this captain.
 app.post('/api/telegram/unlink', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
@@ -858,6 +966,141 @@ async function sendVerificationEmail(email, token) {
   });
 }
 
+// Generic Mailgun sender used by transactional emails other than verification.
+async function sendMailgun({ to, subject, text, html }) {
+  const domain = process.env.MAILGUN_DOMAIN;
+  const apiKey = process.env.MAILGUN_API_KEY;
+  if (!domain || !apiKey) {
+    console.warn('Mailgun not configured — skipping email to', to);
+    return;
+  }
+  const body = new URLSearchParams({
+    from: `akFISHinfo <noreply@${domain}>`,
+    'h:Reply-To': 'admin@akfishinfo.com',
+    to, subject, text, html,
+  }).toString();
+  return new Promise((resolve, reject) => {
+    const auth = Buffer.from(`api:${apiKey}`).toString('base64');
+    const req = https.request(
+      `https://api.mailgun.net/v3/${domain}/messages`,
+      { method: 'POST', headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(body),
+      }},
+      res => { res.on('data', () => {}); res.on('end', resolve); }
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// HTML email sent when an admin approves a beta request. Mirrors the
+// site's dark theme + accent. Uses tables and inline styles so it renders
+// in Gmail, iOS Mail, Outlook, etc. — no @font-face, no external CSS.
+function renderBetaApprovalEmail({ requesterEmail, signupUrl }) {
+  const e = escapeHtml;
+  const text =
+    `You've been accepted into the akFISHinfo beta.\n\n` +
+    `Get started: ${signupUrl}\n\n` +
+    `Two things to know:\n` +
+    `1. Sign up with the same email you requested with (${requesterEmail}). ` +
+    `That's the email we approved — any other will land in the regular signup queue.\n` +
+    `2. During beta, alerts go through Telegram. You'll need to install the free Telegram app and link it to your akFISHinfo account during setup. ` +
+    `It takes 60 seconds and works on every device.\n\n` +
+    `— Oliver, akFISHinfo`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're in — akFISHinfo beta</title>
+</head>
+<body style="margin:0;padding:0;background:#060a0f;color:#dde8f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#060a0f;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#0d1520;border:1px solid #1a2d3f;">
+        <tr><td style="padding:22px 28px;border-bottom:1px solid #1a2d3f;">
+          <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:18px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:#dde8f4;">akFISH<span style="color:#00b4d8;">info.</span></span>
+        </td></tr>
+
+        <tr><td style="padding:36px 28px 16px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;color:#00b4d8;margin-bottom:14px;">2026 PWS season</div>
+          <h1 style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:36px;line-height:1.05;letter-spacing:-0.01em;color:#dde8f4;font-weight:800;">
+            You've been<br><span style="color:#00b4d8;">accepted.</span>
+          </h1>
+        </td></tr>
+
+        <tr><td style="padding:8px 28px 6px;">
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.55;color:#9fb1c4;">
+            Welcome to the akFISHinfo beta. The moment ADF&amp;G drops a Prince William Sound opening, you'll get a live map and a Telegram alert &mdash; before you leave the dock.
+          </p>
+        </td></tr>
+
+        <tr><td align="center" style="padding:14px 28px 26px;">
+          <a href="${e(signupUrl)}" style="display:inline-block;background:#00b4d8;color:#000000;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:14px 28px;border:1px solid #00b4d8;">
+            Get started &rarr;
+          </a>
+        </td></tr>
+
+        <tr><td style="padding:6px 28px 18px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#132030;border:1px solid #1a2d3f;">
+            <tr><td style="padding:16px 18px;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.10em;color:#00b4d8;margin-bottom:8px;">Step 1 &mdash; sign up</div>
+              <p style="margin:0;font-size:14px;line-height:1.55;color:#dde8f4;">
+                Use the same email you requested with: <strong style="color:#dde8f4;">${e(requesterEmail)}</strong>. That's the address we approved &mdash; if you sign up with a different one, the system won't know it's you.
+              </p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:0 28px 22px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#132030;border:1px solid #1a2d3f;">
+            <tr><td style="padding:16px 18px;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.10em;color:#00b4d8;margin-bottom:8px;">Step 2 &mdash; install Telegram</div>
+              <p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:#dde8f4;">
+                During beta, alerts are delivered through the messaging app <strong style="color:#dde8f4;">Telegram</strong>. It's free, takes about 60 seconds to install, and a single account works across phone, tablet, and desktop.
+              </p>
+              <p style="margin:0;font-size:13px;line-height:1.55;color:#9fb1c4;">
+                You'll link Telegram to your akFISHinfo account on the setup page right after signup &mdash; we'll show you exactly how.
+              </p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:0 28px 30px;">
+          <p style="margin:0;font-size:12px;line-height:1.6;color:#5a7288;">
+            Questions? Just reply to this email &mdash; it reaches me directly.<br>
+            &mdash; Oliver, akFISHinfo
+          </p>
+        </td></tr>
+
+        <tr><td style="padding:16px 28px;border-top:1px solid #1a2d3f;background:#0a121b;">
+          <p style="margin:0;font-size:11px;color:#5a7288;line-height:1.5;">
+            You're receiving this because you requested beta access at akfishinfo.com. If that wasn't you, ignore this email &mdash; no account will be created.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  return { text, html };
+}
+
+async function sendBetaApprovalEmail(requesterEmail) {
+  const signupUrl = `${BASE_URL}/signup`;
+  const { text, html } = renderBetaApprovalEmail({ requesterEmail, signupUrl });
+  return sendMailgun({
+    to: requesterEmail,
+    subject: "You're in — akFISHinfo beta access approved",
+    text, html,
+  });
+}
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
@@ -865,6 +1108,60 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many attempts. Please try again in 15 minutes.' },
 });
+
+// Public beta-request page is reachable via QR codes at harbors. Cap
+// submissions per IP to keep the table clean; scan pings get a looser cap.
+const betaRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+const qrScanLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'rate_limited' },
+});
+
+const BETA_REQUEST_SOURCES = ['whittier', 'valdez', 'cordova', 'direct', 'other'];
+
+function normalizeBetaSource(raw) {
+  if (!raw || typeof raw !== 'string') return 'direct';
+  const v = raw.toLowerCase().trim();
+  return BETA_REQUEST_SOURCES.includes(v) ? v : 'other';
+}
+
+async function notifyAdminsOfBetaRequest({ name, email, source, requestId }) {
+  // DM every admin captain who has a linked Telegram chat. ADMIN_EMAILS env
+  // var is the source of truth; we look up their chat_id from the captains
+  // table. No new env var needed.
+  const adminEmails = (process.env.ADMIN_EMAILS || '')
+    .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  if (adminEmails.length === 0 || !TELEGRAM_API) return;
+  try {
+    const r = await db.query(
+      `SELECT telegram_chat_id FROM captains
+       WHERE telegram_chat_id IS NOT NULL
+         AND LOWER(email) = ANY($1::text[])`,
+      [adminEmails]
+    );
+    if (r.rows.length === 0) return;
+    const text =
+      `<b>New beta access request</b>\n` +
+      `Name: ${escapeHtml(name || '(none)')}\n` +
+      `Email: <code>${escapeHtml(email)}</code>\n` +
+      `Port: ${escapeHtml(source)}\n` +
+      `Request #${requestId} — approve at ${BASE_URL}/admin`;
+    for (const row of r.rows) {
+      await sendTelegramMessage(row.telegram_chat_id, text);
+    }
+  } catch (err) {
+    console.error('notifyAdminsOfBetaRequest error:', err);
+  }
+}
 
 // POST /api/register — create account with email + password
 app.post('/api/register', authLimiter, express.json(), async (req, res) => {
@@ -887,12 +1184,16 @@ app.post('/api/register', authLimiter, express.json(), async (req, res) => {
     const verifyToken   = crypto.randomBytes(32).toString('hex');
     const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+    const preApprovedBeta = await hasApprovedBetaRequest(email.toLowerCase());
     const result = await db.query(
-      `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires)
-       VALUES ($1, $2, $3, 'free', $4, $5, $6) RETURNING *`,
-      [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires]
+      `INSERT INTO captains (name, email, password_hash, tier, is_admin, email_verify_token, email_verify_expires, beta_access)
+       VALUES ($1, $2, $3, 'free', $4, $5, $6, $7) RETURNING *`,
+      [name.trim(), email.toLowerCase(), hash, admin, verifyToken, verifyExpires, preApprovedBeta]
     );
     const user = result.rows[0];
+    if (preApprovedBeta) {
+      await linkApprovedBetaRequestToCaptain(email.toLowerCase(), user.id);
+    }
 
     // Fire-and-forget verification email
     sendVerificationEmail(email.toLowerCase(), verifyToken).catch(e => console.error('Verify email send failed:', e));
@@ -1106,6 +1407,11 @@ async function initDatabase() {
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_link_code VARCHAR(8);`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_link_code_expires_at TIMESTAMPTZ;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS telegram_linked_at TIMESTAMPTZ;`);
+
+    // Beta access — admin-toggleable column, replaces the BETA_TESTERS env var.
+    // The env var is still backfilled at startup below for migration.
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS beta_access BOOLEAN DEFAULT false;`);
+
     // Anti-meta-gaming: one chat per captain. Same chat trying to link a second account is rejected.
     await db.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_captains_telegram_chat_id
@@ -1165,6 +1471,52 @@ async function initDatabase() {
         created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+
+    // Beta access requests captured by the public /request-beta page (QR-code flow).
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS beta_requests (
+        id           SERIAL PRIMARY KEY,
+        email        VARCHAR(255) NOT NULL,
+        name         VARCHAR(255),
+        source       VARCHAR(64),
+        status       TEXT NOT NULL DEFAULT 'pending'
+                       CHECK (status IN ('pending', 'approved', 'denied')),
+        captain_id   INT REFERENCES captains(id) ON DELETE SET NULL,
+        ip           VARCHAR(64),
+        user_agent   TEXT,
+        notes        TEXT,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        decided_at   TIMESTAMPTZ
+      )
+    `);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_beta_requests_email ON beta_requests(LOWER(email));`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_beta_requests_status ON beta_requests(status);`);
+
+    // QR-code scan pings — fired on /request-beta page load so we can see
+    // scan-to-submit conversion per port.
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS qr_scans (
+        id           SERIAL PRIMARY KEY,
+        source       VARCHAR(64),
+        ip           VARCHAR(64),
+        user_agent   TEXT,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_qr_scans_created ON qr_scans(created_at);`);
+
+    // Migration: backfill beta_access from the legacy BETA_TESTERS env var.
+    // Idempotent — only flips false → true; never unsets.
+    if (BETA_TESTERS.length > 0) {
+      const r = await db.query(
+        `UPDATE captains SET beta_access = true
+         WHERE beta_access = false AND LOWER(email) = ANY($1::text[])`,
+        [BETA_TESTERS]
+      );
+      if (r.rowCount > 0) {
+        console.log(`✓ Backfilled beta_access=true for ${r.rowCount} captain(s) from BETA_TESTERS env`);
+      }
+    }
 
     console.log('✓ Database initialized');
   } catch (err) {
@@ -1531,8 +1883,8 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
 
   try {
     // Recipients = pro subscribers, admins, and beta testers — anyone who
-    // should see what the app is producing. Beta testers and admins are
-    // identified by email lists (BETA_TESTERS env var + is_admin flag).
+    // should see what the app is producing. Beta testers come from the
+    // captains.beta_access column (admin-toggleable); admins from is_admin.
     const captains = await db.query(
       `SELECT id, telegram_chat_id, name FROM captains
        WHERE telegram_chat_id IS NOT NULL
@@ -1541,9 +1893,9 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
        AND (
          (tier = 'pro' AND subscription_active = true)
          OR is_admin = true
-         OR LOWER(email) = ANY($2::text[])
+         OR beta_access = true
        )`,
-      [districts, BETA_TESTERS]
+      [districts]
     );
 
     if (captains.rows.length === 0) {
@@ -2173,6 +2525,10 @@ app.get('/pricing', (req, res) => {
  * GET /about
  * Public about page — no auth required
  */
+app.get('/request-beta', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'request-beta.html'));
+});
+
 app.get('/about', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'about.html'));
 });
@@ -2368,6 +2724,137 @@ app.post('/api/admin/test-dm', requireAdmin, express.json(), async (req, res) =>
   const result = await sendTelegramMessage(req.user.telegram_chat_id, text);
   if (!result.ok) return res.status(502).json({ ok: false, error: result.error });
   res.json({ ok: true, message_id: result.message_id });
+});
+
+// GET /api/admin/beta-requests — list pending + recent requests, plus
+// QR-scan totals by source so admin can see scan → submit conversion.
+app.get('/api/admin/beta-requests', requireAdmin, async (req, res) => {
+  try {
+    const requests = await db.query(
+      `SELECT br.id, br.email, br.name, br.source, br.status,
+              br.created_at, br.decided_at,
+              c.id   AS captain_id,
+              c.beta_access,
+              c.telegram_chat_id IS NOT NULL AS telegram_linked
+         FROM beta_requests br
+         LEFT JOIN captains c ON LOWER(c.email) = LOWER(br.email)
+        ORDER BY (br.status = 'pending') DESC, br.created_at DESC
+        LIMIT 200`
+    );
+    const scans = await db.query(
+      `SELECT source, COUNT(*)::int AS count
+         FROM qr_scans
+        WHERE created_at > NOW() - INTERVAL '30 days'
+        GROUP BY source`
+    );
+    const submissions = await db.query(
+      `SELECT source, COUNT(*)::int AS count
+         FROM beta_requests
+        WHERE created_at > NOW() - INTERVAL '30 days'
+        GROUP BY source`
+    );
+    res.json({
+      requests: requests.rows,
+      scans_30d: scans.rows,
+      submissions_30d: submissions.rows,
+    });
+  } catch (err) {
+    console.error('admin beta-requests error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/beta-requests/:id/approve — grants beta access to the
+// requester's email. If a captain row exists, flip beta_access=true. If
+// not, the request is still marked approved; the auto-grant on signup
+// will pick it up when they create an account.
+app.post('/api/admin/beta-requests/:id/approve', requireAdmin, express.json(), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  try {
+    const r = await db.query(`SELECT * FROM beta_requests WHERE id = $1`, [id]);
+    if (r.rows.length === 0) return res.status(404).json({ error: 'not_found' });
+    const reqRow = r.rows[0];
+    const captain = await db.query(
+      `UPDATE captains SET beta_access = true, updated_at = NOW()
+       WHERE LOWER(email) = LOWER($1) RETURNING id`,
+      [reqRow.email]
+    );
+    await db.query(
+      `UPDATE beta_requests
+          SET status = 'approved', decided_at = NOW(), captain_id = $2
+        WHERE id = $1`,
+      [id, captain.rows[0]?.id || null]
+    );
+    // Fire-and-forget approval email — never block the admin's response on it.
+    sendBetaApprovalEmail(reqRow.email).catch(err =>
+      console.error('beta approval email failed for', reqRow.email, err)
+    );
+    res.json({
+      ok: true,
+      captain_updated: captain.rowCount > 0,
+      pending_signup: captain.rowCount === 0,
+      email_sent_to: reqRow.email,
+    });
+  } catch (err) {
+    console.error('approve beta request error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/beta-requests/test-email — send the approval email
+// template to the admin's own email address. Lets us preview rendering +
+// reply flow without creating a fake beta request.
+app.post('/api/admin/beta-requests/test-email', requireAdmin, express.json(), async (req, res) => {
+  const to = req.user?.email;
+  if (!to) return res.status(400).json({ error: 'no_admin_email' });
+  try {
+    await sendBetaApprovalEmail(to);
+    res.json({ ok: true, sent_to: to });
+  } catch (err) {
+    console.error('test approval email error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/beta-requests/:id/resend-email — re-send the approval
+// email for a request already marked approved. Useful if the original
+// landed in spam or the requester typo'd their email and we fix it.
+app.post('/api/admin/beta-requests/:id/resend-email', requireAdmin, express.json(), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  try {
+    const r = await db.query(
+      `SELECT email, status FROM beta_requests WHERE id = $1`, [id]);
+    if (r.rows.length === 0) return res.status(404).json({ error: 'not_found' });
+    if (r.rows[0].status !== 'approved') {
+      return res.status(400).json({ error: 'not_approved' });
+    }
+    await sendBetaApprovalEmail(r.rows[0].email);
+    res.json({ ok: true, email: r.rows[0].email });
+  } catch (err) {
+    console.error('resend approval email error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/beta-requests/:id/deny — mark denied. Does not touch
+// the captain row (admin can still grant manually later if they change their mind).
+app.post('/api/admin/beta-requests/:id/deny', requireAdmin, express.json(), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  try {
+    const r = await db.query(
+      `UPDATE beta_requests SET status = 'denied', decided_at = NOW()
+        WHERE id = $1 RETURNING id`,
+      [id]
+    );
+    if (r.rowCount === 0) return res.status(404).json({ error: 'not_found' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('deny beta request error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ============================================================

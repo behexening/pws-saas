@@ -181,6 +181,31 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Beta access requests</div>
+      <div class="actions" style="margin-bottom: 10px;">
+        <button id="btn-test-approval-email">Send approval email to me</button>
+        <span class="page-sub" style="margin: 0;">Previews the template in your inbox so you can check rendering + reply flow.</span>
+      </div>
+      <div id="beta-summary" class="page-sub" style="margin-bottom: 10px;">Loading…</div>
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Port</th>
+            <th>Status</th>
+            <th>Captain</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="beta-tbody">
+          <tr><td colspan="7" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
       <div class="card-title">Feedback (latest 200)</div>
       <div id="feedback-list" class="empty">Loading…</div>
     </div>
@@ -344,10 +369,127 @@
       }
     }
 
+    async function loadBetaRequests() {
+      const tbody = document.getElementById('beta-tbody');
+      const summary = document.getElementById('beta-summary');
+      try {
+        const r = await fetch('/api/admin/beta-requests').then(r => r.json());
+        if (r.error) { summary.textContent = 'Error: ' + r.error; return; }
+        const scans = Object.fromEntries((r.scans_30d || []).map(s => [s.source, s.count]));
+        const subs  = Object.fromEntries((r.submissions_30d || []).map(s => [s.source, s.count]));
+        const ports = ['whittier', 'valdez', 'cordova', 'direct', 'other'];
+        const summaryParts = ports.map(p => {
+          const sc = scans[p] || 0, su = subs[p] || 0;
+          if (sc === 0 && su === 0) return null;
+          const pct = sc > 0 ? Math.round((su / sc) * 100) + '%' : '—';
+          return `<b>${p}</b>: ${su}/${sc} (${pct})`;
+        }).filter(Boolean);
+        summary.innerHTML = summaryParts.length
+          ? 'Last 30d — submissions / scans (conversion): ' + summaryParts.join(' &middot; ')
+          : 'No scans or submissions in the last 30 days.';
+
+        if (!r.requests || r.requests.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="empty">No requests yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = r.requests.map(b => {
+          const statusPill = b.status === 'pending' ? '<span class="pill muted">pending</span>'
+            : b.status === 'approved' ? '<span class="pill ok">approved</span>'
+            : '<span class="pill fail">denied</span>';
+          const captainCell = b.captain_id
+            ? `#${b.captain_id}${b.telegram_linked ? ' &nbsp;<span class="pill ok">tg</span>' : ''}`
+            : '<span class="page-sub">no signup yet</span>';
+          const actions = b.status === 'pending'
+            ? `<button data-approve="${b.id}">Approve</button>
+               <button data-deny="${b.id}">Deny</button>`
+            : b.status === 'approved'
+              ? `<button data-resend="${b.id}">Resend email</button>`
+              : '';
+          return `<tr>
+            <td>${esc(fmtDate(b.created_at))}</td>
+            <td class="mono">${esc(b.email)}</td>
+            <td>${esc(b.name || '—')}</td>
+            <td>${esc(b.source || '—')}</td>
+            <td>${statusPill}</td>
+            <td>${captainCell}</td>
+            <td class="actions">${actions}</td>
+          </tr>`;
+        }).join('');
+        tbody.querySelectorAll('button[data-approve]').forEach(btn => {
+          btn.addEventListener('click', () => decideBeta(btn.dataset.approve, 'approve', btn));
+        });
+        tbody.querySelectorAll('button[data-deny]').forEach(btn => {
+          btn.addEventListener('click', () => decideBeta(btn.dataset.deny, 'deny', btn));
+        });
+        tbody.querySelectorAll('button[data-resend]').forEach(btn => {
+          btn.addEventListener('click', () => resendBetaEmail(btn.dataset.resend, btn));
+        });
+      } catch (e) {
+        summary.textContent = 'Error loading beta requests.';
+      }
+    }
+
+    async function decideBeta(id, action, btn) {
+      const verb = action === 'approve' ? 'Approve' : 'Deny';
+      if (!confirm(`${verb} beta request #${id}?`)) return;
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/admin/beta-requests/${id}/${action}`, { method: 'POST' }).then(r => r.json());
+        if (r.error) { toast(`${verb} failed: ` + r.error, 'fail'); btn.disabled = false; return; }
+        if (action === 'approve') {
+          const where = r.email_sent_to ? ` Approval email sent to ${r.email_sent_to}.` : '';
+          toast((r.pending_signup
+            ? 'Approved. Access will activate when they create an account.'
+            : 'Approved. Captain now has beta access.') + where);
+        } else {
+          toast('Request denied.');
+        }
+        loadBetaRequests();
+      } catch (e) {
+        toast(`${verb} failed: ` + e.message, 'fail');
+        btn.disabled = false;
+      }
+    }
+
+    async function resendBetaEmail(id, btn) {
+      if (!confirm(`Resend approval email for request #${id}?`)) return;
+      btn.disabled = true;
+      const orig = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch(`/api/admin/beta-requests/${id}/resend-email`, { method: 'POST' }).then(r => r.json());
+        if (r.error) toast('Resend failed: ' + r.error, 'fail');
+        else toast(`Approval email resent to ${r.email}.`);
+      } catch (e) {
+        toast('Resend failed: ' + e.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    }
+
+    document.getElementById('btn-test-approval-email').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      const orig = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/admin/beta-requests/test-email', { method: 'POST' }).then(r => r.json());
+        if (r.error) toast('Send failed: ' + r.error, 'fail');
+        else toast(`Approval email sent to ${r.sent_to}. Check your inbox.`);
+      } catch (err) {
+        toast('Send failed: ' + err.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+      }
+    });
+
     loadStats();
     loadAnnouncements();
     loadNotifications();
     loadFeedback();
+    loadBetaRequests();
   </script>
 </body>
 </html>
