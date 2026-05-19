@@ -966,6 +966,140 @@ async function sendVerificationEmail(email, token) {
   });
 }
 
+// Generic Mailgun sender used by transactional emails other than verification.
+async function sendMailgun({ to, subject, text, html }) {
+  const domain = process.env.MAILGUN_DOMAIN;
+  const apiKey = process.env.MAILGUN_API_KEY;
+  if (!domain || !apiKey) {
+    console.warn('Mailgun not configured — skipping email to', to);
+    return;
+  }
+  const body = new URLSearchParams({
+    from: `akFISHinfo <noreply@${domain}>`,
+    to, subject, text, html,
+  }).toString();
+  return new Promise((resolve, reject) => {
+    const auth = Buffer.from(`api:${apiKey}`).toString('base64');
+    const req = https.request(
+      `https://api.mailgun.net/v3/${domain}/messages`,
+      { method: 'POST', headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(body),
+      }},
+      res => { res.on('data', () => {}); res.on('end', resolve); }
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// HTML email sent when an admin approves a beta request. Mirrors the
+// site's dark theme + accent. Uses tables and inline styles so it renders
+// in Gmail, iOS Mail, Outlook, etc. — no @font-face, no external CSS.
+function renderBetaApprovalEmail({ requesterEmail, signupUrl }) {
+  const e = escapeHtml;
+  const text =
+    `You've been accepted into the akFISHinfo beta.\n\n` +
+    `Get started: ${signupUrl}\n\n` +
+    `Two things to know:\n` +
+    `1. Sign up with the same email you requested with (${requesterEmail}). ` +
+    `That's the email we approved — any other will land in the regular signup queue.\n` +
+    `2. During beta, alerts go through Telegram. You'll need to install the free Telegram app and link it to your akFISHinfo account during setup. ` +
+    `It takes 60 seconds and works on every device.\n\n` +
+    `— Oliver, akFISHinfo`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're in — akFISHinfo beta</title>
+</head>
+<body style="margin:0;padding:0;background:#060a0f;color:#dde8f4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#060a0f;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#0d1520;border:1px solid #1a2d3f;">
+        <tr><td style="padding:22px 28px;border-bottom:1px solid #1a2d3f;">
+          <span style="font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:0.03em;color:#dde8f4;">akFISH<span style="color:#00b4d8;">info.</span></span>
+        </td></tr>
+
+        <tr><td style="padding:36px 28px 16px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.14em;color:#00b4d8;margin-bottom:10px;">2026 PWS season</div>
+          <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.08;color:#dde8f4;font-weight:normal;">
+            You've been<br><span style="color:#00b4d8;">accepted.</span>
+          </h1>
+        </td></tr>
+
+        <tr><td style="padding:8px 28px 6px;">
+          <p style="margin:0 0 18px;font-size:15px;line-height:1.55;color:#9fb1c4;">
+            Welcome to the akFISHinfo beta. The moment ADF&amp;G drops a Prince William Sound opening, you'll get a live map and a Telegram alert &mdash; before you leave the dock.
+          </p>
+        </td></tr>
+
+        <tr><td align="center" style="padding:14px 28px 26px;">
+          <a href="${e(signupUrl)}" style="display:inline-block;background:#00b4d8;color:#000000;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:14px 28px;border:1px solid #00b4d8;">
+            Get started &rarr;
+          </a>
+        </td></tr>
+
+        <tr><td style="padding:6px 28px 18px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#132030;border:1px solid #1a2d3f;">
+            <tr><td style="padding:16px 18px;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.10em;color:#00b4d8;margin-bottom:8px;">Step 1 &mdash; sign up</div>
+              <p style="margin:0;font-size:14px;line-height:1.55;color:#dde8f4;">
+                Use the same email you requested with: <strong style="color:#dde8f4;">${e(requesterEmail)}</strong>. That's the address we approved &mdash; if you sign up with a different one, the system won't know it's you.
+              </p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:0 28px 22px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#132030;border:1px solid #1a2d3f;">
+            <tr><td style="padding:16px 18px;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.10em;color:#00b4d8;margin-bottom:8px;">Step 2 &mdash; install Telegram</div>
+              <p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:#dde8f4;">
+                During beta, alerts are delivered through the messaging app <strong style="color:#dde8f4;">Telegram</strong>. It's free, takes about 60 seconds to install, and a single account works across phone, tablet, and desktop.
+              </p>
+              <p style="margin:0;font-size:13px;line-height:1.55;color:#9fb1c4;">
+                You'll link Telegram to your akFISHinfo account on the setup page right after signup &mdash; we'll show you exactly how.
+              </p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:0 28px 30px;">
+          <p style="margin:0;font-size:12px;line-height:1.6;color:#5a7288;">
+            Questions? Just reply to this email &mdash; it reaches me directly.<br>
+            &mdash; Oliver, akFISHinfo
+          </p>
+        </td></tr>
+
+        <tr><td style="padding:16px 28px;border-top:1px solid #1a2d3f;background:#0a121b;">
+          <p style="margin:0;font-size:11px;color:#5a7288;line-height:1.5;">
+            You're receiving this because you requested beta access at akfishinfo.com. If that wasn't you, ignore this email &mdash; no account will be created.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  return { text, html };
+}
+
+async function sendBetaApprovalEmail(requesterEmail) {
+  const signupUrl = `${BASE_URL}/signup`;
+  const { text, html } = renderBetaApprovalEmail({ requesterEmail, signupUrl });
+  return sendMailgun({
+    to: requesterEmail,
+    subject: "You're in — akFISHinfo beta access approved",
+    text, html,
+  });
+}
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
@@ -2651,13 +2785,39 @@ app.post('/api/admin/beta-requests/:id/approve', requireAdmin, express.json(), a
         WHERE id = $1`,
       [id, captain.rows[0]?.id || null]
     );
+    // Fire-and-forget approval email — never block the admin's response on it.
+    sendBetaApprovalEmail(reqRow.email).catch(err =>
+      console.error('beta approval email failed for', reqRow.email, err)
+    );
     res.json({
       ok: true,
       captain_updated: captain.rowCount > 0,
       pending_signup: captain.rowCount === 0,
+      email_sent_to: reqRow.email,
     });
   } catch (err) {
     console.error('approve beta request error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/beta-requests/:id/resend-email — re-send the approval
+// email for a request already marked approved. Useful if the original
+// landed in spam or the requester typo'd their email and we fix it.
+app.post('/api/admin/beta-requests/:id/resend-email', requireAdmin, express.json(), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'bad_id' });
+  try {
+    const r = await db.query(
+      `SELECT email, status FROM beta_requests WHERE id = $1`, [id]);
+    if (r.rows.length === 0) return res.status(404).json({ error: 'not_found' });
+    if (r.rows[0].status !== 'approved') {
+      return res.status(400).json({ error: 'not_approved' });
+    }
+    await sendBetaApprovalEmail(r.rows[0].email);
+    res.json({ ok: true, email: r.rows[0].email });
+  } catch (err) {
+    console.error('resend approval email error:', err);
     res.status(500).json({ error: err.message });
   }
 });

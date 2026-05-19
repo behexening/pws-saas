@@ -398,7 +398,9 @@
           const actions = b.status === 'pending'
             ? `<button data-approve="${b.id}">Approve</button>
                <button data-deny="${b.id}">Deny</button>`
-            : '';
+            : b.status === 'approved'
+              ? `<button data-resend="${b.id}">Resend email</button>`
+              : '';
           return `<tr>
             <td>${esc(fmtDate(b.created_at))}</td>
             <td class="mono">${esc(b.email)}</td>
@@ -415,6 +417,9 @@
         tbody.querySelectorAll('button[data-deny]').forEach(btn => {
           btn.addEventListener('click', () => decideBeta(btn.dataset.deny, 'deny', btn));
         });
+        tbody.querySelectorAll('button[data-resend]').forEach(btn => {
+          btn.addEventListener('click', () => resendBetaEmail(btn.dataset.resend, btn));
+        });
       } catch (e) {
         summary.textContent = 'Error loading beta requests.';
       }
@@ -428,9 +433,10 @@
         const r = await fetch(`/api/admin/beta-requests/${id}/${action}`, { method: 'POST' }).then(r => r.json());
         if (r.error) { toast(`${verb} failed: ` + r.error, 'fail'); btn.disabled = false; return; }
         if (action === 'approve') {
-          toast(r.pending_signup
+          const where = r.email_sent_to ? ` Approval email sent to ${r.email_sent_to}.` : '';
+          toast((r.pending_signup
             ? 'Approved. Access will activate when they create an account.'
-            : 'Approved. Captain now has beta access.');
+            : 'Approved. Captain now has beta access.') + where);
         } else {
           toast('Request denied.');
         }
@@ -438,6 +444,23 @@
       } catch (e) {
         toast(`${verb} failed: ` + e.message, 'fail');
         btn.disabled = false;
+      }
+    }
+
+    async function resendBetaEmail(id, btn) {
+      if (!confirm(`Resend approval email for request #${id}?`)) return;
+      btn.disabled = true;
+      const orig = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch(`/api/admin/beta-requests/${id}/resend-email`, { method: 'POST' }).then(r => r.json());
+        if (r.error) toast('Resend failed: ' + r.error, 'fail');
+        else toast(`Approval email resent to ${r.email}.`);
+      } catch (e) {
+        toast('Resend failed: ' + e.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
       }
     }
 
