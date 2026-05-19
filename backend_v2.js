@@ -987,20 +987,23 @@ async function sendVerificationEmail(email, token) {
 }
 
 // Generic Mailgun sender used by transactional emails other than verification.
+// Returns { ok, statusCode, body, mailgun_id, domain } so callers can surface
+// the result (the old version threw away the response body, which made it
+// impossible to tell whether the API actually accepted the message).
 async function sendMailgun({ to, subject, text, html }) {
   const domain = process.env.MAILGUN_DOMAIN;
   const apiKey = process.env.MAILGUN_API_KEY;
   if (!domain || !apiKey) {
     console.warn('Mailgun not configured — skipping email to', to);
-    return;
+    return { ok: false, statusCode: 0, body: 'mailgun_not_configured', domain };
   }
   const body = new URLSearchParams({
     from: `akFISHinfo <noreply@${domain}>`,
     'h:Reply-To': 'admin@akfishinfo.com',
     to, subject, text, html,
   }).toString();
+  const auth = Buffer.from(`api:${apiKey}`).toString('base64');
   return new Promise((resolve, reject) => {
-    const auth = Buffer.from(`api:${apiKey}`).toString('base64');
     const req = https.request(
       `https://api.mailgun.net/v3/${domain}/messages`,
       { method: 'POST', headers: {
@@ -1008,7 +1011,21 @@ async function sendMailgun({ to, subject, text, html }) {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': Buffer.byteLength(body),
       }},
-      res => { res.on('data', () => {}); res.on('end', resolve); }
+      res => {
+        let chunks = '';
+        res.on('data', c => { chunks += c; });
+        res.on('end', () => {
+          let mailgunId = null;
+          try { mailgunId = JSON.parse(chunks).id || null; } catch {}
+          const ok = res.statusCode >= 200 && res.statusCode < 300;
+          if (!ok) {
+            console.error(`Mailgun ${res.statusCode} sending to ${to} via ${domain}:`, chunks);
+          } else {
+            console.log(`Mailgun ${res.statusCode} sent to ${to} via ${domain} (id=${mailgunId})`);
+          }
+          resolve({ ok, statusCode: res.statusCode, body: chunks, mailgun_id: mailgunId, domain });
+        });
+      }
     );
     req.on('error', reject);
     req.write(body);
@@ -2812,14 +2829,21 @@ app.post('/api/admin/beta-requests/:id/approve', requireAdmin, express.json(), a
 });
 
 // POST /api/admin/beta-requests/test-email — send the approval email
-// template to the admin's own email address. Lets us preview rendering +
-// reply flow without creating a fake beta request.
+// template to the project's admin@ address (always, regardless of which
+// admin clicked). Surfaces the Mailgun status code + response body so we
+// can debug deliverability failures from the toast.
+const TEST_EMAIL_RECIPIENT = 'admin@akfishinfo.com';
 app.post('/api/admin/beta-requests/test-email', requireAdmin, express.json(), async (req, res) => {
-  const to = req.user?.email;
-  if (!to) return res.status(400).json({ error: 'no_admin_email' });
   try {
-    await sendBetaApprovalEmail(to);
-    res.json({ ok: true, sent_to: to });
+    const result = await sendBetaApprovalEmail(TEST_EMAIL_RECIPIENT);
+    res.json({
+      ok: !!result?.ok,
+      sent_to: TEST_EMAIL_RECIPIENT,
+      mailgun_status: result?.statusCode ?? 0,
+      mailgun_id: result?.mailgun_id ?? null,
+      mailgun_domain: result?.domain ?? null,
+      mailgun_body: result?.body ?? null,
+    });
   } catch (err) {
     console.error('test approval email error:', err);
     res.status(500).json({ error: err.message });

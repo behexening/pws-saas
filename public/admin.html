@@ -183,8 +183,8 @@
     <div class="card">
       <div class="card-title">Beta access requests</div>
       <div class="actions" style="margin-bottom: 10px;">
-        <button id="btn-test-approval-email">Send approval email to me</button>
-        <span class="page-sub" style="margin: 0;">Previews the template in your inbox so you can check rendering + reply flow.</span>
+        <button id="btn-test-approval-email">Send approval email to admin@</button>
+        <span class="page-sub" style="margin: 0;">Sends the template to admin@akfishinfo.com so you can check rendering + reply flow.</span>
       </div>
       <div id="beta-summary" class="page-sub" style="margin-bottom: 10px;">Loading…</div>
       <table>
@@ -475,8 +475,15 @@
       btn.textContent = 'Sending…';
       try {
         const r = await fetch('/api/admin/beta-requests/test-email', { method: 'POST' }).then(r => r.json());
-        if (r.error) toast('Send failed: ' + r.error, 'fail');
-        else toast(`Approval email sent to ${r.sent_to}. Check your inbox.`);
+        if (r.error) {
+          toast('Send failed: ' + r.error, 'fail');
+        } else if (!r.ok) {
+          const snippet = (r.mailgun_body || '').slice(0, 180);
+          toast(`Mailgun rejected (HTTP ${r.mailgun_status} on ${r.mailgun_domain}): ${snippet}`, 'fail');
+          console.error('Mailgun test rejection:', r);
+        } else {
+          toast(`Sent to ${r.sent_to} (mailgun id ${r.mailgun_id || '?'} via ${r.mailgun_domain}). Check the admin@ inbox.`);
+        }
       } catch (err) {
         toast('Send failed: ' + err.message, 'fail');
       } finally {
