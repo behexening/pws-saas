@@ -676,6 +676,26 @@ app.post('/api/feedback', express.json(), async (req, res) => {
   }
 });
 
+// Public beta-request page is reachable via QR codes at harbors. Cap
+// submissions per IP to keep the table clean; scan pings get a looser
+// cap. Declared here (rather than next to authLimiter) because both
+// routes that consume them are registered immediately below and `const`
+// is in the temporal dead zone until evaluated.
+const betaRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+const qrScanLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'rate_limited' },
+});
+
 // POST /api/qr-scan — public, fired on /request-beta page load to track
 // how many people scan QR codes at each port even if they don't submit.
 app.post('/api/qr-scan', qrScanLimiter, express.json(), async (req, res) => {
@@ -1109,22 +1129,11 @@ const authLimiter = rateLimit({
   message: { error: 'Too many attempts. Please try again in 15 minutes.' },
 });
 
-// Public beta-request page is reachable via QR codes at harbors. Cap
-// submissions per IP to keep the table clean; scan pings get a looser cap.
-const betaRequestLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests. Please try again later.' },
-});
-const qrScanLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'rate_limited' },
-});
+// betaRequestLimiter / qrScanLimiter / BETA_REQUEST_SOURCES /
+// normalizeBetaSource / notifyAdminsOfBetaRequest are hoisted earlier in
+// the file (before the /api/qr-scan and /api/beta-request route
+// registrations that consume them) to avoid a TDZ ReferenceError at
+// module load.
 
 const BETA_REQUEST_SOURCES = ['whittier', 'valdez', 'cordova', 'direct', 'other'];
 
