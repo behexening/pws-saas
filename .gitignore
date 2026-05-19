@@ -89,3 +89,23 @@ public/pdf_gcps.json
 
 # QGIS workspace state (per-user)
 *.qmd
+
+# Capacitor native build artifacts (ios/ and android/ project trees ARE committed;
+# their build outputs and per-user state are not)
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+ios/App/output/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate
+
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+android/captures/
+android/local.properties
+android/.idea/
+

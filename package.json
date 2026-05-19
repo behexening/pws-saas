@@ -5,10 +5,20 @@
   "main": "backend_v2.js",
   "scripts": {
     "start": "node backend_v2.js",
-    "dev": "node backend_v2.js"
+    "dev": "node backend_v2.js",
+    "cap:sync": "cap sync",
+    "cap:sync:ios": "cap sync ios",
+    "cap:sync:android": "cap sync android",
+    "cap:open:ios": "cap open ios",
+    "cap:open:android": "cap open android",
+    "cap:run:ios": "cap run ios",
+    "cap:run:android": "cap run android"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.10.0",
+    "@capacitor/android": "^7.6.5",
+    "@capacitor/core": "^7.6.5",
+    "@capacitor/ios": "^7.6.5",
     "compression": "^1.8.1",
     "connect-pg-simple": "^9.0.1",
     "express": "^4.18.2",
@@ -23,5 +33,8 @@
   },
   "engines": {
     "node": "20"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.5"
   }
 }

@@ -1,0 +1,19 @@
+{
+  "appId": "info.akfish.app",
+  "appName": "akFISHinfo",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "capacitor",
+    "allowNavigation": [
+      "akfishinfo.com",
+      "*.akfishinfo.com"
+    ]
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

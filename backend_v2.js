@@ -480,12 +480,16 @@ app.get('/api/early-adopter-spots', async (req, res) => {
 });
 
 // POST /api/setup — decides next step after signup.
-//   intent='trial'     → grant 7-day trial (requires email verified + telegram linked,
-//                        and the linked chat_id has never been used for a prior trial)
+//   intent='trial'     → grant 7-day trial. On web: requires email verified + telegram
+//                        linked + that chat_id never used for a prior trial.
+//                        On native (X-Client: native-ios/native-android): requires only
+//                        email verified — alerts arrive via push, not Telegram.
 //   intent='subscribe' → create Stripe Checkout session for the chosen plan
 // Telegram linkage itself is captured via POST /api/telegram/link-code + the bot.
 app.post('/api/setup', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+
+  const isNativeClient = /^native-(ios|android)$/.test(req.get('X-Client') || '');
 
   try {
     const intent = req.body.intent || (req.body.grant_trial ? 'trial' : 'subscribe');
@@ -495,18 +499,20 @@ app.post('/api/setup', express.json(), async (req, res) => {
       if (!req.user.email_verified) {
         return res.status(400).json({ error: 'Please verify your email address before starting a trial. Check your inbox for a verification link.' });
       }
-      if (!req.user.telegram_chat_id) {
-        return res.status(400).json({ error: 'Link your Telegram account first so we can deliver alerts.' });
-      }
-      const priorTrial = await db.query(
-        `SELECT id FROM captains
-         WHERE telegram_chat_id = $1
-         AND trial_ends_at IS NOT NULL
-         AND id != $2`,
-        [req.user.telegram_chat_id, req.user.id]
-      );
-      if (priorTrial.rows.length > 0) {
-        return res.status(400).json({ error: 'This Telegram account has already been used for a trial. Please subscribe to continue.' });
+      if (!isNativeClient) {
+        if (!req.user.telegram_chat_id) {
+          return res.status(400).json({ error: 'Link your Telegram account first so we can deliver alerts.' });
+        }
+        const priorTrial = await db.query(
+          `SELECT id FROM captains
+           WHERE telegram_chat_id = $1
+           AND trial_ends_at IS NOT NULL
+           AND id != $2`,
+          [req.user.telegram_chat_id, req.user.id]
+        );
+        if (priorTrial.rows.length > 0) {
+          return res.status(400).json({ error: 'This Telegram account has already been used for a trial. Please subscribe to continue.' });
+        }
       }
       const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await db.query('UPDATE captains SET trial_ends_at = $1, updated_at = NOW() WHERE id = $2',

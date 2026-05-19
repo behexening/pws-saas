@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About — akFISHinfo</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/platform.js"></script>
   <script src="/static/theme.js"></script>
   <link rel="stylesheet" href="/static/theme.css"/>
+  <link rel="stylesheet" href="/static/platform.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -149,7 +151,8 @@
 
   <div class="card">
     <h2 class="card-title">What it is</h2>
-    <p>ADF&amp;G opening announcements are PDFs buried in an email list. By the time word gets around, the window's already closing. akFISHinfo parses the announcement the moment it hits, updates the map, and sends you a Telegram.</p>
+    <p class="web-only">ADF&amp;G opening announcements are PDFs buried in an email list. By the time word gets around, the window's already closing. akFISHinfo parses the announcement the moment it hits, updates the map, and sends you a Telegram.</p>
+    <p class="native-only">ADF&amp;G opening announcements are PDFs buried in an email list. By the time word gets around, the window's already closing. akFISHinfo parses the announcement the moment it hits, updates the map, and pushes an alert to your phone.</p>
   </div>
 
   <div class="card">
@@ -181,11 +184,18 @@
           <div class="step-desc">Every PWS district on the map updates. What's open, what's closed, and until when.</div>
         </div>
       </div>
-      <div class="pipeline-step">
+      <div class="pipeline-step web-only">
         <div class="step-num">4</div>
         <div class="step-body">
           <div class="step-label">Telegram alert goes out</div>
           <div class="step-desc">Subscribers get a Telegram DM — no refreshing, no checking, no delays.</div>
+        </div>
+      </div>
+      <div class="pipeline-step native-only">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-label">Push notification goes out</div>
+          <div class="step-desc">Subscribers get a push alert on their phone — no refreshing, no checking, no delays.</div>
         </div>
       </div>
     </div>
