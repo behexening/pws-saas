@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Georeferencing — Closed Waters</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; overflow: hidden; }
+  #wrap { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+  header { display: flex; align-items: center; gap: 12px; padding: 0 14px; background: #161b22; border-bottom: 1px solid #30363d; font-size: 12px; }
+  header h1 { margin: 0; font-size: 14px; font-weight: 600; }
+  header select, header button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 0; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+  header select:hover, header button:hover { border-color: #58a6ff; }
+  header .status { color: #8b949e; }
+  header .ok { color: #3fb950; }
+  header .warn { color: #f6d47b; }
+  #panes { display: grid; grid-template-columns: 1fr 1fr; height: 100%; min-height: 0; }
+  .pane { position: relative; overflow: hidden; border-right: 1px solid #30363d; height: 100%; min-height: 0; }
+  #pdfWrap { background: #0d1117; overflow: auto; cursor: crosshair; height: 100%; }
+  #pdfImg { display: block; user-select: none; -webkit-user-drag: none; }
+  #pdfDots { position: absolute; top: 0; left: 0; pointer-events: none; }
+  #map { height: 100%; cursor: crosshair; }
+  .dot { position: absolute; width: 22px; height: 22px; margin-left: -11px; margin-top: -11px; border-radius: 50%; background: #ff4d6d; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(0,0,0,0.6); pointer-events: none; }
+  .dot.pending { background: #ffd166; color: #000; }
+  .leaflet-marker-icon.gcp { background: #ff4d6d; color: #fff; border-radius: 50%; box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+  .leaflet-marker-icon.gcp.pending { background: #ffd166; color: #000; }
+  #help { position: absolute; bottom: 12px; left: 12px; background: rgba(13,17,23,0.92); padding: 10px 14px; border: 1px solid #30363d; border-radius: 0; font-size: 11px; color: #8b949e; max-width: 320px; line-height: 1.5; z-index: 600; }
+  .leaflet-container { background: #0d1117; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <h1>Georef</h1>
+    <select id="pdfSelect"></select>
+    <span class="status" id="status">Pick PDF →</span>
+    <button id="undoBtn">Undo last</button>
+    <button id="clearBtn">Clear all</button>
+    <button id="saveBtn">Save GCPs</button>
+    <button id="exportBtn">Export combined JSON</button>
+    <span class="status" id="ptCount"></span>
+  </header>
+  <div id="panes">
+    <div class="pane" id="pdfWrap">
+      <img id="pdfImg" alt="">
+      <div id="pdfDots"></div>
+      <div id="help" style="position:fixed;left:12px;bottom:12px;">
+        <b>Workflow:</b> click a recognizable point on the PDF, then click the same place on the map. Repeat 4–6 times. Click "Save GCPs" when done. Switch to next PDF.
+      </div>
+    </div>
+    <div class="pane">
+      <div id="map"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const STORAGE_KEY = 'pwsGcpsByPdf';
+let META = {};
+let currentPdf = null;
+let gcps = []; // [{idx, pdf:{x,y}, geo:null|{lat,lng}, pdfMarker, mapMarker}]
+let pendingPdf = null; // {x, y} of last pdf-only click without geo pair yet
+
+const map = L.map('map', { preferCanvas: true }).setView([60.7, -147.0], 8);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors', maxZoom: 19, crossOrigin: true
+}).addTo(map);
+// Force a resize after the grid layout settles
+setTimeout(() => map.invalidateSize(), 100);
+window.addEventListener('resize', () => map.invalidateSize());
+
+function loadStored() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+}
+function saveStored(all) { localStorage.setItem(STORAGE_KEY, JSON.stringify(all)); }
+
+function status(msg, cls='') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + cls;
+}
+
+function setPtCount() {
+  const complete = gcps.filter(g => g.pdf && g.geo).length;
+  document.getElementById('ptCount').textContent = `${complete} pair(s)${pendingPdf ? ' + 1 pending' : ''}`;
+}
+
+function makeMapMarker(latlng, idx, pending=false) {
+  const icon = L.divIcon({
+    className: 'gcp' + (pending ? ' pending' : ''),
+    html: String(idx),
+    iconSize: [22, 22], iconAnchor: [11, 11],
+  });
+  return L.marker(latlng, { icon, draggable: true }).addTo(map);
+}
+
+function makePdfDot(x, y, idx, pending=false) {
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (pending ? ' pending' : '');
+  dot.textContent = String(idx);
+  dot.style.left = x + 'px';
+  dot.style.top  = y + 'px';
+  document.getElementById('pdfDots').appendChild(dot);
+  return dot;
+}
+
+function clearAll() {
+  gcps.forEach(g => {
+    if (g.pdfMarker) g.pdfMarker.remove();
+    if (g.mapMarker) map.removeLayer(g.mapMarker);
+  });
+  gcps = [];
+  pendingPdf = null;
+  document.getElementById('pdfDots').innerHTML = '';
+  setPtCount();
+}
+
+function refreshDotsFromState() {
+  document.getElementById('pdfDots').innerHTML = '';
+  gcps.forEach((g, i) => {
+    if (g.pdf) g.pdfMarker = makePdfDot(g.pdfDisplay.x, g.pdfDisplay.y, i + 1, !g.geo);
+  });
+}
+
+document.getElementById('pdfImg').addEventListener('click', (e) => {
+  if (!currentPdf) return;
+  const img = e.currentTarget;
+  const rect = img.getBoundingClientRect();
+  const dx = e.clientX - rect.left;
+  const dy = e.clientY - rect.top;
+  // Convert displayed pixel → original PDF point coords
+  const meta = META[currentPdf];
+  const scaleX = meta.png_w_px / img.clientWidth;
+  const scaleY = meta.png_h_px / img.clientHeight;
+  const pngX = dx * scaleX;
+  const pngY = dy * scaleY;
+  const pdfX = pngX / meta.scale;
+  const pdfY = pngY / meta.scale;
+  const idx = gcps.length + 1;
+  if (pendingPdf) {
+    // Replace pending pdf with new click
+    pendingPdf.dot.remove();
+  }
+  const dot = makePdfDot(dx + img.offsetLeft, dy + img.offsetTop, idx, true);
+  pendingPdf = { pdf: { x: pdfX, y: pdfY }, display: { x: dx + img.offsetLeft, y: dy + img.offsetTop }, dot };
+  status(`PDF point #${idx} set — now click same place on map`, 'warn');
+});
+
+map.on('click', (e) => {
+  if (!currentPdf) return;
+  if (!pendingPdf) {
+    status('Click on PDF first, then on map', 'warn');
+    return;
+  }
+  const idx = gcps.length + 1;
+  pendingPdf.dot.classList.remove('pending');
+  const marker = makeMapMarker(e.latlng, idx);
+  marker.on('dragend', () => persist());
+  gcps.push({
+    pdf: pendingPdf.pdf,
+    pdfDisplay: pendingPdf.display,
+    geo: { lat: e.latlng.lat, lng: e.latlng.lng },
+    pdfMarker: pendingPdf.dot,
+    mapMarker: marker,
+  });
+  pendingPdf = null;
+  setPtCount();
+  status(`Pair #${idx} saved`, 'ok');
+  persist();
+});
+
+document.getElementById('undoBtn').addEventListener('click', () => {
+  if (pendingPdf) {
+    pendingPdf.dot.remove();
+    pendingPdf = null;
+    status('Pending PDF point removed');
+    setPtCount();
+    return;
+  }
+  const last = gcps.pop();
+  if (last) {
+    last.pdfMarker.remove();
+    map.removeLayer(last.mapMarker);
+    setPtCount();
+    persist();
+  }
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (!confirm('Clear all points for this PDF?')) return;
+  clearAll();
+  persist();
+});
+
+function persist() {
+  if (!currentPdf) return;
+  const stored = loadStored();
+  stored[currentPdf] = gcps.filter(g => g.geo).map(g => ({
+    pdf: g.pdf,
+    geo: { lat: g.mapMarker.getLatLng().lat, lng: g.mapMarker.getLatLng().lng },
+  }));
+  saveStored(stored);
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  persist();
+  status('GCPs saved to browser storage. Use "Export combined JSON" when done with all PDFs.', 'ok');
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  persist();
+  const all = loadStored();
+  const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'pdf_gcps.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  status('Downloaded pdf_gcps.json — save to data/pdf_gcps.json', 'ok');
+});
+
+function loadPdf(name) {
+  currentPdf = name;
+  const meta = META[name];
+  if (!meta) return;
+  document.getElementById('pdfImg').src = meta.png;
+  clearAll();
+  // Restore stored GCPs
+  const stored = loadStored()[name] || [];
+  document.getElementById('pdfImg').onload = () => {
+    const img = document.getElementById('pdfImg');
+    stored.forEach((s, i) => {
+      const idx = i + 1;
+      const pngX = s.pdf.x * meta.scale;
+      const pngY = s.pdf.y * meta.scale;
+      const dx = pngX * img.clientWidth / meta.png_w_px;
+      const dy = pngY * img.clientHeight / meta.png_h_px;
+      const dot = makePdfDot(dx + img.offsetLeft, dy + img.offsetTop, idx);
+      const ll = L.latLng(s.geo.lat, s.geo.lng);
+      const marker = makeMapMarker(ll, idx);
+      marker.on('dragend', () => persist());
+      gcps.push({ pdf: s.pdf, pdfDisplay: { x: dx + img.offsetLeft, y: dy + img.offsetTop },
+                  geo: { lat: ll.lat, lng: ll.lng }, pdfMarker: dot, mapMarker: marker });
+    });
+    setPtCount();
+    status(stored.length ? `Loaded ${stored.length} stored pairs` : 'Click PDF, then map', 'ok');
+  };
+}
+
+fetch('/pdf_pngs/_meta.json').then(r => r.json()).then(m => {
+  META = m;
+  const sel = document.getElementById('pdfSelect');
+  Object.keys(m).sort().forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => loadPdf(sel.value));
+  loadPdf(sel.value);
+});
+</script>
+</body>
+</html>

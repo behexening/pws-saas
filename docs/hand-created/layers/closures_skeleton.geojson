@@ -1,0 +1,2095 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(1)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Copper River District",
+        "paragraph": "(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "definition_text": "within a line from Point Whitshed south to a point at 60\u00b0 26.49' N. lat., 145\u00b0 52.86' W. long. to a point at Alaganik Slough North at 60\u00b0 24.65' N. lat., 145\u00b0 36.70' W. long. to a point at Pete Dahl East at 60\u00b0 20.44' N. lat., 145\u00b0 29.14' W. long. to a point at West Kokinhenik at 60\u00b0 14.88' N. lat., 145\u00b0 10.01' W. long. to a point at East 'East Side' at 60\u00b0 14.83' N. lat., 145\u00b0 03.36' W. long. to a point at Coffee Creek East at 60\u00b0 14.19' N. lat., 144\u00b0 58.01' W. long. to a point at Charlie Mohr North at 60\u00b0 15.15' N. lat., 144\u00b0 56.43' W. long. to a point at Martin River North at 60\u00b0 15.29' N. lat., 144\u00b0 52.52' W. long. to a point on Strawberry Reef at 60\u00b0 13.93' N. lat., 144\u00b0 50.66' W. long., and at all times within sloughs and in Boswell Bay within the bay",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(1)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Copper River District",
+        "paragraph": "(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "definition_text": "except as provided in 5 AAC 24.361(b), the inside closure area defined as all waters north of line from a point at Steamboat South at 60\u00b0 22.31' N. lat., 145\u00b0 33.50' W. long. to the west side of the Pete Dahl entrance at 60\u00b0 18.89' N. lat., 145\u00b0 30.99' W. long. to the western end of the Grass Island Bar at 60\u00b0 18.30' N. lat., 145\u00b0 28.42' W. long. to the eastern end of Grass Island Bar at 60\u00b0 15.24' N. lat., 145\u00b0 17.89' W. long. to the western end of Kokinhenik Bar at 60\u00b0 15.00' N. lat., 145\u00b0 16.20' W. long. to the eastern tip of Kokinhenik Bar at 60\u00b0 13.65' N. lat., 145\u00b0 09.46' W. long. to the western tip of Softuk Bar at 60\u00b0 13.68' N. lat., 145\u00b0 05.78' W. long. to Coffee Creek West at 60\u00b0 14.13' N. lat., 144\u00b0 58.31' W. long.",
+        "exception": "5AAC24.361(b)",
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(2)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Bering River District",
+        "paragraph": "(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "definition_text": "east of a line from Point Hey to a point on the northeastern shore of Kanak Island at 60\u00b0 09.06' N. lat., 144\u00b0 22.42' W. long., and east of a line from a point on the southeasternmost shore of Kanak Island at 60\u00b0 06.56' N. lat., 144\u00b0 19.42' W. long. to 60\u00b0 06.56' N. lat., 144\u00b0 18.32' W. long. to 60\u00b0 04.97' N. lat., 144\u00b0 11.12' W. long. to a point on Okalee Spit at 60\u00b0 04.46' N. lat., 144\u00b0 11.12' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(2)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Bering River District",
+        "paragraph": "(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "definition_text": "waters bounded on the east by the longitude of Cape Suckling (144\u00b0 W. long.), on the north by a line along the beach from Cape Suckling to the longitude of Lemesurier Point (144\u00b0 11.72' W. long.), and on the west by a line along the longitude of Lemesurier Point from Okalee Spit to Lemesurier Point, then along the eastern beach of Kayak Island to Pinnacle Rock, then extending south along the longitude of the southernmost tip of Pinnacle Point",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(A)",
+        "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+        "definition_text": "Simpson Bay, north of 60\u00b0 38.00' N. lat.. Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point, and all of Orca Inlet southeast of Hawkins Island",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.01291710457556,
+          60.65997786367906
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(B)",
+        "name": "Sheep Bay",
+        "definition_text": "north of a line from 60\u00b0 41.99' N. lat., 145\u00b0 56.11' W. long., to 60\u00b0 41.17' N. lat., 145\u00b0 55.87' W. long.; and east of a line from 60\u00b0 40.08' N. lat., 145\u00b0 58.61' W. long., to 60\u00b0 39.45' N. lat., 145\u00b0 58.88' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.13223933754782,
+          60.707927861570056
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(C)",
+        "name": "Plateau Creek",
+        "definition_text": "south of a line from 60\u00b0 42.60' N. lat., 146\u00b0 08.28' W. long., to 60\u00b0 42.67' N, lat., 146\u00b0 07.80' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.08669499654567,
+          60.711426032272435
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(D)",
+        "name": "Comfort Cove",
+        "definition_text": "east of a line from 60\u00b0 42.96' N. lat., 146\u00b0 05.67' W. long.; to 60\u00b0 42.70' N. lat., 146\u00b0 05.78' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.20045928732392,
+          60.743558388149204
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(E)",
+        "name": "Olsen Bay",
+        "definition_text": "north of 60\u00b0 44.06' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.0115537438713,
+          60.74841866752799
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(F)",
+        "name": "Beartrap Bay",
+        "definition_text": "east of a line from 60\u00b0 44.86' N. lat., 145\u00b0 59.64' W. long., to 60\u00b0 44.60' N. lat., 145\u00b0 59.86' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.25055472624496,
+          60.711350883713656
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(G)",
+        "name": "Port Gravina",
+        "definition_text": "north of 60\u00b0 46.30' N, lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3130667172701,
+          60.75183794495785
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(H)",
+        "name": "St. Matthews Bay",
+        "definition_text": "east of a line at 146\u00b0 18.09' W. long., and within 500 yards of the northwestern shore, north of 60\u00b0 45.36' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.64000335441634,
+          60.73335775708774
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(I)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(I)",
+        "name": "Snug Corner Cove",
+        "definition_text": "south of a line from 60\u00b0 43.51' N. lat, 146\u00b0 38.51' W. long., to 60\u00b0 43.82' N. lat, 146\u00b0 38.00' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.54500594933037,
+          60.74540843658278
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(J)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(J)",
+        "name": "Two Moon Bay",
+        "definition_text": "south of a line from 60\u00b0 44.74' N. lat., 146\u00b0 30.15' W. long. to 60\u00b0 44.63' N. lat., 146\u00b0 30.93' W. long.; and south of a line from 60\u00b0 44.25' N. lat., 146\u00b0 34.42' W. long., to 60\u00b0 44.23' N. lat, 146\u00b0 35.10' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.44280987924668,
+          60.76154637888035
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(K)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(K)",
+        "name": "Irish Cove",
+        "definition_text": "south of a line from 60\u00b0 46.13' N. lat., 146\u00b0 26.84' W. long., to 60\u00b0 46.06' N. lat., 146\u00b0 26.62' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.2218237617516,
+          60.815900534198725
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(L)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(L)",
+        "name": "Whalen Bay",
+        "definition_text": "east of a line from 60\u00b0 49.23' N. lat., 146\u00b0 15.17' W. long., to 60\u00b0 48.59' N. lat., 146\u00b0 16.02' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.18679928098985,
+          60.88971879608009
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(M)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(M)",
+        "name": "Fidalgo River Delta",
+        "definition_text": "north of a line from 60\u00b0 51.79' N. lat., 146\u00b0 13.64' W. long., to 60\u00b0 51.75' N. lat., 146\u00b0 10.19' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.2411370288795,
+          60.89886808345439
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(N)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(N)",
+        "name": "Sunny River Delta",
+        "definition_text": "north of a line from 60\u00b0 51.99' N. lat., 146\u00b0 13.82' W. long., to 60\u00b0 51.85' N. lat., 146\u00b0 16.13' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.14215209866705,
+          60.84413382333996
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(O)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(O)",
+        "name": "Fidalgo Bay",
+        "definition_text": "east of a line from 60\u00b0 50.93' N. lat., 146\u00b0 08.05' W. long., to 60\u00b0 50.20' N. lat., 146\u00b0 07.03' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.27903148581802,
+          60.856734361125035
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(P)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(P)",
+        "name": "Short Creek",
+        "definition_text": "north of a line from 60\u00b0 50.99' N. lat., 146\u00b0 16.85' W. long., to 60\u00b0 51.12' N. lat., 146\u00b0 16.00' W. long., and west of a line from 60\u00b0 51.16' N. lat., 146\u00b0 15.93' W. long., to 60\u00b0 51.35' N. lat., 146\u00b0 16.10' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.41476768192797,
+          60.83154378603295
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(Q)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(Q)",
+        "name": "Fish Bay",
+        "definition_text": "north of 60\u00b0 48.92' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.54648011514618,
+          60.81914350397495
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(R)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(R)",
+        "name": "Banzer Creek",
+        "definition_text": "within the bay east of a line from 60\u00b0 48.56' N. lat., 146\u00b0 33.53' W. long., to 60\u00b0 49.11' N. lat., 146\u00b0 33.85' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.56417637981778,
+          60.8423420940674
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(S)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(S)",
+        "name": "Landlocked Bay",
+        "definition_text": "within the bay east of a line in the narrows from 60\u00b0 51.13' N. lat., 146\u00b0 34.05' W. long., to 60\u00b0 51.42' N. lat., 146\u00b0 34.12' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.64702582228614,
+          60.944167292043495
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(T)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(T)",
+        "name": "Galena Bay",
+        "definition_text": "east of a line from 60\u00b0 55.64' N. lat., 146\u00b0 38.16' W. long., to 60\u00b0 56.41' N. lat., 146\u00b0 36.22' W. long., and within 1,000 yards of the north shore between 60\u00b0 57.13' N. lat., 146\u00b0 38.83' W. long., and 60\u00b0 56.81' N. lat., 146\u00b0 36.55' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5746921663897,
+          61.022376783935876
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(U)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(U)",
+        "name": "Jack Bay",
+        "definition_text": "south and east of a line from 61\u00b0 01.76' N. lat., 146\u00b0 34.52' W. long., to 61\u00b0 01.01' N. lat., 146\u00b0 34.34' W. long., and within 1,000 yards of the terminus of all other salmon streams of the bay",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(V)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(V)",
+        "name": "Mineral Creek Delta, Gold Creek, and Kadis Creek",
+        "definition_text": "north of a line from 61\u00b0 07.45' N. lat., 146\u00b0 23.75' W. long., to 61\u00b0 07.45' N. lat., 146\u00b0 29.80' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(W)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(W)",
+        "name": "Head of Port Valdez",
+        "definition_text": "waters east of a line from a point west of the Valdez boat harbor at 61\u00b0 07.47' N. lat., 146\u00b0 22.67' W. long., to a point on the south shore at 61\u00b0 05.13' N. lat., 146\u00b0 17.82' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(X)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(X)",
+        "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+        "definition_text": "within 200 yards of the shore from Allison Point at 61\u00b0 05.16' N. lat., 146\u00b0 20.72' W. long., to a point west of Sawmill Creek at 61\u00b0 04.81' N. lat., 146\u00b0 27.32' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.79847704239782,
+          61.06198682870722
+        ]
+      },
+      "properties": {
+        "id": "24.350(3)(Y)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eastern District",
+        "paragraph": "(3)(Y)",
+        "name": "Sawmill Bay (Valdez Arm)",
+        "definition_text": "north of a line along 61\u00b0 03.14' N. lat., in the northern arm of the bay, and west of a line from 61\u00b0 03.14' N. lat., 146\u00b0 47.41' W. long., to 61\u00b0 02.74' N. lat., 146\u00b0 47.27' W. long., in the western arm of the bay",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.28157045810755,
+          60.68403967873156
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(A)",
+        "name": "Long Bay (Northern)",
+        "definition_text": "north of a line from 60\u00b0 59.09' N. lat., 147\u00b0 14.52' W. long. to 60\u00b0 58.97' N. lat., 147\u00b0 13.17' W. long., north of a line from 60\u00b0 59.24' N. lat., 147\u00b0 16.35' W. long. to 60\u00b0 59.26' N. lat., 147\u00b0 16.59' W. long., north of a line from 60\u00b0 59.14' N. lat., 147\u00b0 16.93' W. long., to 60\u00b0 59.03' N. lat., 147\u00b0 17.32' W. long., and west of a line from 60\u00b0 58.46' N. lat., 147\u00b0 16.52' W. long., to 60\u00b0 57.52' N. lat., 147\u00b0 16.56' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.41405964620395,
+          60.924933847736156
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(B)",
+        "name": "Granite Bay (Northern)",
+        "definition_text": "east of a line from 60\u00b0 55.35' N. lat., 147\u00b0 24.24' W. long., to 60\u00b0 55.26' N. lat., 147\u00b0 24.19' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.41474566773945,
+          60.956511634788754
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(C)",
+        "name": "Cedar Bay (Northern)",
+        "definition_text": "north of 60\u00b0 58.00' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.73872224793814,
+          60.8845552421336
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(D)",
+        "name": "Eaglek Bay",
+        "definition_text": "north of 60\u00b0 53.46' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4575557056884,
+          60.99243195031183
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(E)",
+        "name": "Wells Bay",
+        "definition_text": "east of a line from 61\u00b0 00.59' N. lat., 147\u00b0 25.59' W. long., to 61\u00b0 00.16' N. lat., 147\u00b0 25.48' W. long., and north of a line from 61\u00b0 00.17' N. lat., 147\u00b0 28.88' W. long., to 61\u00b0 00.11' N. lat., 147\u00b0 29.31' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65859257518778,
+          60.95626105469878
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(F)",
+        "name": "Siwash Bay",
+        "definition_text": "west of a line from 60\u00b0 57.48' N. lat., 147\u00b0 39.73' W. long., to 60\u00b0 56.97' N. lat., 147\u00b0 39.52' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.64778553243613,
+          61.011207080674225
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(G)",
+        "name": "Jonah Bay",
+        "definition_text": "west of a line from 61\u00b0 00.82' N. lat., 147\u00b0 38.63' W. long., to 60\u00b0 56.96' N. lat., 147\u00b0 38.51' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.53624737047852,
+          61.0869078166539
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(H)",
+        "name": "Unakwik Inlet (Northern portion)",
+        "definition_text": "within 1,000 yards of the terminus of all salmon streams north of 60\u00b0 51.97' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.81020516071823,
+          60.869859416097135
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(I)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(I)",
+        "name": "Derickson Bay",
+        "definition_text": "west of a line from 60\u00b0 52.18' N. lat., 147\u00b0 48.43' W. long., to 60\u00b0 51.88' N. lat., 147\u00b0 48.48' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.67683274527005,
+          60.88395264183188
+        ]
+      },
+      "properties": {
+        "id": "24.350(4)(J)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northern District",
+        "paragraph": "(4)(J)",
+        "name": "Schoppe Bay",
+        "definition_text": "east of 147\u00b0 39.55' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.53624737047852,
+          61.0869078166539
+        ]
+      },
+      "properties": {
+        "id": "24.350(5)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Unakwik District",
+        "paragraph": "(5)(A)",
+        "name": "Unakwik Inlet (Southern portion)",
+        "definition_text": "Unakwik Inlets within 1,000 yards of the terminus of all salmon streams south of 61\u00b0 04.97' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.49532840405192,
+          61.06948129716364
+        ]
+      },
+      "properties": {
+        "id": "24.350(5)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Unakwik District",
+        "paragraph": "(5)(B)",
+        "name": "Miners Bay",
+        "definition_text": "east of a line from 61\u00b0 03.80' N. lat., 147\u00b0 30.27' W. long., to 61\u00b0 04.32' N. lat., 147\u00b0 29.94' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.95172420360188,
+          60.87780646484429
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(A)",
+        "name": "Esther Passage",
+        "definition_text": "east of a line from 60\u00b0 51.49' N. lat., 147\u00b0 54.65' W, long., to 60\u00b0 52.36' N. lat., 147\u00b0 54.85' W. long.; and east of a line from 60\u00b0 54.20' N. lat., 147\u00b0 56.91' W. long., to 60\u00b0 53.83' N, lat., 147\u00b0 56.63' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.9949285044441,
+          60.96620578256645
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(B)",
+        "name": "Golden River",
+        "definition_text": "east of a line from 60\u00b0 57.76' N. lat., 148\u00b0 00.82' W. long., to 60\u00b0 58.76' N. lat., 147\u00b0 59.59' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.91570743189652,
+          61.065766607117354
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(C)",
+        "name": "Coghill River",
+        "definition_text": "north of a line from 61\u00b0 04.06' N. lat., 147\u00b0 57.01' W. long., to 61\u00b0 03.33' N. lat., 147\u00b0 55.62' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.14187854229687,
+          61.05656675126314
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(D)",
+        "name": "Barry Arm",
+        "definition_text": "north of a line from 61\u00b0 00.62' N. lat., 148\u00b0 05.61' W. long., to 61\u00b0 02.31' N. lat., 148\u00b0 07.00' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.20431367664315,
+          60.989651038445125
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(E)",
+        "name": "Harrison Lagoon",
+        "definition_text": "west of a line from 60\u00b0 59.37' N. lat., 148\u00b0 11.00' W. long., to 60\u00b0 58.14' N. lat., 148\u00b0 11.43' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.23381281025334,
+          60.956699750014245
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(F)",
+        "name": "Hobo Bay",
+        "definition_text": "north of a line from 60\u00b0 57.14' N. lat., 148\u00b0 13.13' W. long., to 60\u00b0 56.76' N. lat., 148\u00b0 14.02' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.29854685966245,
+          60.94150121661126
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(G)",
+        "name": "Bettles Bay",
+        "definition_text": "north and west of a line from 60\u00b0 56.42' N. lat., 148\u00b0 17.82' W. long., to 60\u00b0 56.76' N. lat., 148\u00b0 16.69' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.30857552960455,
+          60.89708086709817
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(H)",
+        "name": "Hummer Bay",
+        "definition_text": "north of a line from 60\u00b0 53.43' N. lat., 148\u00b0 17.42' W. long., to 60\u00b0 53.24' N. lat., 148\u00b0 18.31' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.30273475801795,
+          60.866871576968315
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(I)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(I)",
+        "name": "Pirate Cove",
+        "definition_text": "west of a line from 60\u00b0 52.54' N. lat., 148\u00b0 17.68' W. long., to 60\u00b0 52.07' N. lat., 148\u00b0 17.62' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.37012610160787,
+          60.84225799832553
+        ]
+      },
+      "properties": {
+        "id": "24.350(6)(J)",
+        "regulation": "5 AAC 24.350",
+        "district": "Coghill District",
+        "paragraph": "(6)(J)",
+        "name": "Pigot Bay",
+        "definition_text": "west of a line from 60\u00b0 51.02' N. lat., 148\u00b0 20.97' W. long., to 60\u00b0 49.94' N. lat., 148\u00b0 21.92' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.42828092907533,
+          60.828645403335024
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(A)",
+        "name": "Logging Camp Bay",
+        "definition_text": "north of a line from 60\u00b0 49.36' N. lat., 148\u00b0 25.29' W. long., to 60\u00b0 49.79' N. lat., 148\u00b0 26.22' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4599637545042,
+          60.75477678593161
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(B)",
+        "name": "Blackstone Bay",
+        "definition_text": "south of a line from 60\u00b0 45.95' N. lat., 148\u00b0 29.56' W. long., to 60\u00b0 45.81' N. lat., 148\u00b0 26.61' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.55432771175052,
+          60.790666335884524
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(C)",
+        "name": "Passage Canal (Shotgun Cove)",
+        "definition_text": "south of a line from 60\u00b0 48.11' N. lat., 148\u00b0 33.08' W. long., to 60\u00b0 47.90' N. lat., 148\u00b0 32.09' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.3779344428158,
+          60.68105860419826
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "definition_text": "southwest of a line from 60\u00b0 39.61' N. lat., 148\u00b0 25.41' W. long., to 60\u00b0 38.17' N. lat., 148\u00b0 24.57' W. long., west of a line from 60\u00b0 43.76' N. lat., 148\u00b0 22.52' W. long., to 60\u00b0 41.45' N. lat., 148\u00b0 23.09' W. long., east of a line from 60\u00b0 39.96' N. lat., 148\u00b0 21.67' W. long., to 60\u00b0 39.33' N. lat., 148\u00b0 22.27' W. long., and Surprise Cove west of a line from 60\u00b0 45.89' N. lat., 148\u00b0 22.02' W. long., to 60\u00b0 45.12' N. lat., 148\u00b0 22.31' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.28157045810755,
+          60.68403967873156
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(E)",
+        "name": "Long Bay (Culross Passage)",
+        "definition_text": "west of a line from 60\u00b0 41.87' N. lat., 148\u00b0 15.74' W. long., to 60\u00b0 41.61' N. lat., 148\u00b0 15.52' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.27919155804094,
+          60.57516507378932
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(F)",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "definition_text": "northwest of a line from 60\u00b0 35.66' N. lat., 148\u00b0 13.82' W. long., to 60\u00b0 34.56' N. lat., 148\u00b0 16.47' W. long.; and north of a line from 60\u00b0 33.61' N. lat., 148\u00b0 17.79' W. long., to 60\u00b0 33.90' N. lat., 148\u00b0 17.34' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.36123740084454,
+          60.55354219521913
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(G)",
+        "name": "East Finger Inlet",
+        "definition_text": "north of 60\u00b0 32.51' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.41922143465638,
+          60.581917229024896
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(H)",
+        "name": "West Finger Inlet",
+        "definition_text": "north of a line from 60\u00b0 34.16' N. lat., 148\u00b0 27.02' W. long., to 60\u00b0 34.11' N. lat., 148\u00b0 26.21' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(I)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(I)",
+        "name": "Kings Bay",
+        "definition_text": "south of a line from 60\u00b0 28.27' N. lat., 148\u00b0 41.50' W. long., to 60\u00b0 27.81' N. lat., 148\u00b0 37.94' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.42956268495203,
+          60.52109495064259
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(J)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(J)",
+        "name": "Greystone Bay",
+        "definition_text": "south of a line from 60\u00b0 31.53' N. lat., 148\u00b0 26.16' W. long., to 60\u00b0 31.00' N. lat., 148\u00b0 25.58' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.1773566345865,
+          60.511532837257185
+        ]
+      },
+      "properties": {
+        "id": "24.350(7)(K)",
+        "regulation": "5 AAC 24.350",
+        "district": "Northwestern District",
+        "paragraph": "(7)(K)",
+        "name": "McClure Bay",
+        "definition_text": "south of a line from 60\u00b0 30.21' N. lat., 148\u00b0 10.95' W. long., to 60\u00b0 30.29' N. lat., 148\u00b0 09.61' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.02985998706933,
+          60.45905304354704
+        ]
+      },
+      "properties": {
+        "id": "24.350(8)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eshamy District",
+        "paragraph": "(8)(A)",
+        "name": "Eshamy Bay (Lagoon and tributaries)",
+        "definition_text": "Eshamy Bay and its tributary waters: waters within the Eshamy Lagoon and its tributaries and within 100 yards outside the narrows at the entrance of Eshamy Lagoon",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.02985998706933,
+          60.45905304354704
+        ]
+      },
+      "properties": {
+        "id": "24.350(8)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Eshamy District",
+        "paragraph": "(8)(B)",
+        "name": "Gumboot Creek",
+        "definition_text": "within 750 yards of the terminus of Gumboot Creek on the northern shore of Eshamy Bay",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.07396348393505,
+          60.36978287776488
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(A)",
+        "name": "Dangerous Passage stream buffers",
+        "definition_text": "within 1,000 yards of all salmon streams in Dangerous Passage between 148\u00b0 08.87' W. long. and 148\u00b0 02.62' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.14604256172257,
+          60.388319830579405
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(B)",
+        "name": "Ewan Bay",
+        "definition_text": "west of 148\u00b0 08.35' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.08745836313744,
+          60.40464298222282
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(C)",
+        "name": "Paddy Bay",
+        "definition_text": "north of a line from 60\u00b0 23.97' N. lat., 148\u00b0 06.07' W. long. to 60\u00b0 23.91' N. lat., 148\u00b0 04.91' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.23782735800242,
+          60.339268412150375
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(D)",
+        "name": "Jackpot Bay",
+        "definition_text": "north and west of a line from 60\u00b0 20.74' N. lat., 148\u00b0 13.18' W. long. to 60\u00b0 20.52' N. lat., 148\u00b0 13.41' W. long",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.21275117945382,
+          60.202838446052574
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(E)",
+        "name": "Whale Bay",
+        "definition_text": "south of 60\u00b0 14.16' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.3275969483588,
+          60.15536541191072
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(F)",
+        "name": "Port Bainbridge",
+        "definition_text": "north of a line from 60\u00b0 09.72' N. lat., 148\u00b0 19.96' W. long. to 60\u00b0 09.68' N. lat., 148\u00b0 20.56' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.20518850300218,
+          60.07734782648333
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(G)",
+        "name": "Hogg Bay",
+        "definition_text": "north of a line from 60\u00b0 05.10' N. lat., 148\u00b0 12.05' W. long., to 60\u00b0 04.94' N. lat., 148\u00b0 11.75' W. long., and east of a line from 60\u00b0 04.32' N. lat., 148\u00b0 11.47' W. long., to 60\u00b0 04.01' N. lat., 148\u00b0 11.62' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.18858897767723,
+          60.08912485334547
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(H)",
+        "name": "Bainbridge Island bay",
+        "definition_text": "within the bay south of a line from 60\u00b0 07.58' N. lat., 148\u00b0 06.83' W. long., to 60\u00b0 07.80' N. lat., 148\u00b0 06.31' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.00292146036645,
+          60.11203455861193
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(I)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(I)",
+        "name": "Ikuta Bay",
+        "definition_text": "south of a line from 60\u00b0 06.58' N. lat., 148\u00b0 00.80' W. long., to 60\u00b0 06.60' N. lat., 148\u00b0 00.12' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.81113496281782,
+          60.22239783264525
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(J)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(J)",
+        "name": "Mummy Bay",
+        "definition_text": "north of a line from 60\u00b0 13.75' N. lat., 147\u00b0 49.12' W. long., to 60\u00b0 13.31' N. lat., 147\u00b0 48.57' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.80541645886686,
+          60.20513338176162
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(K)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(K)",
+        "name": "Thumb Bay",
+        "definition_text": "south and east of a line from 60\u00b0 12.83' N. lat., 147\u00b0 48.82' W. long., to 60\u00b0 12.61' N. lat., 147\u00b0 49.52' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.7549193133351,
+          60.197304022341356
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(L)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(L)",
+        "name": "Hogan Bay",
+        "definition_text": "north of 60\u00b0 12.00' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.74258070441888,
+          60.24897823825646
+        ]
+      },
+      "properties": {
+        "id": "24.350(9)(M)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southwestern District",
+        "paragraph": "(9)(M)",
+        "name": "Snug Harbor",
+        "definition_text": "west of 147\u00b0 45.55' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.04356652129073,
+          60.294016120813524
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(A)",
+        "name": "Zaikof Bay",
+        "definition_text": "south of 60\u00b0 16.86' N. lat., and within 1,000 yards of the southeastern shore of the bay from a point at 60\u00b0 17.94' N. lat., 147\u00b0 00.15' W. long. to a line at 60\u00b0 16.86' N. lat.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.09240636364655,
+          60.34715616364443
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(B)",
+        "name": "Rocky Bay",
+        "definition_text": "west of a line from a point at 60\u00b0 21.30' N. lat., 147\u00b0 06.66' W. long. to a point at 60\u00b0 20.54' N. lat., 147\u00b0 05.61' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.1922831603499,
+          60.30697198413344
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(C)",
+        "name": "Stockdale Harbor",
+        "definition_text": "east of a line from a point at 60\u00b0 19.56' N. lat., 147\u00b0 12.02' W. long. to a point at 60\u00b0 18.26' N. lat., 147\u00b0 11.72' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.23271867929486,
+          60.230555506781414
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(D)",
+        "name": "Port Chalmers",
+        "definition_text": "within a line from a point at 60\u00b0 16.97' N. lat., 147\u00b0 12.62' W. long. to a point at 60\u00b0 16.06' N. lat., 147\u00b0 12.63' W. long., from a point at 60\u00b0 15.37' N. lat., 147\u00b0 12.31' W. long. to a point at 60\u00b0 14.16' N. lat., 147\u00b0 14.42' W. long., and from a point at 60\u00b0 13.86' N. lat., 147\u00b0 14.77' W. long. to a point at 60\u00b0 13.56' N. lat., 147\u00b0 16.82' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.68897461060854,
+          59.95916901743087
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(E)",
+        "name": "Hanning Bay",
+        "definition_text": "east of a line from a point at 59\u00b0 58.93' N. lat., 147\u00b0 41.46' W. long. to a point at 59\u00b0 57.15' N. lat., 147\u00b0 42.99' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.79183457746973,
+          59.88305885015159
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(F)",
+        "name": "MacLeod Harbor",
+        "definition_text": "east of a line from a point at 59\u00b0 53.26' N. lat., 147\u00b0 46.12' W. long. to a point at 59\u00b0 52.46' N. lat., 147\u00b0 46.52' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "definition_text": "within 500 yards of the northwestern shore of Montague Island from 60\u00b0 04.61' N. lat., 147\u00b0 28.82' W. long. to 60\u00b0 03.13' N. lat., 147\u00b0 33.17' W. long., and from 60\u00b0 02.10' N. lat., 147\u00b0 34.28' W. long. to 59\u00b0 59.94' N. lat., 147\u00b0 40.57' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.42312003868352,
+          60.29482740013427
+        ]
+      },
+      "properties": {
+        "id": "24.350(10)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Montague District",
+        "paragraph": "(10)(H)",
+        "name": "Green Island",
+        "definition_text": "west of a line from 60\u00b0 18.19' N. lat., 147\u00b0 23.51' W. long., to 60\u00b0 18.19' N. lat., 147\u00b0 21.02' W. long., and east of a line from 60\u00b0 16.37' N. lat., 147\u00b0 26.51' W. long., to 60\u00b0 16.99' N. lat., 147\u00b0 26.07' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5414751682151,
+          60.34788141998611
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(A)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(A)",
+        "name": "Port Etches",
+        "definition_text": "east of a line from 60\u00b0 21.09' N. lat., 146\u00b0 33.94' W. long. to 60\u00b0 20.06' N. lat., 146\u00b0 32.72' W. long., and south of a line from 60\u00b0 19.71' N. lat., 146\u00b0 34.11' W. long., to 60\u00b0 19.01' N. lat., 146\u00b0 35.62' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.63407417429286,
+          60.356592523109114
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(B)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(B)",
+        "name": "Constantine Harbor",
+        "definition_text": "within the harbor from 60\u00b0 21.25' N. lat., 146\u00b0 36.29' W. long., to 60\u00b0 21.04' N. lat., 146\u00b0 37.10' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.708922117815,
+          60.38935056956272
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(C)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(C)",
+        "name": "Deer Cove (Hinchinbrook Island)",
+        "definition_text": "east of a line from 60\u00b0 23.35' N. lat., 146\u00b0 43.58' W. long., to 60\u00b0 23.81' N. lat., 146\u00b0 42.73' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.70080694884032,
+          60.40476622614821
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(D)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(D)",
+        "name": "Juania Cove (Hinchinbrook Island)",
+        "definition_text": "east of a line from 60\u00b0 24.07' N. lat., 146\u00b0 42.73' W. long., to 60\u00b0 24.70' N. lat., 146\u00b0 42.30' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.65646879007429,
+          60.426324880783014
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(E)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(E)",
+        "name": "Shelter Bay (Hinchinbrook Island)",
+        "definition_text": "east of a line from 60\u00b0 26.31' N. lat., 146\u00b0 40.12' W. long., to 60\u00b0 25.66' N. lat., 146\u00b0 40.02' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.53658090824152,
+          60.46714482450529
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(F)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(F)",
+        "name": "Anderson Bay",
+        "definition_text": "south of a line from 60\u00b0 28.24' N. lat., 146\u00b0 30.78' W. long., to 60\u00b0 28.42' N. lat., 146\u00b0 31.20' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.4717663710778,
+          60.457231051924786
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(G)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(G)",
+        "name": "Double Bay",
+        "definition_text": "south of a line from 60\u00b0 28.03' N. lat., 146\u00b0 29.11' W. long., to 60\u00b0 28.26' N. lat., 146\u00b0 28.55' W. long., and south of a line from 60\u00b0 28.25' N. lat., 146\u00b0 27.71' W. long., to 60\u00b0 28.02' N. lat., 146\u00b0 26.61' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(H)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(H)",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "definition_text": "south of a line from 60\u00b0 27.86' N. lat., 146\u00b0 19.72' W. long., to 60\u00b0 27.65' N. lat., 146\u00b0 21.39' W. long., and Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point, and all of Orca Inlet southeast of Hawkins Island",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.11044373716177,
+          60.51164534709403
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(I)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(I)",
+        "name": "Canoe Passage",
+        "definition_text": "south of a line from 60\u00b0 31.18' N. lat., 146\u00b0 07.43' W. long., to 60\u00b0 31.13' N. lat., 146\u00b0 07.07' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.95851657945076,
+          60.562517786911336
+        ]
+      },
+      "properties": {
+        "id": "24.350(11)(J)",
+        "regulation": "5 AAC 24.350",
+        "district": "Southeastern District",
+        "paragraph": "(11)(J)",
+        "name": "Windy Bay",
+        "definition_text": "south of a line from 60\u00b0 33.89' N. lat., 145\u00b0 57.69' W. long., to 60\u00b0 33.71' N. lat., 145\u00b0 58.64' W. long.",
+        "exception": null,
+        "status": "todo",
+        "source": "AAC + coastline + ADF&G PDF",
+        "notes": ""
+      }
+    }
+  ]
+}

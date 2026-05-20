@@ -1,0 +1,5225 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.15833333333333,
+          60.455
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[0]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.881,
+          60.4415
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[1]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.61166666666668,
+          60.410833333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[2]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.48566666666667,
+          60.340666666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[3]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.16683333333333,
+          60.248
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[4]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[4]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.056,
+          60.247166666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[5]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[5]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.96683333333334,
+          60.2365
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[6]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[6]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.9405,
+          60.2525
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[7]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[7]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.87533333333334,
+          60.25483333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[8]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[8]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.84433333333334,
+          60.232166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(A)-op0-line[9]",
+        "closure": "24.350(1)(A)",
+        "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[9]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.55833333333334,
+          60.371833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[0]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.5165,
+          60.31483333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[1]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.47366666666667,
+          60.305
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[2]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.29816666666667,
+          60.254
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[3]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.27,
+          60.25
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[4]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[4]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.15766666666667,
+          60.2275
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[5]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[5]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.09633333333332,
+          60.228
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[6]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[6]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.97183333333334,
+          60.2355
+        ]
+      },
+      "properties": {
+        "label": "24.350(1)(B)-op0-line[7]",
+        "closure": "24.350(1)(B)",
+        "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+        "district": "Copper River District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "north",
+        "role": "line[7]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.55333333333334,
+          60.20166666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(A)-op0-line[0]",
+        "closure": "24.350(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.37366666666668,
+          60.151
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(A)-op0-line[1]",
+        "closure": "24.350(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.32366666666667,
+          60.10933333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(A)-op1-line[0]",
+        "closure": "24.350(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "district": "Bering River District",
+        "op_index": 1,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.30533333333332,
+          60.10933333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(A)-op1-line[1]",
+        "closure": "24.350(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "district": "Bering River District",
+        "op_index": 1,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.18533333333335,
+          60.08283333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(A)-op1-line[2]",
+        "closure": "24.350(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "district": "Bering River District",
+        "op_index": 1,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.18533333333335,
+          60.074333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(A)-op1-line[3]",
+        "closure": "24.350(2)(A)",
+        "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+        "district": "Bering River District",
+        "op_index": 1,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.19533333333334,
+          60.074333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[0]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.19533333333334,
+          60.016666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[1]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.35666666666665,
+          59.891666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[2]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.45666666666668,
+          59.788333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[3]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.0,
+          59.788333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[4]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[4]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.0,
+          60.016666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[5]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[5]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.025,
+          60.03333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(2)(B)-op0-ring[6]",
+        "closure": "24.350(2)(B)",
+        "name": "Cape Suckling / Kayak Island enclosed area",
+        "district": "Bering River District",
+        "op_index": 0,
+        "op_kind": "custom_polygon",
+        "op_side": "",
+        "role": "ring[6]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.0,
+          60.63333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(A)-op0-line[0]",
+        "closure": "24.350(3)(A)",
+        "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.83333333333334,
+          60.63333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(A)-op0-line[1]",
+        "closure": "24.350(3)(A)",
+        "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.93833333333333,
+          60.55833333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(A)-op1-line[0]",
+        "closure": "24.350(3)(A)",
+        "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.88333333333333,
+          60.538333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(A)-op1-line[1]",
+        "closure": "24.350(3)(A)",
+        "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.93516666666667,
+          60.69983333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(B)-op0-line[0]",
+        "closure": "24.350(3)(B)",
+        "name": "Sheep Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.93116666666666,
+          60.686166666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(B)-op0-line[1]",
+        "closure": "24.350(3)(B)",
+        "name": "Sheep Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.97683333333333,
+          60.668
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(B)-op1-line[0]",
+        "closure": "24.350(3)(B)",
+        "name": "Sheep Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.98133333333334,
+          60.6575
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(B)-op1-line[1]",
+        "closure": "24.350(3)(B)",
+        "name": "Sheep Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.138,
+          60.71
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(C)-op0-line[0]",
+        "closure": "24.350(3)(C)",
+        "name": "Plateau Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.13,
+          60.711166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(C)-op0-line[1]",
+        "closure": "24.350(3)(C)",
+        "name": "Plateau Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.0945,
+          60.716
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(D)-op0-line[0]",
+        "closure": "24.350(3)(D)",
+        "name": "Comfort Cove",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.09633333333332,
+          60.711666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(D)-op0-line[1]",
+        "closure": "24.350(3)(D)",
+        "name": "Comfort Cove",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.2,
+          60.73433333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(E)-op0-line[0]",
+        "closure": "24.350(3)(E)",
+        "name": "Olsen Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.15,
+          60.73433333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(E)-op0-line[1]",
+        "closure": "24.350(3)(E)",
+        "name": "Olsen Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.994,
+          60.74766666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(F)-op0-line[0]",
+        "closure": "24.350(3)(F)",
+        "name": "Beartrap Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.99766666666667,
+          60.74333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(F)-op0-line[1]",
+        "closure": "24.350(3)(F)",
+        "name": "Beartrap Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.25,
+          60.77166666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(G)-op0-line[0]",
+        "closure": "24.350(3)(G)",
+        "name": "Port Gravina",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.83333333333334,
+          60.77166666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(G)-op0-line[1]",
+        "closure": "24.350(3)(G)",
+        "name": "Port Gravina",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3015,
+          60.733333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(H)-op0-line[0]",
+        "closure": "24.350(3)(H)",
+        "name": "St. Matthews Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3015,
+          60.78333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(H)-op0-line[1]",
+        "closure": "24.350(3)(H)",
+        "name": "St. Matthews Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.64183333333332,
+          60.72516666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(I)-op0-line[0]",
+        "closure": "24.350(3)(I)",
+        "name": "Snug Corner Cove",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.63333333333333,
+          60.730333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(I)-op0-line[1]",
+        "closure": "24.350(3)(I)",
+        "name": "Snug Corner Cove",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5025,
+          60.745666666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(J)-op0-line[0]",
+        "closure": "24.350(3)(J)",
+        "name": "Two Moon Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5155,
+          60.743833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(J)-op0-line[1]",
+        "closure": "24.350(3)(J)",
+        "name": "Two Moon Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.57366666666667,
+          60.7375
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(J)-op1-line[0]",
+        "closure": "24.350(3)(J)",
+        "name": "Two Moon Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.585,
+          60.73716666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(J)-op1-line[1]",
+        "closure": "24.350(3)(J)",
+        "name": "Two Moon Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.44733333333335,
+          60.76883333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(K)-op0-line[0]",
+        "closure": "24.350(3)(K)",
+        "name": "Irish Cove",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.44366666666667,
+          60.76766666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(K)-op0-line[1]",
+        "closure": "24.350(3)(K)",
+        "name": "Irish Cove",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.25283333333334,
+          60.8205
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(L)-op0-line[0]",
+        "closure": "24.350(3)(L)",
+        "name": "Whalen Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.267,
+          60.80983333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(L)-op0-line[1]",
+        "closure": "24.350(3)(L)",
+        "name": "Whalen Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.22733333333332,
+          60.863166666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(M)-op0-line[0]",
+        "closure": "24.350(3)(M)",
+        "name": "Fidalgo River Delta",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.16983333333334,
+          60.8625
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(M)-op0-line[1]",
+        "closure": "24.350(3)(M)",
+        "name": "Fidalgo River Delta",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.23033333333333,
+          60.8665
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(N)-op0-line[0]",
+        "closure": "24.350(3)(N)",
+        "name": "Sunny River Delta",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.26883333333333,
+          60.86416666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(N)-op0-line[1]",
+        "closure": "24.350(3)(N)",
+        "name": "Sunny River Delta",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.13416666666666,
+          60.84883333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(O)-op0-line[0]",
+        "closure": "24.350(3)(O)",
+        "name": "Fidalgo Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.11716666666666,
+          60.836666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(O)-op0-line[1]",
+        "closure": "24.350(3)(O)",
+        "name": "Fidalgo Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.28083333333333,
+          60.849833333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(P)-op0-line[0]",
+        "closure": "24.350(3)(P)",
+        "name": "Short Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.26666666666668,
+          60.852
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(P)-op0-line[1]",
+        "closure": "24.350(3)(P)",
+        "name": "Short Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.2655,
+          60.852666666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(P)-op1-line[0]",
+        "closure": "24.350(3)(P)",
+        "name": "Short Creek",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.26833333333335,
+          60.85583333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(P)-op1-line[1]",
+        "closure": "24.350(3)(P)",
+        "name": "Short Creek",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.36666666666667,
+          60.815333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(Q)-op0-line[0]",
+        "closure": "24.350(3)(Q)",
+        "name": "Fish Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3,
+          60.815333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(Q)-op0-line[1]",
+        "closure": "24.350(3)(Q)",
+        "name": "Fish Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.55883333333333,
+          60.809333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(R)-op0-line[0]",
+        "closure": "24.350(3)(R)",
+        "name": "Banzer Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.56416666666667,
+          60.8185
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(R)-op0-line[1]",
+        "closure": "24.350(3)(R)",
+        "name": "Banzer Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5675,
+          60.85216666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(S)-op0-line[0]",
+        "closure": "24.350(3)(S)",
+        "name": "Landlocked Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.56866666666667,
+          60.857
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(S)-op0-line[1]",
+        "closure": "24.350(3)(S)",
+        "name": "Landlocked Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.636,
+          60.92733333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(T)-op0-line[0]",
+        "closure": "24.350(3)(T)",
+        "name": "Galena Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.60366666666667,
+          60.94016666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(T)-op0-line[1]",
+        "closure": "24.350(3)(T)",
+        "name": "Galena Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.64716666666666,
+          60.95216666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(T)-op1-points[0]",
+        "closure": "24.350(3)(T)",
+        "name": "Galena Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.60916666666665,
+          60.94683333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(T)-op1-points[1]",
+        "closure": "24.350(3)(T)",
+        "name": "Galena Bay",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.57533333333333,
+          61.029333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(U)-op0-line[0]",
+        "closure": "24.350(3)(U)",
+        "name": "Jack Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.57233333333335,
+          61.01683333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(U)-op0-line[1]",
+        "closure": "24.350(3)(U)",
+        "name": "Jack Bay",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.39583333333334,
+          61.12416666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(V)-op0-line[0]",
+        "closure": "24.350(3)(V)",
+        "name": "Mineral Creek Delta, Gold Creek, and Kadis Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.49666666666667,
+          61.12416666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(V)-op0-line[1]",
+        "closure": "24.350(3)(V)",
+        "name": "Mineral Creek Delta, Gold Creek, and Kadis Creek",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.37783333333334,
+          61.1245
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(W)-op0-line[0]",
+        "closure": "24.350(3)(W)",
+        "name": "Head of Port Valdez",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.297,
+          61.0855
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(W)-op0-line[1]",
+        "closure": "24.350(3)(W)",
+        "name": "Head of Port Valdez",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.34533333333334,
+          61.086
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(X)-op0-points[0]",
+        "closure": "24.350(3)(X)",
+        "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.36666666666667,
+          61.08416666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(X)-op0-points[1]",
+        "closure": "24.350(3)(X)",
+        "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.39166666666668,
+          61.0825
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(X)-op0-points[2]",
+        "closure": "24.350(3)(X)",
+        "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.41666666666666,
+          61.08083333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(X)-op0-points[3]",
+        "closure": "24.350(3)(X)",
+        "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.45533333333333,
+          61.08016666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(X)-op0-points[4]",
+        "closure": "24.350(3)(X)",
+        "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[4]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.80833333333334,
+          61.05233333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(Y)-op0-line[0]",
+        "closure": "24.350(3)(Y)",
+        "name": "Sawmill Bay (Valdez Arm)",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.775,
+          61.05233333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(Y)-op0-line[1]",
+        "closure": "24.350(3)(Y)",
+        "name": "Sawmill Bay (Valdez Arm)",
+        "district": "Eastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.79016666666666,
+          61.05233333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(Y)-op1-line[0]",
+        "closure": "24.350(3)(Y)",
+        "name": "Sawmill Bay (Valdez Arm)",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.78783333333334,
+          61.04566666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(3)(Y)-op1-line[1]",
+        "closure": "24.350(3)(Y)",
+        "name": "Sawmill Bay (Valdez Arm)",
+        "district": "Eastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.242,
+          60.984833333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op0-line[0]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2195,
+          60.98283333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op0-line[1]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2725,
+          60.98733333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op1-line[0]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2765,
+          60.98766666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op1-line[1]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.28216666666665,
+          60.98566666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op2-line[0]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 2,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.28866666666667,
+          60.98383333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op2-line[1]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 2,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.27533333333332,
+          60.974333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op3-line[0]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 3,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.276,
+          60.958666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(A)-op3-line[1]",
+        "closure": "24.350(4)(A)",
+        "name": "Long Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 3,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.404,
+          60.9225
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(B)-op0-line[0]",
+        "closure": "24.350(4)(B)",
+        "name": "Granite Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.40316666666666,
+          60.921
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(B)-op0-line[1]",
+        "closure": "24.350(4)(B)",
+        "name": "Granite Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.45,
+          60.96666666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(C)-op0-line[0]",
+        "closure": "24.350(4)(C)",
+        "name": "Cedar Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.36666666666667,
+          60.96666666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(C)-op0-line[1]",
+        "closure": "24.350(4)(C)",
+        "name": "Cedar Bay (Northern)",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.78333333333333,
+          60.891
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(D)-op0-line[0]",
+        "closure": "24.350(4)(D)",
+        "name": "Eaglek Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65,
+          60.891
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(D)-op0-line[1]",
+        "closure": "24.350(4)(D)",
+        "name": "Eaglek Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4265,
+          61.00983333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(E)-op0-line[0]",
+        "closure": "24.350(4)(E)",
+        "name": "Wells Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.42466666666667,
+          61.00266666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(E)-op0-line[1]",
+        "closure": "24.350(4)(E)",
+        "name": "Wells Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.48133333333334,
+          61.002833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(E)-op1-line[0]",
+        "closure": "24.350(4)(E)",
+        "name": "Wells Bay",
+        "district": "Northern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4885,
+          61.00183333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(E)-op1-line[1]",
+        "closure": "24.350(4)(E)",
+        "name": "Wells Bay",
+        "district": "Northern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.66216666666668,
+          60.958
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(F)-op0-line[0]",
+        "closure": "24.350(4)(F)",
+        "name": "Siwash Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65866666666668,
+          60.9495
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(F)-op0-line[1]",
+        "closure": "24.350(4)(F)",
+        "name": "Siwash Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.64383333333333,
+          61.013666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(G)-op0-line[0]",
+        "closure": "24.350(4)(G)",
+        "name": "Jonah Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.64183333333332,
+          60.949333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(G)-op0-line[1]",
+        "closure": "24.350(4)(G)",
+        "name": "Jonah Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.80716666666666,
+          60.86966666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(I)-op0-line[0]",
+        "closure": "24.350(4)(I)",
+        "name": "Derickson Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.808,
+          60.864666666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(I)-op0-line[1]",
+        "closure": "24.350(4)(I)",
+        "name": "Derickson Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65916666666666,
+          60.88333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(J)-op0-line[0]",
+        "closure": "24.350(4)(J)",
+        "name": "Schoppe Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65916666666666,
+          60.93333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(4)(J)-op0-line[1]",
+        "closure": "24.350(4)(J)",
+        "name": "Schoppe Bay",
+        "district": "Northern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.5045,
+          61.06333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(5)(B)-op0-line[0]",
+        "closure": "24.350(5)(B)",
+        "name": "Miners Bay",
+        "district": "Unakwik District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.499,
+          61.072
+        ]
+      },
+      "properties": {
+        "label": "24.350(5)(B)-op0-line[1]",
+        "closure": "24.350(5)(B)",
+        "name": "Miners Bay",
+        "district": "Unakwik District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.91083333333333,
+          60.85816666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(A)-op0-line[0]",
+        "closure": "24.350(6)(A)",
+        "name": "Esther Passage",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.91416666666666,
+          60.87266666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(A)-op0-line[1]",
+        "closure": "24.350(6)(A)",
+        "name": "Esther Passage",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.9485,
+          60.903333333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(A)-op1-line[0]",
+        "closure": "24.350(6)(A)",
+        "name": "Esther Passage",
+        "district": "Coghill District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.94383333333334,
+          60.897166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(A)-op1-line[1]",
+        "closure": "24.350(6)(A)",
+        "name": "Esther Passage",
+        "district": "Coghill District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.01366666666667,
+          60.962666666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(B)-op0-line[0]",
+        "closure": "24.350(6)(B)",
+        "name": "Golden River",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.99316666666667,
+          60.97933333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(B)-op0-line[1]",
+        "closure": "24.350(6)(B)",
+        "name": "Golden River",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.95016666666666,
+          61.06766666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(C)-op0-line[0]",
+        "closure": "24.350(6)(C)",
+        "name": "Coghill River",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.927,
+          61.0555
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(C)-op0-line[1]",
+        "closure": "24.350(6)(C)",
+        "name": "Coghill River",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.0935,
+          61.010333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(D)-op0-line[0]",
+        "closure": "24.350(6)(D)",
+        "name": "Barry Arm",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.11666666666667,
+          61.0385
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(D)-op0-line[1]",
+        "closure": "24.350(6)(D)",
+        "name": "Barry Arm",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.18333333333334,
+          60.9895
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(E)-op0-line[0]",
+        "closure": "24.350(6)(E)",
+        "name": "Harrison Lagoon",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.1905,
+          60.969
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(E)-op0-line[1]",
+        "closure": "24.350(6)(E)",
+        "name": "Harrison Lagoon",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.21883333333332,
+          60.952333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(F)-op0-line[0]",
+        "closure": "24.350(6)(F)",
+        "name": "Hobo Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.23366666666666,
+          60.946
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(F)-op0-line[1]",
+        "closure": "24.350(6)(F)",
+        "name": "Hobo Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.297,
+          60.940333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(G)-op0-line[0]",
+        "closure": "24.350(6)(G)",
+        "name": "Bettles Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.27816666666666,
+          60.946
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(G)-op0-line[1]",
+        "closure": "24.350(6)(G)",
+        "name": "Bettles Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.29033333333334,
+          60.8905
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(H)-op0-line[0]",
+        "closure": "24.350(6)(H)",
+        "name": "Hummer Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.30516666666668,
+          60.88733333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(H)-op0-line[1]",
+        "closure": "24.350(6)(H)",
+        "name": "Hummer Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.29466666666667,
+          60.87566666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(I)-op0-line[0]",
+        "closure": "24.350(6)(I)",
+        "name": "Pirate Cove",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.29366666666667,
+          60.86783333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(I)-op0-line[1]",
+        "closure": "24.350(6)(I)",
+        "name": "Pirate Cove",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.3495,
+          60.85033333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(J)-op0-line[0]",
+        "closure": "24.350(6)(J)",
+        "name": "Pigot Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.36533333333333,
+          60.83233333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(6)(J)-op0-line[1]",
+        "closure": "24.350(6)(J)",
+        "name": "Pigot Bay",
+        "district": "Coghill District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4215,
+          60.82266666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(A)-op0-line[0]",
+        "closure": "24.350(7)(A)",
+        "name": "Logging Camp Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.437,
+          60.82983333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(A)-op0-line[1]",
+        "closure": "24.350(7)(A)",
+        "name": "Logging Camp Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.49266666666668,
+          60.76583333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(B)-op0-line[0]",
+        "closure": "24.350(7)(B)",
+        "name": "Blackstone Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4435,
+          60.7635
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(B)-op0-line[1]",
+        "closure": "24.350(7)(B)",
+        "name": "Blackstone Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.55133333333333,
+          60.801833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(C)-op0-line[0]",
+        "closure": "24.350(7)(C)",
+        "name": "Passage Canal (Shotgun Cove)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.53483333333332,
+          60.79833333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(C)-op0-line[1]",
+        "closure": "24.350(7)(C)",
+        "name": "Passage Canal (Shotgun Cove)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4235,
+          60.66016666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op0-line[0]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4095,
+          60.63616666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op0-line[1]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.37533333333334,
+          60.72933333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op1-line[0]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.38483333333335,
+          60.69083333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op1-line[1]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.36116666666666,
+          60.666
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op2-line[0]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 2,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.37116666666665,
+          60.6555
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op2-line[1]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 2,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.367,
+          60.764833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op3-line[0]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 3,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.37183333333334,
+          60.752
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(D)-op3-line[1]",
+        "closure": "24.350(7)(D)",
+        "name": "Cochrane Bay (multi-arm)",
+        "district": "Northwestern District",
+        "op_index": 3,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.26233333333334,
+          60.697833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(E)-op0-line[0]",
+        "closure": "24.350(7)(E)",
+        "name": "Long Bay (Culross Passage)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.25866666666667,
+          60.6935
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(E)-op0-line[1]",
+        "closure": "24.350(7)(E)",
+        "name": "Long Bay (Culross Passage)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.23033333333333,
+          60.59433333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(F)-op0-line[0]",
+        "closure": "24.350(7)(F)",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.2745,
+          60.576
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(F)-op0-line[1]",
+        "closure": "24.350(7)(F)",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.2965,
+          60.56016666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(F)-op1-line[0]",
+        "closure": "24.350(7)(F)",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "district": "Northwestern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.289,
+          60.565
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(F)-op1-line[1]",
+        "closure": "24.350(7)(F)",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "district": "Northwestern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4,
+          60.54183333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(G)-op0-line[0]",
+        "closure": "24.350(7)(G)",
+        "name": "East Finger Inlet",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.35,
+          60.54183333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(G)-op0-line[1]",
+        "closure": "24.350(7)(G)",
+        "name": "East Finger Inlet",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.45033333333333,
+          60.56933333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(H)-op0-line[0]",
+        "closure": "24.350(7)(H)",
+        "name": "West Finger Inlet",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.43683333333334,
+          60.5685
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(H)-op0-line[1]",
+        "closure": "24.350(7)(H)",
+        "name": "West Finger Inlet",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.69166666666666,
+          60.47116666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(I)-op0-line[0]",
+        "closure": "24.350(7)(I)",
+        "name": "Kings Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.63233333333332,
+          60.4635
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(I)-op0-line[1]",
+        "closure": "24.350(7)(I)",
+        "name": "Kings Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.436,
+          60.5255
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(J)-op0-line[0]",
+        "closure": "24.350(7)(J)",
+        "name": "Greystone Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.42633333333333,
+          60.516666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(J)-op0-line[1]",
+        "closure": "24.350(7)(J)",
+        "name": "Greystone Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.1825,
+          60.5035
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(K)-op0-line[0]",
+        "closure": "24.350(7)(K)",
+        "name": "McClure Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.16016666666667,
+          60.50483333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(7)(K)-op0-line[1]",
+        "closure": "24.350(7)(K)",
+        "name": "McClure Bay",
+        "district": "Northwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.975,
+          60.458333333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(8)(A)-op1-points[0]",
+        "closure": "24.350(8)(A)",
+        "name": "Eshamy Bay (Lagoon and tributaries)",
+        "district": "Eshamy District",
+        "op_index": 1,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.13916666666665,
+          60.46666666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(B)-op0-line[0]",
+        "closure": "24.350(9)(B)",
+        "name": "Ewan Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.13916666666665,
+          60.53333333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(B)-op0-line[1]",
+        "closure": "24.350(9)(B)",
+        "name": "Ewan Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.10116666666667,
+          60.3995
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(C)-op0-line[0]",
+        "closure": "24.350(9)(C)",
+        "name": "Paddy Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.08183333333332,
+          60.3985
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(C)-op0-line[1]",
+        "closure": "24.350(9)(C)",
+        "name": "Paddy Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.21966666666665,
+          60.345666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(D)-op0-line[0]",
+        "closure": "24.350(9)(D)",
+        "name": "Jackpot Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.2235,
+          60.342
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(D)-op0-line[1]",
+        "closure": "24.350(9)(D)",
+        "name": "Jackpot Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.3,
+          60.236
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(E)-op0-line[0]",
+        "closure": "24.350(9)(E)",
+        "name": "Whale Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.1,
+          60.236
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(E)-op0-line[1]",
+        "closure": "24.350(9)(E)",
+        "name": "Whale Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.33266666666665,
+          60.162
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(F)-op0-line[0]",
+        "closure": "24.350(9)(F)",
+        "name": "Port Bainbridge",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.34266666666667,
+          60.16133333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(F)-op0-line[1]",
+        "closure": "24.350(9)(F)",
+        "name": "Port Bainbridge",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.20083333333332,
+          60.085
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(G)-op0-line[0]",
+        "closure": "24.350(9)(G)",
+        "name": "Hogg Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.19583333333333,
+          60.08233333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(G)-op0-line[1]",
+        "closure": "24.350(9)(G)",
+        "name": "Hogg Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.19116666666667,
+          60.072
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(G)-op1-line[0]",
+        "closure": "24.350(9)(G)",
+        "name": "Hogg Bay",
+        "district": "Southwestern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.19366666666667,
+          60.066833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(G)-op1-line[1]",
+        "closure": "24.350(9)(G)",
+        "name": "Hogg Bay",
+        "district": "Southwestern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.11383333333333,
+          60.126333333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(H)-op0-line[0]",
+        "closure": "24.350(9)(H)",
+        "name": "Bainbridge Island bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.10516666666666,
+          60.13
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(H)-op0-line[1]",
+        "closure": "24.350(9)(H)",
+        "name": "Bainbridge Island bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.01333333333332,
+          60.10966666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(I)-op0-line[0]",
+        "closure": "24.350(9)(I)",
+        "name": "Ikuta Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.002,
+          60.11
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(I)-op0-line[1]",
+        "closure": "24.350(9)(I)",
+        "name": "Ikuta Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.81866666666667,
+          60.229166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(J)-op0-line[0]",
+        "closure": "24.350(9)(J)",
+        "name": "Mummy Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.8095,
+          60.221833333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(J)-op0-line[1]",
+        "closure": "24.350(9)(J)",
+        "name": "Mummy Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.81366666666668,
+          60.21383333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(K)-op0-line[0]",
+        "closure": "24.350(9)(K)",
+        "name": "Thumb Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.82533333333333,
+          60.210166666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(K)-op0-line[1]",
+        "closure": "24.350(9)(K)",
+        "name": "Thumb Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.78333333333333,
+          60.2
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(L)-op0-line[0]",
+        "closure": "24.350(9)(L)",
+        "name": "Hogan Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.73333333333332,
+          60.2
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(L)-op0-line[1]",
+        "closure": "24.350(9)(L)",
+        "name": "Hogan Bay",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.75916666666666,
+          60.15
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(M)-op0-line[0]",
+        "closure": "24.350(9)(M)",
+        "name": "Snug Harbor",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.75916666666666,
+          60.2
+        ]
+      },
+      "properties": {
+        "label": "24.350(9)(M)-op0-line[1]",
+        "closure": "24.350(9)(M)",
+        "name": "Snug Harbor",
+        "district": "Southwestern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.05,
+          60.281
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(A)-op0-line[0]",
+        "closure": "24.350(10)(A)",
+        "name": "Zaikof Bay",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.93333333333334,
+          60.281
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(A)-op0-line[1]",
+        "closure": "24.350(10)(A)",
+        "name": "Zaikof Bay",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.0025,
+          60.299
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(A)-op1-points[0]",
+        "closure": "24.350(10)(A)",
+        "name": "Zaikof Bay",
+        "district": "Montague District",
+        "op_index": 1,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.99,
+          60.29
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(A)-op1-points[1]",
+        "closure": "24.350(10)(A)",
+        "name": "Zaikof Bay",
+        "district": "Montague District",
+        "op_index": 1,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.98,
+          60.281
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(A)-op1-points[2]",
+        "closure": "24.350(10)(A)",
+        "name": "Zaikof Bay",
+        "district": "Montague District",
+        "op_index": 1,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.111,
+          60.355
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(B)-op0-line[0]",
+        "closure": "24.350(10)(B)",
+        "name": "Rocky Bay",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.0935,
+          60.342333333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(B)-op0-line[1]",
+        "closure": "24.350(10)(B)",
+        "name": "Rocky Bay",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.20033333333333,
+          60.326
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(C)-op0-line[0]",
+        "closure": "24.350(10)(C)",
+        "name": "Stockdale Harbor",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.19533333333334,
+          60.30433333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(C)-op0-line[1]",
+        "closure": "24.350(10)(C)",
+        "name": "Stockdale Harbor",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.21033333333332,
+          60.282833333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(D)-op0-line[0]",
+        "closure": "24.350(10)(D)",
+        "name": "Port Chalmers",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2105,
+          60.26766666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(D)-op0-line[1]",
+        "closure": "24.350(10)(D)",
+        "name": "Port Chalmers",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.20516666666666,
+          60.256166666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(D)-op0-line[2]",
+        "closure": "24.350(10)(D)",
+        "name": "Port Chalmers",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.24033333333333,
+          60.236
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(D)-op0-line[3]",
+        "closure": "24.350(10)(D)",
+        "name": "Port Chalmers",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.24616666666665,
+          60.231
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(D)-op0-line[4]",
+        "closure": "24.350(10)(D)",
+        "name": "Port Chalmers",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[4]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.28033333333335,
+          60.226
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(D)-op0-line[5]",
+        "closure": "24.350(10)(D)",
+        "name": "Port Chalmers",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "polyline_split",
+        "op_side": "east",
+        "role": "line[5]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.691,
+          59.982166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(E)-op0-line[0]",
+        "closure": "24.350(10)(E)",
+        "name": "Hanning Bay",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.7165,
+          59.9525
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(E)-op0-line[1]",
+        "closure": "24.350(10)(E)",
+        "name": "Hanning Bay",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.76866666666666,
+          59.88766666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(F)-op0-line[0]",
+        "closure": "24.350(10)(F)",
+        "name": "MacLeod Harbor",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.77533333333332,
+          59.87433333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(F)-op0-line[1]",
+        "closure": "24.350(10)(F)",
+        "name": "MacLeod Harbor",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.48033333333333,
+          60.07683333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[0]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.50333333333333,
+          60.07
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[1]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.52833333333334,
+          60.06166666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[2]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[2]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.55283333333333,
+          60.052166666666665
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[3]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[3]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.57133333333334,
+          60.035
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[4]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[4]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.59666666666666,
+          60.024166666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[5]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[5]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.625,
+          60.01416666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[6]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[6]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65166666666667,
+          60.005
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[7]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[7]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.67616666666666,
+          59.999
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(G)-op0-points[8]",
+        "closure": "24.350(10)(G)",
+        "name": "Montague Strait shoreline strip",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "buffer_points",
+        "op_side": "",
+        "role": "points[8]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.39183333333332,
+          60.30316666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(H)-op0-line[0]",
+        "closure": "24.350(10)(H)",
+        "name": "Green Island",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.35033333333334,
+          60.30316666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(H)-op0-line[1]",
+        "closure": "24.350(10)(H)",
+        "name": "Green Island",
+        "district": "Montague District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "west",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.44183333333334,
+          60.27283333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(H)-op1-line[0]",
+        "closure": "24.350(10)(H)",
+        "name": "Green Island",
+        "district": "Montague District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4345,
+          60.283166666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(10)(H)-op1-line[1]",
+        "closure": "24.350(10)(H)",
+        "name": "Green Island",
+        "district": "Montague District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.56566666666666,
+          60.3515
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(A)-op0-line[0]",
+        "closure": "24.350(11)(A)",
+        "name": "Port Etches",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.54533333333333,
+          60.33433333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(A)-op0-line[1]",
+        "closure": "24.350(11)(A)",
+        "name": "Port Etches",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5685,
+          60.3285
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(A)-op1-line[0]",
+        "closure": "24.350(11)(A)",
+        "name": "Port Etches",
+        "district": "Southeastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.59366666666668,
+          60.316833333333335
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(A)-op1-line[1]",
+        "closure": "24.350(11)(A)",
+        "name": "Port Etches",
+        "district": "Southeastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.60483333333335,
+          60.354166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(B)-op0-line[0]",
+        "closure": "24.350(11)(B)",
+        "name": "Constantine Harbor",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.61833333333334,
+          60.35066666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(B)-op0-line[1]",
+        "closure": "24.350(11)(B)",
+        "name": "Constantine Harbor",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "north",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.72633333333334,
+          60.38916666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(C)-op0-line[0]",
+        "closure": "24.350(11)(C)",
+        "name": "Deer Cove (Hinchinbrook Island)",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.71216666666666,
+          60.39683333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(C)-op0-line[1]",
+        "closure": "24.350(11)(C)",
+        "name": "Deer Cove (Hinchinbrook Island)",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.71216666666666,
+          60.40116666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(D)-op0-line[0]",
+        "closure": "24.350(11)(D)",
+        "name": "Juania Cove (Hinchinbrook Island)",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.705,
+          60.41166666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(D)-op0-line[1]",
+        "closure": "24.350(11)(D)",
+        "name": "Juania Cove (Hinchinbrook Island)",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.66866666666667,
+          60.4385
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(E)-op0-line[0]",
+        "closure": "24.350(11)(E)",
+        "name": "Shelter Bay (Hinchinbrook Island)",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.667,
+          60.42766666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(E)-op0-line[1]",
+        "closure": "24.350(11)(E)",
+        "name": "Shelter Bay (Hinchinbrook Island)",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "east",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.513,
+          60.470666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(F)-op0-line[0]",
+        "closure": "24.350(11)(F)",
+        "name": "Anderson Bay",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.52,
+          60.47366666666667
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(F)-op0-line[1]",
+        "closure": "24.350(11)(F)",
+        "name": "Anderson Bay",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.48516666666666,
+          60.467166666666664
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(G)-op0-line[0]",
+        "closure": "24.350(11)(G)",
+        "name": "Double Bay",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.47583333333333,
+          60.471
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(G)-op0-line[1]",
+        "closure": "24.350(11)(G)",
+        "name": "Double Bay",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.46183333333335,
+          60.47083333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(G)-op1-line[0]",
+        "closure": "24.350(11)(G)",
+        "name": "Double Bay",
+        "district": "Southeastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.4435,
+          60.467
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(G)-op1-line[1]",
+        "closure": "24.350(11)(G)",
+        "name": "Double Bay",
+        "district": "Southeastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.32866666666666,
+          60.464333333333336
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(H)-op0-line[0]",
+        "closure": "24.350(11)(H)",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3565,
+          60.46083333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(H)-op0-line[1]",
+        "closure": "24.350(11)(H)",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.93833333333333,
+          60.55833333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(H)-op1-line[0]",
+        "closure": "24.350(11)(H)",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "district": "Southeastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.88333333333333,
+          60.538333333333334
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(H)-op1-line[1]",
+        "closure": "24.350(11)(H)",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "district": "Southeastern District",
+        "op_index": 1,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.12383333333332,
+          60.519666666666666
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(I)-op0-line[0]",
+        "closure": "24.350(11)(I)",
+        "name": "Canoe Passage",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.11783333333332,
+          60.51883333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(I)-op0-line[1]",
+        "closure": "24.350(11)(I)",
+        "name": "Canoe Passage",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.9615,
+          60.56483333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(J)-op0-line[0]",
+        "closure": "24.350(11)(J)",
+        "name": "Windy Bay",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[0]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.97733333333332,
+          60.56183333333333
+        ]
+      },
+      "properties": {
+        "label": "24.350(11)(J)-op0-line[1]",
+        "closure": "24.350(11)(J)",
+        "name": "Windy Bay",
+        "district": "Southeastern District",
+        "op_index": 0,
+        "op_kind": "half_plane",
+        "op_side": "south",
+        "role": "line[1]"
+      }
+    }
+  ]
+}

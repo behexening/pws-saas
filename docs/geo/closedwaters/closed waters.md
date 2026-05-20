@@ -1,0 +1,107 @@
+closed waters
+(1) Copper River District:
+(A) within a line from Point Whitshed south to a point at 60° 26.49' N. lat., 145° 52.86' W. long. to a point at Alaganik Slough North at 60° 24.65' N. lat., 145° 36.70' W. long. to a point at Pete Dahl East at 60° 20.44' N. lat., 145° 29.14' W. long. to a point at West Kokinhenik at 60° 14.88' N. lat., 145° 10.01' W. long. to a point at East "East Side" at 60° 14.83' N. lat., 145° 03.36' W. long. to a point at Coffee Creek East at 60° 14.19' N. lat., 144° 58.01' W. long. to a point at Charlie Mohr North at 60° 15.15' N. lat., 144° 56.43' W. long. to a point at Martin River North at 60° 15.29' N. lat., 144° 52.52' W. long. to a point on Strawberry Reef at 60° 13.93' N. lat., 144° 50.66' W. long., and at all times within sloughs and in Boswell Bay within the bay;
+(B) except as provided in 5 AAC 24.361(b), the inside closure area defined as all waters north of line from a point at Steamboat South at 60° 22.31' N. lat., 145° 33.50' W. long. to the west side of the Pete Dahl entrance at 60° 18.89' N. lat., 145° 30.99' W. long. to the western end of the Grass Island Bar at 60° 18.30' N. lat., 145° 28.42' W. long. to the eastern end of Grass Island Bar at 60° 15.24' N. lat., 145° 17.89' W. long. to the western end of Kokinhenik Bar at 60° 15.00' N. lat., 145° 16.20' W. long. to the eastern tip of Kokinhenik Bar at 60° 13.65' N. lat., 145° 09.46' W. long. to the western tip of Softuk Bar at 60° 13.68' N. lat., 145° 05.78' W. long. to Coffee Creek West at 60° 14.13' N. lat., 144° 58.31' W. long.
+(2) Bering River District:
+(A) east of a line from Point Hey to a point on the northeastern shore of Kanak Island at 60° 09.06' N. lat., 144° 22.42' W. long., and east of a line from a point on the southeasternmost shore of Kanak Island at 60° 06.56' N. lat., 144° 19.42' W. long. to 60° 06.56' N. lat., 144° 18.32' W. long. to 60° 04.97' N. lat., 144° 11.12' W. long. to a point on Okalee Spit at 60° 04.46' N. lat., 144° 11.12' W. long.;
+(B) waters bounded on the east by the longitude of Cape Suckling (144° W. long.), on the north by a line along the beach from Cape Suckling to the longitude of Lemesurier Point (144° 11.72' W. long.), and on the west by a line along the longitude of Lemesurier Point from Okalee Spit to Lemesurier Point, then along the eastern beach of Kayak Island to Pinnacle Rock, then extending south along the longitude of the southernmost tip of Pinnacle Point;
+(3) Eastern District:
+(A) Simpson Bay, north of 60° 38.00' N. lat.. Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point, and all of Orca Inlet southeast of Hawkins Island;
+(B) Sheep Bay: north of a line from 60° 41.99' N. lat., 145° 56.11' W. long., to 60° 41.17' N. lat., 145° 55.87' W. long.; and east of a line from 60° 40.08' N. lat., 145° 58.61' W. long., to 60° 39.45' N. lat., 145° 58.88' W. long.;
+(C) Plateau Creek: south of a line from 60° 42.60' N. lat., 146° 08.28' W. long., to 60° 42.67' N, lat., 146° 07.80' W. long.;
+(D) Comfort Cove: east of a line from 60° 42.96' N. lat., 146° 05.67' W. long.; to 60° 42.70' N. lat., 146° 05.78' W. long.;
+(E) Olsen Bay: north of 60° 44.06' N. lat.;
+(F) Beartrap Bay: east of a line from 60° 44.86' N. lat., 145° 59.64' W. long., to 60° 44.60' N. lat., 145° 59.86' W. long.;
+(G) Port Gravina: north of 60° 46.30' N, lat.;
+(H) St. Matthews Bay: east of a line at 146° 18.09' W. long., and within 500 yards of the northwestern shore, north of 60° 45.36' N. lat.;
+(l) Snug Corner Cove: south of a line from 60° 43.51' N. lat, 146° 38.51' W. long., to 60° 43.82' N. lat, 146° 38.00' W. long.;
+(J) Two Moon Bay: south of a line from 60° 44.74' N. lat., 146° 30.15' W. long. to 60° 44.63' N. lat., 146° 30.93' W. long.; and south of a line from 60° 44.25' N. lat., 146° 34.42' W. long., to 60° 44.23' N. lat, 146° 35.10' W. long.;
+(K) Irish Cove: south of a line from 60° 46.13' N. lat., 146° 26.84' W. long., to 60° 46.06' N. lat., 146° 26.62' W. long.;
+(L) Whalen Bay: east of a line from 60° 49.23' N. lat., 146° 15.17' W. long., to 60° 48.59' N. lat., 146° 16.02' W. long.;
+(M) Fidalgo River Delta: north of a line from 60° 51.79' N. lat., 146° 13.64' W. long., to 60° 51.75' N. lat., 146° 10.19' W. long.;
+(N) Sunny River Delta: north of a line from 60° 51.99' N. lat., 146° 13.82' W. long., to 60° 51.85' N. lat., 146° 16.13' W. long.;
+(O) Fidalgo Bay: east of a line from 60° 50.93' N. lat., 146° 08.05' W. long., to 60° 50.20' N. lat., 146° 07.03' W. long.;
+(P) Short Creek: north of a line from 60° 50.99' N. lat., 146° 16.85' W. long., to 60° 51.12' N. lat., 146° 16.00' W. long., and west of a line from 60° 51.16' N. lat., 146° 15.93' W. long., to 60° 51.35' N. lat., 146° 16.10' W. long.;
+(Q) Fish Bay: north of 60° 48.92' N. lat.;
+(R) Banzer Creek: within the bay east of a line from 60° 48.56' N. lat., 146° 33.53' W. long., to 60° 49.11' N. lat., 146° 33.85' W. long.;
+(S) Landlocked Bay: within the bay east of a line in the narrows from 60° 51.13' N. lat., 146° 34.05' W. long., to 60° 51.42' N. lat., 146° 34.12' W. long.;
+(T) Galena Bay: east of a line from 60° 55.64' N. lat., 146° 38.16' W. long., to 60° 56.41' N. lat., 146° 36.22' W. long., and within 1,000 yards of the north shore between 60° 57.13' N. lat., 146° 38.83' W. long., and 60° 56.81' N. lat., 146° 36.55' W. long.;
+(U) Jack Bay: south and east of a line from 61° 01.76' N. lat., 146° 34.52' W. long., to 61° 01.01' N. lat., 146° 34.34' W. long., and within 1,000 yards of the terminus of all other salmon streams of the bay;
+(V) Mineral Creek Delta, Gold Creek, and Kadis Creek: north of a line from 61° 07.45' N. lat., 146° 23.75' W. long., to 61° 07.45' N. lat., 146° 29.80' W. long.;
+(W) Head of Port Valdez: waters east of a line from a point west of the Valdez boat harbor at 61° 07.47' N. lat., 146° 22.67' W. long., to a point on the south shore at 61° 05.13' N. lat., 146° 17.82' W. long.;
+(X) Allison Creek, Sawmill Creek, and the Alyeska Safety Zone: within 200 yards of the shore from Allison Point at 61° 05.16' N. lat., 146° 20.72' W. long., to a point west of Sawmill Creek at 61° 04.81' N. lat., 146° 27.32' W. long.;
+(Y) Sawmill Bay, Valdez Arm: north of a line along 61° 03.14' N. lat., in the northern arm of the bay, and west of a line from 61° 03.14' N. lat., 146° 47.41' W. long., to 61° 02.74' N. lat., 146° 47.27' W. long., in the western arm of the bay;
+(4) Northern District:
+(A) Long Bay: north of a line from 60° 59.09' N. lat., 147° 14.52' W. long. to 60° 58.97' N. lat., 147° 13.17' W. long., north of a line from 60° 59.24' N. lat., 147° 16.35' W. long. to 60° 59.26' N. lat., 147° 16.59' W. long., north of a line from 60° 59.14' N. lat., 147° 16.93' W. long., to 60° 59.03' N. lat., 147° 17.32' W. long., and west of a line from 60° 58.46' N. lat., 147° 16.52' W. long., to 60° 57.52' N. lat., 147° 16.56' W. long.;
+(B) Granite Bay: east of a line from 60° 55.35' N. lat., 147° 24.24' W. long., to 60° 55.26' N. lat., 147° 24.19' W. long.;
+(C) Cedar Bay: north of 60° 58.00' N. lat.;
+(D) Eaglek Bay: north of 60° 53.46' N. lat.;
+(E) Wells Bay: east of a line from 61° 00.59' N. lat., 147° 25.59' W. long., to 61° 00.16' N. lat., 147° 25.48' W. long., and north of a line from 61° 00.17' N. lat., 147° 28.88' W. long., to 61° 00.11'N. lat., 147° 29.31' W. long.;
+(F) Siwash Bay: west of a line from 60° 57.48' N. lat., 147° 39.73' W. long., to 60° 56.97' N. lat., 147° 39.52' W. long.;
+(G) Jonah Bay: west of a line from 61° 00.82' N. lat., 147° 38.63' W. long., to 60° 56.96' N. lat., 147° 38.51' W. long.;
+(H) Unakwik Inlet: within 1,000 yards of the terminus of all salmon streams north of 60° 51.97' N. lat.;
+(l) Derickson Bay: west of a line from 60° 52.18' N. lat., 147° 48.43' W. long., to 60° 51.88' N. lat., 147° 48.48' W. long.;
+(J) Schoppe Bay: east of 147° 39.55' W. long.;
+(5) Unakwik District:
+(A) Unakwik Inlets within 1,000 yards of the terminus of all salmon streams south of 61° 04.97' N. lat.;
+(B) Miners Bay: east of a line from 61° 03.80' N. lat., 147° 30.27' W. long., to 61° 04.32' N. lat., 147° 29.94' W. long.;
+(6) Coghill District:
+(A) Esther Passage: east of a line from 60° 51.49' N. lat., 147° 54.65' W, long., to 60° 52.36' N. lat., 147° 54.85' W. long.; and east of a line from 60° 54.20' N. lat., 147° 56.91' W. long., to 60° 53.83' N, lat., 147° 56.63' W. long.;
+(B) Golden River: east of a line from 60° 57.76' N. lat., 148° 00.82' W. long., to 60° 58.76' N. lat., 147° 59.59' W. long.;
+(C) Coghill River: north of a line from 61° 04.06' N. lat., 147° 57.01' W. long., to 61° 03.33' N. lat., 147° 55.62' W. long.;
+(D) Barry Arm: north of a line from 61° 00.62' N. lat., 148° 05.61' W. long., to 61° 02.31' N. lat., 148° 07.00' W. long.,;
+(E) Harrison Lagoon: west of a line from 60° 59.37' N. lat., 148° 11.00' W. long., to 60° 58.14' N. lat., 148° 11.43' W. long.;
+(F) Hobo Bay: north of a line from 60° 57.14' N. lat., 148° 13.13' W. long., to 60° 56.76' N. lat., 148° 14.02' W. long.;
+(G) Bettles Bay: north and west of a line from 60° 56.42' N. lat., 148° 17.82' W. long., to 60° 56.76' N. lat., 148° 16.69' W. long.;
+(H) Hnmmer Bay: north of a line from 60° 53.43' N. lat., 148° 17.42' W. long., to 60° 53.24' N. lat., 148° 18.31' W. long.;
+(I) Pirate Coye: west of a line from 60° 52.54' N. lat., 148° 17.68' W. long., to 60° 52.07' N. lat., 148° 17.62' W. long.;
+(J) Pigot Bay: west of a line from 60° 51.02' N. lat., 148° 20.97' W. long., to 60° 49.94' N. lat., 148° 21.92' W. long.;
+(7) Northwestern District:
+(A) Logging Camp Bay: north of a line from 60° 49.36' N. lat., 148° 25.29' W. long., to 60° 49.79' N. lat., 148° 26.22' W. long.;
+(B) Blackstone Bay: south of a line from 60° 45.95' N. lat., 148° 29.56' W. long., to 60° 45.81' N. lat., 148° 26.61' W. long.;
+(C) Passage Canal (Shotgun Cove): south of a line from 60° 48.11' N. lat., 148° 33.08' W. long., to 60° 47.90' N. lat., 148° 32.09' W. long.;
+(D) Cochrane Bay: southwest of a line from 60° 39.61' N. lat., 148° 25.41' W. long., to 60° 38.1 T N. lat., 148° 24.57' W. long., west of a line from 60° 43.76' N. lat., 148° 22.52' W. long., to 60° 41.45' N. lat., 148° 23.09' W. long., east of a line from 60° 39.96' N. lat., 148° 21.67' W. long., to 60° 39.33' N. lat., 148° 22.27' W. long., and Surprise Cove west of a line from 60° 45.89' N. lat., 148° 22.02' W. long., to 60° 45.12' N. lat., 148° 22.31' W. long.;
+(E) Long Bay (Culross Passage): west of a line from 60° 41.87' N. lat., 148° 15.74' W. long., to 60° 41.61' N. lat., 148° 15.52' W. long.;
+(F) Port Nellie Juan (Mink Creek): northwest of a line from 60° 35.66' N. lat., 148° 13.82' W. long., to 60° 34.56' N. lat., 148° 16.47' W. long.; and north of a line from 60° 33.61' N. lat., 148° 17.79' W. long., to 60° 33.90' N. lat., 148° 17.34' W. long.;
+(G) East Finger Inlet: north of 60° 32.51' N. lat.;
+(H) West Finger Inlet: north of a line from 60° 34.16' N. lat., 148° 27.02' W. long., to 60° 34.11' N. lat., 148° 26.21' W. long.;
+(I) Kings Bay: south of a line from 60° 28.27' N. lat., 148° 41.50' W. long., to 60° 27.81' N. lat., 148° 37.94' W. long.;
+(J) Greystone Bay: south of a line from 60° 31.53' N. lat., 148° 26.16' W. long., to 60° 31.00' N. lat., 148° 25.58' W. long.;
+(K) McClure Bay: south of a line from 60° 30.21' N. lat., 148° 10.95' W. long., to 60° 30.29' N. lat., 148° 09.61' W. long.;
+(8) Eshamy District:
+(A) Eshamy Bay and its tributary waters: waters within the Eshamy Lagoon and its tributaries and within 100 yards outside the narrows at the entrance of Eshamy Lagoon;
+(B) Gumboot Creek: within 750 yards of the terminus of Gumboot Creek on the northern shore of Eshamy Bay;
+(9) Southwestern District:
+(A) Dangerous Passage: within 1,000 yards of all salmon streams in Dangerous Passage between 148° 08.87' W. long. and 148° 02.62' W. long.;
+(B) Ewan Bay: west of 148° 08.35' W. long.;
+(C) Paddy Bay: north of a line from 60° 23.97' N. lat., 148° 06.07' W. long. to 60° 23.91' N. lat., 148° 04.91' W. long.;
+(D) Jackpot Bay: north and west of a line from 60° 20.74' N. lat., 148° 13.18' W. long. to 60° 20.52' N. lat., 148° 13.41' W. long;
+(E) Whale Bay: south of 60° 14.16' N. lat.;
+(F) Port Bainbridge: north of a line from 60° 09.72' N. lat., 148° 19.96' W. long. to 60° 09.68' N. lat., 148° 20.56' W. long.;
+(G) Hogg Bay: north of a line from 60° 05.10' N. lat., 148° 12.05' W. long., to 60° 04.94' N. lat., 148° 11.75' W. long., and east of a line from 60° 04.32' N. lat., 148° 11.47' W. long., to 60° 04.01' N. lat., 148° 11.62' W. long.;
+(H) Bainbridge Island: within the bay south of a line from 60° 07.58' N. lat., 148° 06.83' W. long., to 60° 07.80' N. lat., 148° 06.31' W. long.;
+(I) Ikuta Bay: south of a line from 60° 06.58' N. lat., 148° 00.80' W. long., to 60° 06.60' N. lat., 148° 00.12' W. long.;
+(J) Mummy Bay: north of a line from 60° 13.75' N. lat., 147° 49.12' W. long., to 60° 13.31' N. lat., 147° 48.57' W. long.;
+(K) Thumb Bay: south and east of a line from 60° 12.83' N. lat., 147° 48.82' W. long., to 60° 12.61' N. lat., 147° 49.52' W. long.;
+(L) Hogan Bay: north of 60° 12.00' N. lat.;
+(M) Snug Harbor: west of 147° 45.55' W. long.;
+(10) Montague District:
+(A) Zaikof Bay: south of 60° 16.86' N. lat., and within 1,000 yards of the southeastern shore of the bay from a point at 60° 17.94' N. lat., 147° 00.15' W. long. to a line at 60° 16.86' N. lat.;
+(B) Rocky Bay: west of a line from a point at 60° 21.30' N. lat., 147° 06.66' W. long. to a point at 60° 20.54' N. lat., 147° 05.61' W. long.;
+(C) Stockdale Harbor: east of a line from a point at 60° 19.56' N. lat., 147° 12.02' W. long. to a point at 60° 18.26' N. lat., 147° 11.72' W. long.;
+(D) Port Chalmers: within a line from a point at 60° 16.97' N. lat., 147° 12.62' W. long. to a point at 60° 16.06' N. lat., 147° 12.63' W. long., from a point at 60° 15.37' N. lat., 147° 12.31' W. long. to a point at 60° 14.16' N. lat., 147° 14.42' W. long., and from a point at 60° 13.86' N. lat., 147° 14.77' W. long. to a point at 60° 13.56' N. lat., 147° 16.82' W. long.;
+(E) Hanning Bay: east of a line from a point at 59° 58.93' N. lat., 147° 41.46' W. long. to a point at 59° 57.15' N. lat., 147° 42.99' W. long.;
+(F) MacLeod Harbor: east of a line from a point at 59° 53.26' N. lat., 147° 46.12' W. long. to a point at 59° 52.46' N. lat., 147° 46.52' W. long.;
+(G) Montague Strait: within 500 yards of the northwestern shore of Montague Island from 60° 04.61' N. lat., 147° 28.82' W. long. to 60° 03.13' N. lat., 147° 33.17' W. long., and from 60° 02.10' N. lat., 147° 34.28' W. long. to 59° 59.94' N. lat., 147° 40.57' W. long.;
+(H) Green Island: west of a line from 60° 18.19' N. lat., 147° 23.51' W. long., to 60° 18.19' N. lat., 147° 21.02' W. long., and east of a line from 60° 16.37' N. lat., 147° 26.51' W. long., to 60° 16.99' N. lat., 147° 26.07' W. long.;
+(11) Southeastern District:
+(A) Port Etches: east of a line from 60° 21.09' N. lat., 146° 33.94' W. long. to 60° 20.06' N. lat., 146° 32.72' W. long., and south of a line from 60° 19.71' N. lat., 146° 34.11'W. long., to 60° 19.01' N. lat., 146° 35.62' W. long.;
+(B) Constantine Harbor: within the harbor from 60° 21.25' N. lat., 146° 36.29' W. long., to 60° 21.04' N. lat., 146° 37.10' W. long.;
+(C) Deer Cove (Hinchinbrook Island): east of a line from 60° 23.35' N. lat., 146° 43.58' W. long., to 60° 23.81' N. lat., 146° 42.73' W. long.;
+(D) Juania Cove (Hinchinbrook Island): east of a line from 60° 24.07' N. lat., 146° 42.73' W. long., to 60° 24.70' N. lat., 146° 42.30' W. long.;
+(E) Shelter Bay (Hinchinbrook Island): east of a line from 60° 26.31' N. lat., 146° 40.12' W. long., to 60° 25.66' N. lat., 146° 40.02' W. long.;
+(F) Anderson Bay: south of a line from 60° 28.24' N. lat., 146° 30.78' W. long., to 60° 28.42' N. lat., 146° 31.20' W. long.;
+(G) Double Bay: south of a line from 60° 28.03' N. lat., 146° 29.11' W. long., to 60° 28.26' N. lat., 146° 28.55' W. long., and south of a line from 60° 28.25' N. lat., 146° 27.71' W. long., to 60° 28.02' N. lat., 146° 26.61' W. long.;
+(H) Hawkins Cutoff - Orca Inlet Area: south of a line from 60° 27.86' N. lat., 146° 19.72' W. long., to 60° 27.65' N. lat., 146° 21.39' W. long., and Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point, and all of Orca Inlet southeast of Hawkins Island;
+(I) Canoe Passage: south of a line from 60° 31.18' N. lat., 146° 07.43' W. long., to 60° 31.13' N. lat., 146° 07.07' W. long.;
+(J) Windy Bay: south of a line from 60° 33.89' N. lat., 145° 57.69' W. long., to 60° 33.71' N. lat., 145° 58.64' W. long.;

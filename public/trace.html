@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trace Closed Waters</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; overflow: hidden; }
+  #wrap { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+  header { display: flex; align-items: center; gap: 10px; padding: 0 14px; background: #161b22; border-bottom: 1px solid #30363d; font-size: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 14px; font-weight: 600; }
+  header select, header button, header input[type="text"] {
+    background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 0; padding: 6px 10px; font-size: 12px;
+  }
+  header button { cursor: pointer; }
+  header select:hover, header button:hover, header input[type="text"]:focus { border-color: #58a6ff; outline: none; }
+  header .primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  header .primary:hover { background: #388bfd; border-color: #388bfd; }
+  header .danger { background: #21262d; color: #f85149; }
+  header .danger:hover { border-color: #f85149; }
+  header .status { color: #8b949e; }
+  header .ok { color: #3fb950; }
+  header .warn { color: #f6d47b; }
+  header .err { color: #f85149; }
+  #panes { display: grid; grid-template-columns: 1fr 1fr; height: 100%; min-height: 0; }
+  .pane { position: relative; overflow: hidden; border-right: 1px solid #30363d; height: 100%; min-height: 0; }
+  #pdfWrap { background: #0d1117; overflow: auto; cursor: crosshair; height: 100%; position: relative; }
+  #pdfInner { position: relative; display: inline-block; min-width: 100%; min-height: 100%; }
+  #pdfImg { display: block; user-select: none; -webkit-user-drag: none; transform-origin: 0 0; }
+  #pdfSvg { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 0 0; }
+  #map { height: 100%; cursor: crosshair; }
+  .vert { fill: #ffd166; stroke: #fff; stroke-width: 1.5; }
+  .vert.first { fill: #3fb950; }
+  .polyline { fill: rgba(248, 81, 73, 0.15); stroke: #f85149; stroke-width: 2; stroke-linejoin: round; }
+  .polyline.done { fill: rgba(63, 185, 80, 0.18); stroke: #3fb950; }
+  .polyline.selected { stroke: #58a6ff; stroke-width: 3; fill: rgba(88, 166, 255, 0.18); }
+  #polyList {
+    position: absolute; top: 12px; right: 12px; max-height: calc(100% - 24px); width: 240px;
+    background: rgba(13,17,23,0.93); border: 1px solid #30363d; border-radius: 0;
+    overflow-y: auto; z-index: 600; padding: 8px 10px; font-size: 12px;
+  }
+  #polyList h3 { margin: 0 0 6px; font-size: 12px; color: #8b949e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  #polyList .row { display: flex; gap: 4px; align-items: center; padding: 4px 0; border-top: 1px solid #21262d; }
+  #polyList .row:first-of-type { border-top: 0; }
+  #polyList .row input { flex: 1; background: #0d1117; border: 1px solid #30363d; color: #e6edf3; border-radius: 0; padding: 3px 6px; font-size: 11px; min-width: 0; }
+  #polyList .row button { background: transparent; border: 0; color: #8b949e; cursor: pointer; font-size: 14px; padding: 2px 4px; }
+  #polyList .row button:hover { color: #f85149; }
+  #polyList .row.selected input { border-color: #58a6ff; }
+  #zoom { position: absolute; bottom: 12px; left: 12px; background: rgba(13,17,23,0.92); padding: 6px 8px; border: 1px solid #30363d; border-radius: 0; display: flex; gap: 6px; align-items: center; z-index: 600; }
+  #zoom button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 0; padding: 2px 8px; cursor: pointer; font-size: 14px; line-height: 1; }
+  #zoom span { color: #8b949e; font-size: 11px; min-width: 36px; text-align: center; }
+  .leaflet-container { background: #0d1117; }
+  kbd { background: #21262d; border: 1px solid #30363d; border-radius: 0; padding: 1px 4px; font-size: 10px; font-family: monospace; }
+  #help { position: absolute; bottom: 12px; right: 12px; background: rgba(13,17,23,0.92); padding: 8px 10px; border: 1px solid #30363d; border-radius: 0; font-size: 11px; color: #8b949e; max-width: 280px; line-height: 1.6; z-index: 600; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <h1>Trace</h1>
+    <select id="pdfSelect"></select>
+    <input type="text" id="nameInput" placeholder="closure name (e.g. Eshamy Bay E)" style="width: 220px;">
+    <button id="closeBtn" class="primary">Close polygon (Enter)</button>
+    <button id="undoBtn">Undo vertex</button>
+    <button id="cancelBtn" class="danger">Discard current</button>
+    <button id="exportBtn">Export GeoJSON</button>
+    <span class="status" id="status">Loading…</span>
+    <span class="status" id="counter"></span>
+  </header>
+  <div id="panes">
+    <div class="pane" id="pdfWrap">
+      <div id="pdfInner">
+        <img id="pdfImg" alt="">
+        <svg id="pdfSvg"></svg>
+      </div>
+      <div id="zoom">
+        <button id="zoomOut">−</button>
+        <span id="zoomLabel">100%</span>
+        <button id="zoomIn">+</button>
+        <button id="zoomFit">fit</button>
+      </div>
+    </div>
+    <div class="pane">
+      <div id="map"></div>
+      <div id="polyList"><h3>Polygons</h3><div id="polyRows"></div></div>
+      <div id="help">
+        <b>Click</b> on PDF to add vertex.<br>
+        <kbd>Enter</kbd> close polygon · <kbd>Z</kbd> undo · <kbd>Esc</kbd> discard<br>
+        Trackpad pinch / wheel = zoom PDF; two-finger drag = pan.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const STORAGE_KEY = 'pwsClosedWaterPolys';
+let META = {};
+let GCPS = {};
+let TRANSFORMS = {}; // pdfName -> {fwd: (x,y)=>[lng,lat], gcps}
+let currentPdf = null;
+let zoom = 1;
+
+// polysByPdf[pdfName] = [{ name, vertices: [{pdfX,pdfY,lng,lat}], closed: bool }]
+let polysByPdf = {};
+let current = null; // in-progress polygon { name, vertices, closed: false }
+let selectedIdx = -1; // selected polygon index on map
+
+const map = L.map('map', { preferCanvas: true }).setView([60.7, -147.0], 8);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap', maxZoom: 19, crossOrigin: true
+}).addTo(map);
+setTimeout(() => map.invalidateSize(), 80);
+window.addEventListener('resize', () => map.invalidateSize());
+
+const mapLayers = []; // index-aligned with polysByPdf[currentPdf]
+let currentMapLayer = null; // in-progress polyline
+
+function status(msg, cls='') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + cls;
+}
+
+function loadStored() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } }
+function saveStored() { localStorage.setItem(STORAGE_KEY, JSON.stringify(polysByPdf)); }
+
+// Affine fit: solve [a b c; d e f] minimizing |[a*x+b*y+c - lng; d*x+e*y+f - lat]|
+// Normal equations: separate fits for lng and lat. 3 unknowns each.
+function fitAffine(gcps) {
+  // For each coord (lng or lat) build A (Nx3) and b (Nx1), solve A^T A p = A^T b
+  function solve(targetKey) {
+    const N = gcps.length;
+    // M = A^T A (3x3), v = A^T b (3)
+    const M = [[0,0,0],[0,0,0],[0,0,0]];
+    const v = [0,0,0];
+    for (const g of gcps) {
+      const x = g.pdf.x, y = g.pdf.y, t = g.geo[targetKey];
+      const row = [x, y, 1];
+      for (let i=0;i<3;i++) {
+        v[i] += row[i] * t;
+        for (let j=0;j<3;j++) M[i][j] += row[i] * row[j];
+      }
+    }
+    return solve3x3(M, v);
+  }
+  const pLng = solve('lng');
+  const pLat = solve('lat');
+  return (x, y) => [pLng[0]*x + pLng[1]*y + pLng[2], pLat[0]*x + pLat[1]*y + pLat[2]];
+}
+
+function solve3x3(M, v) {
+  // Cramer's rule (small matrix, fine)
+  const det = (m) =>
+    m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+  - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+  + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  const D = det(M);
+  if (Math.abs(D) < 1e-12) return [0,0,0];
+  const cols = [0,1,2].map(c => {
+    const Mc = M.map((row, i) => row.map((val, j) => j===c ? v[i] : val));
+    return det(Mc) / D;
+  });
+  return cols;
+}
+
+function pxToPdf(displayX, displayY) {
+  // displayX/Y are in unzoomed-image-pixel coordinates (relative to #pdfImg natural display)
+  // Convert through scaled image to PDF point coordinates
+  const meta = META[currentPdf];
+  const img = document.getElementById('pdfImg');
+  const naturalDisplayedW = img.clientWidth; // CSS px of image at zoom=1
+  const naturalDisplayedH = img.clientHeight;
+  const scaleX = meta.png_w_px / naturalDisplayedW;
+  const scaleY = meta.png_h_px / naturalDisplayedH;
+  const pngX = displayX * scaleX;
+  const pngY = displayY * scaleY;
+  return { x: pngX / meta.scale, y: pngY / meta.scale };
+}
+
+function pdfToPx(pdfX, pdfY) {
+  const meta = META[currentPdf];
+  const img = document.getElementById('pdfImg');
+  const naturalDisplayedW = img.clientWidth;
+  const naturalDisplayedH = img.clientHeight;
+  const pngX = pdfX * meta.scale;
+  const pngY = pdfY * meta.scale;
+  return { x: pngX * naturalDisplayedW / meta.png_w_px, y: pngY * naturalDisplayedH / meta.png_h_px };
+}
+
+function pdfToLngLat(pdfX, pdfY) {
+  return TRANSFORMS[currentPdf](pdfX, pdfY);
+}
+
+function applyZoom() {
+  const img = document.getElementById('pdfImg');
+  const svg = document.getElementById('pdfSvg');
+  img.style.transform = `scale(${zoom})`;
+  svg.style.transform = `scale(${zoom})`;
+  document.getElementById('zoomLabel').textContent = Math.round(zoom*100) + '%';
+  // resize the inner container so scrollbars fit
+  const inner = document.getElementById('pdfInner');
+  inner.style.width = (img.clientWidth * zoom) + 'px';
+  inner.style.height = (img.clientHeight * zoom) + 'px';
+}
+
+function fitZoom() {
+  const wrap = document.getElementById('pdfWrap');
+  const img = document.getElementById('pdfImg');
+  if (!img.clientWidth) return;
+  const zx = (wrap.clientWidth - 16) / img.clientWidth;
+  const zy = (wrap.clientHeight - 16) / img.clientHeight;
+  zoom = Math.min(zx, zy);
+  applyZoom();
+}
+
+document.getElementById('zoomIn').onclick = () => { zoom = Math.min(zoom*1.25, 6); applyZoom(); };
+document.getElementById('zoomOut').onclick = () => { zoom = Math.max(zoom/1.25, 0.1); applyZoom(); };
+document.getElementById('zoomFit').onclick = fitZoom;
+
+// Trackpad pinch + ctrl-wheel zoom
+document.getElementById('pdfWrap').addEventListener('wheel', (e) => {
+  if (!e.ctrlKey && !e.metaKey) return; // let normal scroll happen
+  e.preventDefault();
+  const factor = e.deltaY > 0 ? 1/1.1 : 1.1;
+  const prev = zoom;
+  zoom = Math.max(0.1, Math.min(6, zoom * factor));
+  applyZoom();
+  // keep cursor anchor — adjust scroll so the point under cursor stays put
+  const wrap = e.currentTarget;
+  const rect = wrap.getBoundingClientRect();
+  const cx = e.clientX - rect.left + wrap.scrollLeft;
+  const cy = e.clientY - rect.top + wrap.scrollTop;
+  wrap.scrollLeft += cx * (zoom/prev - 1);
+  wrap.scrollTop  += cy * (zoom/prev - 1);
+}, { passive: false });
+
+// Click on PDF — add vertex to in-progress polygon
+document.getElementById('pdfImg').addEventListener('click', (e) => {
+  if (!currentPdf) return;
+  const img = e.currentTarget;
+  const rect = img.getBoundingClientRect();
+  // Position within the unscaled image (CSS px at zoom=1)
+  const dx = (e.clientX - rect.left) / zoom;
+  const dy = (e.clientY - rect.top) / zoom;
+  const pdf = pxToPdf(dx, dy);
+  const [lng, lat] = pdfToLngLat(pdf.x, pdf.y);
+  if (!current) current = { name: document.getElementById('nameInput').value.trim(), vertices: [], closed: false };
+  current.vertices.push({ pdfX: pdf.x, pdfY: pdf.y, lng, lat });
+  redraw();
+  status(`Vertex ${current.vertices.length} added`, 'ok');
+});
+
+function redraw() {
+  redrawPdf();
+  redrawMap();
+  updateCounter();
+  saveStored();
+}
+
+function updateCounter() {
+  const polys = polysByPdf[currentPdf] || [];
+  const inProg = current ? ` + ${current.vertices.length} in-progress` : '';
+  document.getElementById('counter').textContent = `${polys.length} polygon(s)${inProg}`;
+  renderPolyList();
+}
+
+function redrawPdf() {
+  const svg = document.getElementById('pdfSvg');
+  const img = document.getElementById('pdfImg');
+  svg.setAttribute('width', img.clientWidth);
+  svg.setAttribute('height', img.clientHeight);
+  svg.innerHTML = '';
+  const polys = polysByPdf[currentPdf] || [];
+  polys.forEach((p, i) => drawSvgPoly(svg, p, i === selectedIdx ? 'done selected' : 'done'));
+  if (current) drawSvgPoly(svg, current, '');
+}
+
+function drawSvgPoly(svg, poly, klass) {
+  const ns = 'http://www.w3.org/2000/svg';
+  if (poly.vertices.length >= 2) {
+    const pts = poly.vertices.map(v => {
+      const p = pdfToPx(v.pdfX, v.pdfY);
+      return `${p.x},${p.y}`;
+    }).join(' ');
+    const el = document.createElementNS(ns, poly.closed ? 'polygon' : 'polyline');
+    el.setAttribute('points', pts);
+    el.setAttribute('class', 'polyline ' + klass);
+    svg.appendChild(el);
+  }
+  poly.vertices.forEach((v, i) => {
+    const p = pdfToPx(v.pdfX, v.pdfY);
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', 4);
+    c.setAttribute('class', 'vert' + (i === 0 && !poly.closed ? ' first' : ''));
+    svg.appendChild(c);
+  });
+}
+
+function redrawMap() {
+  mapLayers.forEach(L_ => map.removeLayer(L_));
+  mapLayers.length = 0;
+  if (currentMapLayer) { map.removeLayer(currentMapLayer); currentMapLayer = null; }
+  const polys = polysByPdf[currentPdf] || [];
+  polys.forEach((p, i) => {
+    if (p.vertices.length < 2) return;
+    const latlngs = p.vertices.map(v => [v.lat, v.lng]);
+    const layer = L.polygon(latlngs, {
+      color: i === selectedIdx ? '#58a6ff' : '#3fb950',
+      weight: i === selectedIdx ? 3 : 2,
+      fillOpacity: 0.18,
+    }).addTo(map);
+    layer.on('click', () => { selectedIdx = i; redraw(); });
+    mapLayers.push(layer);
+  });
+  if (current && current.vertices.length >= 1) {
+    const latlngs = current.vertices.map(v => [v.lat, v.lng]);
+    currentMapLayer = (current.vertices.length >= 3
+      ? L.polygon(latlngs, { color: '#f85149', weight: 2, fillOpacity: 0.15, dashArray: '4 4' })
+      : L.polyline(latlngs, { color: '#f85149', weight: 2 })
+    ).addTo(map);
+  }
+}
+
+function renderPolyList() {
+  const rows = document.getElementById('polyRows');
+  rows.innerHTML = '';
+  const polys = polysByPdf[currentPdf] || [];
+  polys.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'row' + (i === selectedIdx ? ' selected' : '');
+    const input = document.createElement('input');
+    input.value = p.name || '';
+    input.placeholder = `polygon ${i+1}`;
+    input.oninput = () => { p.name = input.value; saveStored(); };
+    input.onfocus = () => { selectedIdx = i; redraw(); };
+    const del = document.createElement('button');
+    del.textContent = '×';
+    del.title = 'Delete';
+    del.onclick = () => {
+      if (!confirm(`Delete polygon "${p.name || (i+1)}"?`)) return;
+      polys.splice(i, 1);
+      if (selectedIdx === i) selectedIdx = -1;
+      else if (selectedIdx > i) selectedIdx--;
+      redraw();
+    };
+    row.appendChild(input); row.appendChild(del);
+    rows.appendChild(row);
+  });
+}
+
+function closePolygon() {
+  if (!current || current.vertices.length < 3) {
+    status('Need at least 3 vertices', 'warn');
+    return;
+  }
+  if (!current.name) current.name = document.getElementById('nameInput').value.trim();
+  current.closed = true;
+  if (!polysByPdf[currentPdf]) polysByPdf[currentPdf] = [];
+  polysByPdf[currentPdf].push(current);
+  current = null;
+  document.getElementById('nameInput').value = '';
+  status('Polygon saved', 'ok');
+  redraw();
+}
+
+function undoVertex() {
+  if (current && current.vertices.length) {
+    current.vertices.pop();
+    if (!current.vertices.length) current = null;
+    redraw();
+    status('Vertex removed');
+  }
+}
+
+function discardCurrent() {
+  if (!current) return;
+  if (!confirm('Discard the in-progress polygon?')) return;
+  current = null;
+  redraw();
+  status('Discarded');
+}
+
+document.getElementById('closeBtn').onclick = closePolygon;
+document.getElementById('undoBtn').onclick = undoVertex;
+document.getElementById('cancelBtn').onclick = discardCurrent;
+
+document.addEventListener('keydown', (e) => {
+  if (document.activeElement.tagName === 'INPUT') return;
+  if (e.key === 'Enter') { e.preventDefault(); closePolygon(); }
+  else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undoVertex(); }
+  else if (e.key === 'Escape') { e.preventDefault(); discardCurrent(); }
+});
+
+document.getElementById('exportBtn').onclick = () => {
+  const features = [];
+  for (const [pdfName, polys] of Object.entries(polysByPdf)) {
+    polys.forEach((p, i) => {
+      if (p.vertices.length < 3) return;
+      const ring = p.vertices.map(v => [v.lng, v.lat]);
+      ring.push(ring[0]); // close ring
+      features.push({
+        type: 'Feature',
+        properties: {
+          name: p.name || `${pdfName}_${i+1}`,
+          source_pdf: pdfName,
+        },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      });
+    });
+  }
+  const fc = { type: 'FeatureCollection', features };
+  const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'closed_waters.geojson';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  status(`Exported ${features.length} polygon(s)`, 'ok');
+};
+
+function loadPdf(name) {
+  currentPdf = name;
+  current = null;
+  selectedIdx = -1;
+  const meta = META[name];
+  if (!meta) return;
+  if (!GCPS[name] || GCPS[name].length < 3) {
+    status(`No GCPs for ${name} — needs ≥3 in pdf_gcps.json`, 'err');
+    return;
+  }
+  TRANSFORMS[name] = fitAffine(GCPS[name]);
+  const img = document.getElementById('pdfImg');
+  img.onload = () => {
+    fitZoom();
+    redraw();
+    // center map on this PDF's GCP centroid
+    const lngs = GCPS[name].map(g => g.geo.lng);
+    const lats = GCPS[name].map(g => g.geo.lat);
+    const cLng = lngs.reduce((a,b)=>a+b,0) / lngs.length;
+    const cLat = lats.reduce((a,b)=>a+b,0) / lats.length;
+    map.setView([cLat, cLng], 11);
+    status(`Loaded ${name} — ${GCPS[name].length} GCPs`, 'ok');
+  };
+  img.src = meta.png;
+}
+
+Promise.all([
+  fetch('/pdf_pngs/_meta.json').then(r => r.json()),
+  fetch('/pdf_gcps.json').then(r => r.json()),
+]).then(([meta, gcps]) => {
+  META = meta;
+  GCPS = gcps;
+  polysByPdf = loadStored();
+  const sel = document.getElementById('pdfSelect');
+  Object.keys(meta).sort().forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name + (gcps[name] ? ` (${gcps[name].length} GCPs)` : ' (no GCPs)');
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => loadPdf(sel.value));
+  loadPdf(sel.value);
+}).catch(err => {
+  status('Failed to load metadata: ' + err.message, 'err');
+});
+</script>
+</body>
+</html>

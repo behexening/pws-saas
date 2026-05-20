@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Permanent Closed Waters — Review</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; }
+  #wrap { display: grid; grid-template-columns: 360px 1fr; height: 100vh; }
+  #panel { overflow-y: auto; border-right: 1px solid #30363d; background: #161b22; }
+  #panel header { padding: 12px 14px; border-bottom: 1px solid #30363d; background: #0d1117; position: sticky; top: 0; z-index: 5; }
+  #panel header h1 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  #panel header .meta { font-size: 11px; color: #8b949e; }
+  #search { width: 100%; box-sizing: border-box; padding: 6px 8px; margin-top: 8px; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 0; font-size: 12px; }
+  .district { padding: 6px 14px; font-size: 11px; font-weight: 600; color: #58a6ff; background: #0d1117; border-top: 1px solid #21262d; text-transform: uppercase; letter-spacing: 0.5px; }
+  .item { padding: 8px 14px; border-bottom: 1px solid #21262d; cursor: pointer; font-size: 12px; line-height: 1.4; }
+  .item:hover { background: #21262d; }
+  .item.active { background: #1f6feb33; border-left: 3px solid #58a6ff; padding-left: 11px; }
+  .item .id { color: #8b949e; font-family: 'SF Mono', monospace; font-size: 10px; }
+  .item .name { color: #e6edf3; margin-top: 2px; }
+  .item .flag { display: inline-block; padding: 1px 6px; border-radius: 0; font-size: 9px; font-weight: 600; margin-top: 3px; }
+  .flag.warn { background: #6c4f00; color: #f6d47b; }
+  .flag.miss { background: #7d1c1c; color: #ffb3b3; }
+  #map { height: 100vh; }
+  #toggles { position: absolute; top: 12px; right: 12px; background: rgba(13,17,23,0.92); padding: 8px 12px; border: 1px solid #30363d; border-radius: 0; font-size: 11px; color: #e6edf3; z-index: 600; display: flex; flex-direction: column; gap: 4px; }
+  #toggles label { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+  #toggles input { margin: 0; }
+  #info { position: absolute; bottom: 12px; right: 12px; background: rgba(13,17,23,0.92); padding: 10px 14px; border: 1px solid #30363d; border-radius: 0; max-width: 380px; font-size: 12px; line-height: 1.5; color: #e6edf3; z-index: 600; }
+  #info .id { color: #58a6ff; font-family: 'SF Mono', monospace; font-size: 11px; }
+  #info .name { font-weight: 600; margin: 2px 0 6px; }
+  #info .text { color: #8b949e; font-size: 11px; max-height: 160px; overflow-y: auto; }
+  #info .ex { color: #f6d47b; font-size: 11px; margin-top: 6px; padding-top: 6px; border-top: 1px solid #30363d; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <aside id="panel">
+    <header>
+      <h1>Permanent Closed Waters</h1>
+      <div class="meta">5 AAC 24.350 — derived from regulation text + ADF&G PDFs</div>
+      <input id="search" type="search" placeholder="Filter by name, id, district…">
+    </header>
+    <div id="list">Loading…</div>
+  </aside>
+  <div id="map"></div>
+</div>
+<div id="toggles">
+  <label><input type="checkbox" id="tog-closures" checked> Derived closures</label>
+  <label><input type="checkbox" id="tog-bboxes"> Hand-drawn bboxes</label>
+  <label><input type="checkbox" id="tog-districts" checked> District outlines</label>
+</div>
+<div id="info" style="display:none;"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map', { preferCanvas: true }).setView([60.7, -147.0], 8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; CARTO &copy; OpenStreetMap',
+  subdomains: 'abcd', maxZoom: 19
+}).addTo(map);
+
+const baseStyle = { color: '#dc4c4c', weight: 1, fillColor: '#dc4c4c', fillOpacity: 0.35 };
+const activeStyle = { color: '#ffd166', weight: 2.5, fillColor: '#ffd166', fillOpacity: 0.55 };
+
+let allLayer = null, layersById = {}, currentId = null;
+let districtsLayer = null;
+
+// Districts overlay (subtle)
+function showError(msg) {
+  const list = document.getElementById('list');
+  list.innerHTML = `<div style="padding:14px;color:#ffb3b3;font-size:12px;line-height:1.5;">
+    <b>Error:</b> ${msg}<br><br>
+    Make sure you opened this page through the dev server (e.g. http://localhost:3000/closed_waters_review.html), not as a file:// URL.
+    Page URL: <code style="color:#8b949e">${location.href}</code>
+  </div>`;
+}
+
+fetch('/static/districts.geojson')
+  .then(r => { if (!r.ok) throw new Error('districts.geojson HTTP ' + r.status); return r.json(); })
+  .then(d => {
+    districtsLayer = L.geoJSON(d, {
+      style: { color: '#30363d', weight: 1, fill: false, dashArray: '3,3' },
+      interactive: false
+    }).addTo(map);
+  })
+  .catch(e => console.warn('districts load failed:', e));
+
+let bboxesLayer = null;
+fetch('/static/pws_bboxes.geojson')
+  .then(r => r.ok ? r.json() : null)
+  .then(d => {
+    if (!d) return;
+    bboxesLayer = L.geoJSON(d, {
+      style: { color: '#58a6ff', weight: 1.5, fill: false, dashArray: '4,4' },
+      onEachFeature: (feat, layer) => {
+        layer.bindTooltip(feat.properties.name, { sticky: true, direction: 'top' });
+      }
+    });
+  })
+  .catch(e => console.warn('bboxes load failed:', e));
+
+document.getElementById('tog-closures').addEventListener('change', (e) => {
+  if (!allLayer) return;
+  e.target.checked ? allLayer.addTo(map) : map.removeLayer(allLayer);
+});
+document.getElementById('tog-bboxes').addEventListener('change', (e) => {
+  if (!bboxesLayer) return;
+  e.target.checked ? bboxesLayer.addTo(map) : map.removeLayer(bboxesLayer);
+});
+document.getElementById('tog-districts').addEventListener('change', (e) => {
+  if (!districtsLayer) return;
+  e.target.checked ? districtsLayer.addTo(map) : map.removeLayer(districtsLayer);
+});
+
+fetch('/static/permanent_closed_waters.geojson')
+  .then(r => { if (!r.ok) throw new Error('permanent_closed_waters.geojson HTTP ' + r.status); return r.json(); })
+  .then(fc => {
+    allLayer = L.geoJSON(fc, {
+      style: baseStyle,
+      onEachFeature: (feat, layer) => {
+        layersById[feat.properties.id] = layer;
+        layer.on('click', () => selectFeature(feat.properties.id));
+      }
+    }).addTo(map);
+    renderList(fc.features);
+  })
+  .catch(e => { console.error(e); showError(e.message); });
+
+function renderList(features) {
+  const byDistrict = {};
+  features.forEach(f => {
+    const d = f.properties.district || 'Unknown';
+    (byDistrict[d] = byDistrict[d] || []).push(f);
+  });
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  Object.keys(byDistrict).sort().forEach(d => {
+    const h = document.createElement('div');
+    h.className = 'district';
+    h.textContent = d;
+    list.appendChild(h);
+    byDistrict[d].forEach(f => {
+      const p = f.properties;
+      const item = document.createElement('div');
+      item.className = 'item';
+      item.dataset.id = p.id;
+      item.dataset.search = (p.id + ' ' + (p.name || '') + ' ' + d + ' ' + (p.source_pdf || '')).toLowerCase();
+      const label = p.name || `polygon #${p.polygon_index}`;
+      const sub = p.source_pdf ? `<div style="color:#8b949e;font-size:10px;margin-top:2px">${p.source_pdf}</div>` : '';
+      item.innerHTML = `<div class="id">${p.id}</div><div class="name">${label}</div>${sub}`;
+      item.addEventListener('click', () => selectFeature(p.id));
+      list.appendChild(item);
+    });
+  });
+}
+
+function selectFeature(id) {
+  if (currentId && layersById[currentId]) layersById[currentId].setStyle(baseStyle);
+  document.querySelectorAll('.item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+  const layer = layersById[id];
+  if (!layer) return;
+  layer.setStyle(activeStyle);
+  layer.bringToFront();
+  map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 13 });
+  currentId = id;
+  const p = layer.feature.properties;
+  const info = document.getElementById('info');
+  info.style.display = 'block';
+  const name = p.name || `Polygon #${p.polygon_index}`;
+  info.innerHTML = `
+    <div class="id">${p.id} — ${p.district}</div>
+    <div class="name">${name}</div>
+    <div class="text">Source PDF: ${p.source_pdf || '—'}<br>Extracted from rgb(78,78,78) vector fill.</div>
+  `;
+  const item = document.querySelector(`.item[data-id="${id}"]`);
+  if (item) item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+document.getElementById('search').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.item').forEach(el => {
+    el.style.display = !q || el.dataset.search.includes(q) ? '' : 'none';
+  });
+});
+</script>
+</body>
+</html>
