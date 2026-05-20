@@ -125,7 +125,7 @@ const TELEGRAM_BOT_TOKEN      = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_BOT_USERNAME   = process.env.TELEGRAM_BOT_USERNAME || '';
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
 const TELEGRAM_API = TELEGRAM_BOT_TOKEN ? `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}` : null;
-const TELEGRAM_LINK_CODE_TTL_MS = 15 * 60 * 1000;
+const TELEGRAM_LINK_CODE_TTL_MS = 24 * 60 * 60 * 1000;
 
 async function sendTelegramMessage(chatId, text, opts = {}) {
   if (!TELEGRAM_API) {
@@ -885,7 +885,8 @@ async function processTelegramUpdate(update) {
 async function linkChatToCaptain(chatId, code, username) {
   // Look up captain by code
   const r = await db.query(
-    `SELECT id, email, telegram_link_code_expires_at FROM captains WHERE telegram_link_code = $1`,
+    `SELECT id, email, telegram_chat_id, telegram_link_code_expires_at
+       FROM captains WHERE telegram_link_code = $1`,
     [code]
   );
   if (r.rows.length === 0) {
@@ -896,7 +897,10 @@ async function linkChatToCaptain(chatId, code, username) {
   const captain = r.rows[0];
   const expiresAt = captain.telegram_link_code_expires_at
     ? new Date(captain.telegram_link_code_expires_at) : null;
-  if (!expiresAt || expiresAt < new Date()) {
+  // Expired codes are still honored when the captain hasn't linked yet — codes are
+  // cleared on successful link, so a matching-but-stale code means "still waiting."
+  // This keeps long-dormant deep links working (e.g. tester opened email next day).
+  if ((!expiresAt || expiresAt < new Date()) && captain.telegram_chat_id) {
     await sendTelegramMessage(chatId,
       `That code has expired. Get a fresh one at akfishinfo.com/setup or /account.`);
     return;
