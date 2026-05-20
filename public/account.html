@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Account — akFISHinfo</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/platform.js"></script>
   <script src="/static/theme.js"></script>
   <link rel="stylesheet" href="/static/theme.css"/>
+  <link rel="stylesheet" href="/static/platform.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -277,8 +279,9 @@
     </div>
   </div>
 
-  <!-- Notifications (Telegram) -->
-  <div class="card">
+  <!-- Notifications (Telegram) — web-only. Native shells use push notifications,
+       managed in 2.4. -->
+  <div class="card web-only">
     <h2 class="card-title">Notifications</h2>
     <div class="alert alert-ok"  id="tg-ok"></div>
     <div class="alert alert-err" id="tg-err"></div>
@@ -401,7 +404,11 @@ async function loadAccount() {
     document.getElementById('password-card').style.display = 'none';
   }
 
-  refreshTelegramPanel(user);
+  // Skip Telegram setup entirely on native shells — the card is hidden by CSS
+  // and alerts arrive via push notifications.
+  if (!window.akfiPlatform || !window.akfiPlatform.isNative) {
+    refreshTelegramPanel(user);
+  }
 }
 
 function refreshTelegramPanel(user) {

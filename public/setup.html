@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Setup — akFISHinfo</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/platform.js"></script>
   <script src="/static/theme.js"></script>
   <link rel="stylesheet" href="/static/theme.css"/>
+  <link rel="stylesheet" href="/static/platform.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -221,12 +223,16 @@
   <main id="main">
   <div class="card">
     <h1>Welcome, <span class="greeting" id="greeting">captain</span></h1>
-    <p class="sub">
+    <p class="sub web-only">
       Link your Telegram so we can send opening alerts straight to your phone.
       Free, no SMS carrier registration, no extra app to learn.
     </p>
+    <p class="sub native-only">
+      You're signed in. Pick your next step — opening alerts will arrive as push
+      notifications on this device.
+    </p>
 
-    <div class="linking-state" id="linkingState">
+    <div class="linking-state web-only" id="linkingState">
       <div class="code-display">
         <div class="label">your one-time code</div>
         <div class="code" id="codeDisplay">------</div>
@@ -274,7 +280,8 @@
 
     <div class="linked-state" id="linkedState">
       <div class="code-display" style="border-color:#3fb950">
-        <div class="label" style="color:#3fb950">✓ telegram linked</div>
+        <div class="label web-only" style="color:#3fb950">✓ telegram linked</div>
+        <div class="label native-only" style="color:#3fb950">✓ ready</div>
         <div style="font-size:0.95rem;margin-top:6px" id="linkedAs">Connected.</div>
       </div>
       <p class="sub" style="margin-top:10px">
@@ -282,8 +289,11 @@
       </p>
       <button type="button" class="btn" id="trialBtn" style="margin-bottom:8px">Start free 7-day trial</button>
       <a href="/pricing" class="btn secondary">See plans &amp; pricing</a>
-      <p class="price-note" style="margin-top:14px">
+      <p class="price-note web-only" style="margin-top:14px">
         Trial requires a verified email. One trial per Telegram account.
+      </p>
+      <p class="price-note native-only" style="margin-top:14px">
+        Trial requires a verified email. One trial per account.
       </p>
     </div>
 
@@ -440,13 +450,19 @@
     });
 
     // Boot
+    const IS_NATIVE = !!(window.akfiPlatform && window.akfiPlatform.isNative);
     fetch('/api/me').then(r => r.json()).then(({ user }) => {
       if (!user) { location.href = '/login'; return; }
       const first = (user.name || '').split(' ')[0];
       if (first) document.getElementById('greeting').textContent = first;
+      if (IS_NATIVE) {
+        // Native shells skip Telegram entirely — alerts arrive via push.
+        // Privileged users (admin/alaska.gov/active trial/pro) jump straight to the app.
+        if (user.has_access) { location.href = '/app'; return; }
+        showLinked(null);
+        return;
+      }
       if (user.telegram_linked) {
-        // Beta testers, admins, alaska.gov, trials, pros already have access
-        // — don't even render the trial/subscribe gate.
         if (user.has_access) { location.href = '/app'; return; }
         showLinked(user.telegram_username);
         return;

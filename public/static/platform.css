@@ -1,0 +1,11 @@
+/* Platform-conditional visibility. Pair with /static/platform.js, which sets
+   `<html data-platform="ios|android|web">` and `data-native="1"` on native shells.
+
+   .web-only    — shown on web, hidden inside the native Capacitor shells
+   .native-only — hidden on web, shown only inside the native shells
+*/
+
+.native-only { display: none !important; }
+
+html[data-native="1"] .web-only    { display: none !important; }
+html[data-native="1"] .native-only { display: revert !important; }

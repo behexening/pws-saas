@@ -6,8 +6,10 @@
   <title>Request beta access — akFISHinfo</title>
   <meta name="description" content="Real-time PWS opening alerts. Request free beta access during the 2026 season.">
   <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/platform.js"></script>
   <script src="/static/theme.js"></script>
   <link rel="stylesheet" href="/static/theme.css"/>
+  <link rel="stylesheet" href="/static/platform.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -135,9 +137,13 @@
     <div class="card" id="form-card">
       <div class="eyebrow" id="eyebrow-text">2026 PWS season — beta access</div>
       <h1>Real-time openings,<br><em>before</em> you leave the dock.</h1>
-      <p class="lede">
+      <p class="lede web-only">
         akFISHinfo turns every ADF&amp;G Prince William Sound opening announcement
         into a live map and a Telegram alert. <strong>Free during the 2026 beta.</strong>
+      </p>
+      <p class="lede native-only">
+        akFISHinfo turns every ADF&amp;G Prince William Sound opening announcement
+        into a live map and a push notification. <strong>Free during the 2026 beta.</strong>
       </p>
 
       <form id="beta-form" novalidate>
@@ -152,9 +158,12 @@
         <button class="submit" type="submit" id="submit-btn">Request access</button>
         <div id="msg" class="msg hidden"></div>
 
-        <p class="footnote">
+        <p class="footnote web-only">
           We'll email you the moment you're approved. You can also pre-link Telegram
           now at <a href="/login">akfishinfo.com/login</a> so alerts start the instant access lands.
+        </p>
+        <p class="footnote native-only">
+          We'll email you the moment you're approved.
         </p>
       </form>
     </div>
@@ -163,8 +172,9 @@
       <h2>You're on the list.</h2>
       <p id="success-msg">
         Oliver will approve manually — usually within an hour. You'll get an email
-        when you're in. Want to fish the next opener? Sign up now and link Telegram
-        so alerts start the second you're approved.
+        when you're in. <span class="web-only">Want to fish the next opener? Sign up now and link Telegram
+        so alerts start the second you're approved.</span><span class="native-only">Want to fish the next opener? Sign up now so push alerts
+        start the second you're approved.</span>
       </p>
       <button class="submit" type="button" onclick="location.href='/signup'">Create my account</button>
       <p class="footnote">Already have one? <a href="/login">Sign in</a>.</p>

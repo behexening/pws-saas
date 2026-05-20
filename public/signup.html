@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Account — akFISHinfo</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
+  <script src="/static/platform.js"></script>
   <script src="/static/theme.js"></script>
   <link rel="stylesheet" href="/static/theme.css"/>
+  <link rel="stylesheet" href="/static/platform.css"/>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -259,13 +261,15 @@
       <p class="sub">Please read and accept the Terms of Service to continue.</p>
       <div class="tos-box" id="tos-scroll-box">
         <h3>What akFISHinfo does</h3>
-        <p>akFISHinfo monitors ADF&amp;G announcements for Prince William Sound commercial salmon openings and delivers alerts to your Telegram account. It is an information delivery tool — not an authoritative regulatory source.</p>
+        <p class="web-only">akFISHinfo monitors ADF&amp;G announcements for Prince William Sound commercial salmon openings and delivers alerts to your Telegram account. It is an information delivery tool — not an authoritative regulatory source.</p>
+        <p class="native-only">akFISHinfo monitors ADF&amp;G announcements for Prince William Sound commercial salmon openings and delivers alerts as push notifications. It is an information delivery tool — not an authoritative regulatory source.</p>
 
         <h3>Subscription &amp; billing</h3>
         <p>Subscriptions are billed through Stripe on a recurring basis. Early adopter rates are locked for the first 30 subscribers as long as the subscription stays active. We do not issue refunds for partial billing periods. Subscriptions renew automatically; you may cancel at any time.</p>
 
         <h3>No guarantee of delivery or accuracy</h3>
-        <p>akFISHinfo does not guarantee: (a) the accuracy of AI-parsed announcement data; (b) Telegram delivery timing; (c) that all ADF&amp;G announcements will be received; or (d) that amendments issued after an initial alert will be reflected in prior messages. You are responsible for verifying that a fishery is open before deploying gear.</p>
+        <p class="web-only">akFISHinfo does not guarantee: (a) the accuracy of AI-parsed announcement data; (b) Telegram delivery timing; (c) that all ADF&amp;G announcements will be received; or (d) that amendments issued after an initial alert will be reflected in prior messages. You are responsible for verifying that a fishery is open before deploying gear.</p>
+        <p class="native-only">akFISHinfo does not guarantee: (a) the accuracy of AI-parsed announcement data; (b) push notification delivery timing; (c) that all ADF&amp;G announcements will be received; or (d) that amendments issued after an initial alert will be reflected in prior messages. You are responsible for verifying that a fishery is open before deploying gear.</p>
 
         <h3>Limitation of liability</h3>
         <p>THE SERVICE IS PROVIDED "AS IS." TO THE MAXIMUM EXTENT PERMITTED BY LAW, AKFISHINFO SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST CATCH, FINES, OR VESSEL DAMAGE. TOTAL LIABILITY IS CAPPED AT FEES PAID IN THE PRECEDING 12 MONTHS.</p>
@@ -310,8 +314,11 @@
         <label class="remember-row">
           <input type="checkbox" id="su-remember" /> Stay signed in for 30 days
         </label>
-        <p style="font-size:0.74rem;color:var(--muted);margin:6px 0 14px;line-height:1.5">
+        <p class="web-only" style="font-size:0.74rem;color:var(--muted);margin:6px 0 14px;line-height:1.5">
           After signup, you'll link your Telegram account so we can DM you when openings are announced. Free and takes about 30 seconds.
+        </p>
+        <p class="native-only" style="font-size:0.74rem;color:var(--muted);margin:6px 0 14px;line-height:1.5">
+          After signup, opening alerts arrive as push notifications on this device.
         </p>
         <button type="submit" class="btn-submit">Create account</button>
       </form>
