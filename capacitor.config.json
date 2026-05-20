@@ -3,6 +3,7 @@
   "appName": "akFISHinfo",
   "webDir": "public",
   "server": {
+    "url": "https://akfishinfo.com",
     "androidScheme": "https",
     "iosScheme": "capacitor",
     "allowNavigation": [
