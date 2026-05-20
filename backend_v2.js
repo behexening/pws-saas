@@ -34,6 +34,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
+const { createRemoteJWKSet, jwtVerify } = require('jose');
 
 const TRUSTED_SENDER_DOMAINS = ['@adfg.alaska.gov', '@alaska.gov'];
 const EXTRA_ALLOWED_SENDERS = (process.env.EXTRA_ALLOWED_SENDERS || '')
@@ -276,6 +277,34 @@ passport.use(new GoogleStrategy({
   }
 }));
 
+// ============================================================
+// SIGN IN WITH APPLE (native iOS path)
+// ============================================================
+// The iOS app uses @capacitor-community/apple-sign-in to drive Apple's
+// AuthenticationServices flow natively, then POSTs the result to
+// /api/auth/apple/native. We verify the identityToken against Apple's
+// JWKS server-side — never trust the client-supplied `user`/`email`
+// fields without that check.
+
+const APPLE_TEAM_ID    = process.env.APPLE_TEAM_ID;
+const APPLE_BUNDLE_ID  = process.env.APPLE_BUNDLE_ID  || 'info.akfish.app';
+const APPLE_SERVICE_ID = process.env.APPLE_SERVICE_ID || 'info.akfish.web';
+
+const APPLE_JWKS = createRemoteJWKSet(new URL('https://appleid.apple.com/auth/keys'));
+
+async function verifyAppleIdentityToken(identityToken, expectedNonceHash) {
+  // Accept either the bundle ID (native) or the Service ID (web/Android) as audience.
+  const { payload } = await jwtVerify(identityToken, APPLE_JWKS, {
+    issuer: 'https://appleid.apple.com',
+    audience: [APPLE_BUNDLE_ID, APPLE_SERVICE_ID],
+  });
+  if (expectedNonceHash && payload.nonce !== expectedNonceHash) {
+    throw new Error('Nonce mismatch — possible token replay.');
+  }
+  if (!payload.sub) throw new Error('Apple token missing sub claim.');
+  return payload;
+}
+
 // ── Helpers ──────────────────────────────────────────────────
 
 function isAdminEmail(email) {
@@ -410,6 +439,114 @@ app.get('/auth/logout', (req, res, next) => {
     if (err) return next(err);
     res.redirect('/');
   });
+});
+
+// ============================================================
+// Sign in with Apple — native iOS path
+// ============================================================
+// POST /api/auth/apple/native
+//   body: { identityToken, authorizationCode?, user?, email?, fullName?, nonce? }
+//
+//   - identityToken: JWT issued by Apple — REQUIRED, verified server-side
+//   - email + fullName: Apple sends these ONLY on the first sign-in for a
+//     given Apple ID + App ID. We persist them on first auth; subsequent
+//     calls won't include them.
+//   - nonce (optional): if the client generated one and SHA-256 hashed it,
+//     pass the original here so we can check the `nonce` claim matches.
+//
+// Response mirrors /api/login: { redirect } on success, { error } on failure.
+app.post('/api/auth/apple/native', authLimiter, express.json(), async (req, res) => {
+  const { identityToken, email: bodyEmail, fullName, nonce } = req.body || {};
+  if (!identityToken) {
+    return res.status(400).json({ error: 'Missing identityToken.' });
+  }
+
+  try {
+    // SHA-256 hash the supplied nonce to match Apple's `nonce` claim format.
+    let expectedNonceHash;
+    if (nonce) {
+      expectedNonceHash = crypto.createHash('sha256').update(nonce).digest('hex');
+    }
+
+    const payload = await verifyAppleIdentityToken(identityToken, expectedNonceHash);
+
+    const appleSub = payload.sub;
+    // Email may live in the JWT (verified) OR only in the request body (first
+    // sign-in). Prefer the JWT-verified one when present.
+    const email = (payload.email || bodyEmail || '').toLowerCase() || null;
+    const name = fullName
+      ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ').trim() || null
+      : null;
+    const admin = email ? isAdminEmail(email) : false;
+
+    // 1. Look up by apple_user_id (returning user)
+    let result = await db.query('SELECT * FROM captains WHERE apple_user_id = $1', [appleSub]);
+
+    if (result.rows.length === 0 && email) {
+      // 2. Existing account on the same email — link Apple ID to it.
+      // Apple proved they own this address (email_verified claim is true unless
+      // it's a relay address, which we treat the same since Apple controls it).
+      result = await db.query('SELECT * FROM captains WHERE email = $1', [email]);
+      if (result.rows.length > 0) {
+        await db.query(
+          `UPDATE captains
+           SET apple_user_id = $1, is_admin = $2, email_verified = true, updated_at = NOW()
+           WHERE id = $3`,
+          [appleSub, admin, result.rows[0].id]
+        );
+        result.rows[0].apple_user_id = appleSub;
+        result.rows[0].is_admin = admin;
+        result.rows[0].email_verified = true;
+      }
+    }
+
+    if (result.rows.length === 0) {
+      // 3. Brand-new captain — create. We must have an email (either from
+      // the JWT or from the request body on first sign-in).
+      if (!email) {
+        return res.status(400).json({
+          error: 'Apple did not provide an email on first sign-in. Try signing in again.',
+        });
+      }
+      const preApprovedBeta = await hasApprovedBetaRequest(email);
+      result = await db.query(
+        `INSERT INTO captains (email, name, apple_user_id, tier, is_admin, email_verified, beta_access)
+         VALUES ($1, $2, $3, 'free', $4, true, $5) RETURNING *`,
+        [email, name, appleSub, admin, preApprovedBeta]
+      );
+      if (preApprovedBeta) {
+        await linkApprovedBetaRequestToCaptain(email, result.rows[0].id);
+      }
+    } else if (admin && !result.rows[0].is_admin) {
+      await db.query('UPDATE captains SET is_admin = true WHERE id = $1', [result.rows[0].id]);
+      result.rows[0].is_admin = true;
+    }
+
+    const user = result.rows[0];
+    req.login(user, (err) => {
+      if (err) {
+        console.error('SIWA req.login error:', err);
+        return res.status(500).json({ error: 'Session error.' });
+      }
+      req.session.cookie.maxAge = THIRTY_DAYS;
+      // Native clients skip the Telegram link gate entirely — alerts arrive
+      // via push (Phase 2.4). Mirror the X-Client native trial-gate logic.
+      const isNativeClient = /^native-(ios|android)$/.test(req.get('X-Client') || '');
+      if (isNativeClient) {
+        if (hasAccess(user)) return res.json({ redirect: '/app', user });
+        return res.json({ redirect: '/setup', user });
+      }
+      // Web path (Service ID flow) — same conditions as Google callback.
+      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin) {
+        return res.json({ redirect: '/setup', user });
+      }
+      if (hasAccess(user)) return res.json({ redirect: '/app', user });
+      res.json({ redirect: '/pricing', user });
+    });
+  } catch (err) {
+    console.error('SIWA verify failed:', err.message);
+    return res.status(401).json({ error: 'Apple sign-in verification failed.' });
+  }
 });
 
 // Current session user (used by frontend to show login state)
@@ -1421,6 +1558,13 @@ async function initDatabase() {
     await db.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS idx_captains_google_id
       ON captains(google_id) WHERE google_id IS NOT NULL;
+    `);
+    // Sign in with Apple — `sub` claim from Apple's identity token. Stable
+    // across sessions per (Apple ID, App ID) pair. NULL for non-Apple sign-ins.
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS apple_user_id VARCHAR(255);`);
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_captains_apple_user_id
+      ON captains(apple_user_id) WHERE apple_user_id IS NOT NULL;
     `);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.10.0",
+    "@capacitor-community/apple-sign-in": "^7.1.0",
     "@capacitor/android": "^7.6.5",
     "@capacitor/core": "^7.6.5",
     "@capacitor/ios": "^7.6.5",
@@ -25,6 +26,7 @@
     "express-rate-limit": "^8.3.2",
     "express-session": "^1.18.0",
     "helmet": "^8.1.0",
+    "jose": "^6.2.3",
     "multer": "^2.1.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
