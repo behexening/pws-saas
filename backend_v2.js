@@ -466,13 +466,21 @@ app.post('/api/auth/apple/native', express.json(), async (req, res) => {
   }
 
   try {
-    // SHA-256 hash the supplied nonce to match Apple's `nonce` claim format.
-    let expectedNonceHash;
-    if (nonce) {
-      expectedNonceHash = crypto.createHash('sha256').update(nonce).digest('hex');
+    // The @capacitor-community/apple-sign-in plugin passes the nonce through
+    // unchanged to AuthenticationServices, and Apple echoes it verbatim into
+    // the identityToken's `nonce` claim — no hashing on either side. So we
+    // compare the raw nonce directly. (Apple's REST docs describe a flow
+    // where the client hashes before sending and the server hashes too, but
+    // that's the *web/JS* flow; native iOS doesn't hash automatically.)
+    // Accept either raw-match or SHA-256-match to be defensive against SDK
+    // quirks.
+    const payload = await verifyAppleIdentityToken(identityToken, null);
+    if (nonce && payload.nonce) {
+      const sha256 = crypto.createHash('sha256').update(nonce).digest('hex');
+      if (payload.nonce !== nonce && payload.nonce !== sha256) {
+        throw new Error('Nonce mismatch — possible token replay.');
+      }
     }
-
-    const payload = await verifyAppleIdentityToken(identityToken, expectedNonceHash);
 
     const appleSub = payload.sub;
     // Email may live in the JWT (verified) OR only in the request body (first
