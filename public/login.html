@@ -351,8 +351,13 @@
           const cancelled = err && (err.code === '1001' || err.code === 1001 ||
             /cancel/i.test(err.message || ''));
           if (!cancelled) {
-            console.error('SIWA error:', err);
-            showError('Apple sign-in failed. Try again.');
+            // Capacitor's bridge serializes Error objects without `.message`
+            // by default, so the xcode log just shows the stack. Log the
+            // pieces explicitly so we can actually diagnose failures.
+            console.error('SIWA error:',
+              (err && (err.message || err.name)) || String(err),
+              err);
+            showError(((err && err.message) || 'Apple sign-in failed.') + ' Try again.');
           }
         } finally {
           btn.disabled = false;
