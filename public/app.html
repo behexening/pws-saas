@@ -810,11 +810,15 @@
       .left-panel.sheet-dragging .sheet-handle { cursor: grabbing; }
       .left-panel.sheet-dragging .sheet-handle::before { background: var(--muted); }
 
-      /* ADVISORY header inside the sheet: sticky now sticks to the sheet's
-         scroll container, not the viewport. Solid bg covers cards scrolling
-         under it. `top: 32px` puts it below the sheet handle. */
+      /* ADVISORY header inside the sheet — scroll-with-content on mobile.
+         The default desktop CSS has `position: sticky` which interacts badly
+         with the transform-animated bottom sheet (WebKit known issue: sticky
+         inside a transformed parent lets behind-content paint through the
+         sticky bg). Just let it scroll naturally inside the sheet. */
       .panel-header {
-        top: 32px;
+        position: static;
+        top: auto;
+        z-index: auto;
         background: var(--bg);
       }
 
