@@ -5,8 +5,7 @@
   "appendUserAgent": "akFISHinfo-Native",
   "server": {
     "androidScheme": "https",
-    "iosScheme": "https",
-    "hostname": "localhost",
+    "iosScheme": "capacitor",
     "allowNavigation": [
       "akfishinfo.com",
       "*.akfishinfo.com"
@@ -17,5 +16,10 @@
   },
   "android": {
     "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
   }
 }
