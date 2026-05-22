@@ -64,6 +64,14 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(compression());
 app.use(helmet({
+  // Helmet's default CORP is `same-origin`, which blocks the iOS WKWebView
+  // (origin: capacitor://localhost) from reading API responses from
+  // akfishinfo.com. Fetch shows up as "Load failed" with no further
+  // diagnostic in xcode. Loosening to `cross-origin` lets fetch responses
+  // be read by cross-origin callers — necessary for the bundled native
+  // app to talk to the backend. CORS still gates who can SEND credentialed
+  // requests via the Origin allowlist in our CORS middleware below.
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
