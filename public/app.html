@@ -757,30 +757,34 @@
          note is redundant with topbar, disclaimer moves into the sheet) */
       .map-legend, .map-note, .disclaimer-bar { display: none; }
 
-      /* Bottom sheet: the left-panel slides up from the bottom */
+      /* Bottom sheet: the left-panel grows from the bottom. We animate
+         HEIGHT (not transform) so the sheet's box matches its visible
+         area exactly. The previous transform-based version let the sheet
+         extend past the viewport bottom, so scrolling inside the sheet
+         moved new content into off-screen space the user could never reach. */
       .left-panel {
         position: fixed;
         left: 0;
         right: 0;
         bottom: 0;
-        height: calc(100dvh - 50px);  /* don't cover the topbar */
+        max-height: calc(100dvh - 50px);  /* never cover the topbar */
         background: var(--bg);
         border-top: 1px solid var(--border);
         border-radius: 14px 14px 0 0;
         box-shadow: 0 -10px 30px rgba(0,0,0,0.45);
         z-index: 200;
         overflow-y: auto;
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
-        /* Default: peek state — ~120px of sheet visible above the bottom safe area */
-        transform: translateY(calc(100% - 120px));
-        transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-        will-change: transform;
+        height: 120px;  /* peek default */
+        transition: height 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+        will-change: height;
         touch-action: pan-y;
         padding-bottom: env(safe-area-inset-bottom);
       }
-      .left-panel.sheet-peek { transform: translateY(calc(100% - 120px)); }
-      .left-panel.sheet-half { transform: translateY(50%); }
-      .left-panel.sheet-full { transform: translateY(0); }
+      .left-panel.sheet-peek { height: 120px; }
+      .left-panel.sheet-half { height: 50dvh; }
+      .left-panel.sheet-full { height: calc(100dvh - 50px); }
       .left-panel.sheet-dragging { transition: none; }
 
       /* Drag handle at the top of the sheet */
@@ -2102,44 +2106,46 @@ function initFeedbackWidget(user) {
 
   sheet.classList.add('sheet-peek');
 
-  // Snap distance is the translateY value (0 = fully open at top).
+  // Available height for the sheet (capped by topbar — see CSS max-height).
+  function viewportSheetMax() {
+    return Math.max(120, window.innerHeight - 50);
+  }
+
+  // Heights at each snap point (in px).
   function snapTargets() {
-    var h = sheet.offsetHeight;
+    var vh = window.innerHeight;
     return [
-      { y: 0,        name: 'full' },
-      { y: h * 0.5,  name: 'half' },
-      { y: h - 120,  name: 'peek' },
+      { h: viewportSheetMax(),       name: 'full' },
+      { h: Math.round(vh * 0.5),     name: 'half' },
+      { h: 120,                      name: 'peek' },
     ];
   }
 
   function snapTo(name) {
     sheet.classList.remove('sheet-peek', 'sheet-half', 'sheet-full', 'sheet-dragging');
     sheet.classList.add('sheet-' + name);
-    sheet.style.transform = '';  // clear inline; let class take over
+    sheet.style.height = '';  // clear inline; let class take over
     handle.setAttribute('aria-expanded', name === 'full' ? 'true' : 'false');
-    // Leaflet listens to window resize for invalidating its size — give it
-    // a nudge after the snap transition completes so tiles reflow into the
+    // Leaflet listens to window resize for invalidating its size — nudge it
+    // after the snap transition completes so tiles reflow into the
     // newly-uncovered map area.
     setTimeout(function () {
       window.dispatchEvent(new Event('resize'));
     }, 320);
   }
 
-  function getCurrentY() {
-    var t = window.getComputedStyle(sheet).transform;
-    if (!t || t === 'none') return 0;
-    var parts = t.slice(7, -1).split(',').map(parseFloat);
-    return parts[5] || 0;
+  function currentHeight() {
+    return sheet.getBoundingClientRect().height;
   }
 
   var startY = null;
-  var startTransform = 0;
+  var startHeight = 0;
   var moved = false;
 
   function onStart(ev) {
     var y = ev.touches ? ev.touches[0].clientY : ev.clientY;
     startY = y;
-    startTransform = getCurrentY();
+    startHeight = currentHeight();
     moved = false;
     sheet.classList.remove('sheet-peek', 'sheet-half', 'sheet-full');
     sheet.classList.add('sheet-dragging');
@@ -2149,11 +2155,11 @@ function initFeedbackWidget(user) {
   function onMove(ev) {
     if (startY === null) return;
     var y = ev.touches ? ev.touches[0].clientY : ev.clientY;
-    var delta = y - startY;
+    // Drag up (y < startY) makes sheet taller; drag down makes it shorter.
+    var delta = startY - y;
     if (Math.abs(delta) > 4) moved = true;
-    var maxY = sheet.offsetHeight - 60;  // never lower than peek-ish
-    var newY = Math.max(0, Math.min(maxY, startTransform + delta));
-    sheet.style.transform = 'translateY(' + newY + 'px)';
+    var newH = Math.max(80, Math.min(viewportSheetMax(), startHeight + delta));
+    sheet.style.height = newH + 'px';
   }
 
   function onEnd() {
@@ -2166,10 +2172,10 @@ function initFeedbackWidget(user) {
       var next = current === 'peek' ? 'half' : current === 'half' ? 'full' : 'peek';
       snapTo(next);
     } else {
-      var y = getCurrentY();
+      var h = currentHeight();
       var targets = snapTargets();
       var nearest = targets.reduce(function (a, b) {
-        return Math.abs(b.y - y) < Math.abs(a.y - y) ? b : a;
+        return Math.abs(b.h - h) < Math.abs(a.h - h) ? b : a;
       });
       snapTo(nearest.name);
     }
