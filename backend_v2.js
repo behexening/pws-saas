@@ -1,6 +1,6 @@
 /**
  * PWS Parser Backend v2 — Production Pipeline
- * 
+ *
  * Architecture:
  * Mailgun email (with PDF)
  *   ↓
@@ -16,6 +16,11 @@
  *   ↓
  * Website displays HTML + handles signups
  */
+
+// Sentry instrumentation MUST be the first require — it monkey-patches
+// express/http/pg before they're loaded so async stack-traces and the
+// Express error handler hook work.
+const Sentry = require('./instrument');
 
 const express = require('express');
 const helmet = require('helmet');
@@ -2979,6 +2984,13 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// TEMPORARY — Sentry integration smoke test. Throws an error so we can
+// verify Sentry.setupExpressErrorHandler is wired correctly and events
+// land in the dashboard. REMOVE in a follow-up PR after verification.
+app.get('/debug-sentry', function mainHandler(req, res) {
+  throw new Error('My first Sentry error!');
+});
+
 // ============================================================
 // ADMIN PANEL
 // Read-mostly. The only write actions exposed are reparse (already in
@@ -3292,6 +3304,14 @@ app.post('/api/admin/beta-requests/:id/deny', requireAdmin, express.json(), asyn
 // ============================================================
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ============================================================
+// SENTRY ERROR HANDLER
+// ============================================================
+// MUST be registered after all routes/middleware but before any custom
+// error middleware. Auto-captures errors thrown synchronously or via
+// next(err) in any route handler.
+Sentry.setupExpressErrorHandler(app);
 
 // ============================================================
 // STARTUP
