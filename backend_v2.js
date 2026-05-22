@@ -35,6 +35,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const { createRemoteJWKSet, jwtVerify } = require('jose');
+const apn = require('@parse/node-apn');
 
 const TRUSTED_SENDER_DOMAINS = ['@adfg.alaska.gov', '@alaska.gov'];
 const EXTRA_ALLOWED_SENDERS = (process.env.EXTRA_ALLOWED_SENDERS || '')
@@ -303,6 +304,80 @@ async function verifyAppleIdentityToken(identityToken, expectedNonceHash) {
   }
   if (!payload.sub) throw new Error('Apple token missing sub claim.');
   return payload;
+}
+
+// ============================================================
+// APPLE PUSH NOTIFICATIONS (APNs)
+// ============================================================
+// Lazy-init one shared apn.Provider — it keeps a persistent HTTP/2
+// multiplex connection to api[.sandbox].push.apple.com. Recreating
+// it per request would exhaust file descriptors.
+
+const APPLE_APNS_KEY_ID      = process.env.APPLE_APNS_KEY_ID;
+const APPLE_APNS_PRIVATE_KEY = process.env.APPLE_APNS_PRIVATE_KEY;
+// `aps-environment` in App.entitlements is "development" right now, so
+// dev / TestFlight / production all currently use the sandbox gateway.
+// Flip APNS_PRODUCTION=true once we ship a release build with the
+// "production" entitlement.
+const APNS_PRODUCTION = process.env.APNS_PRODUCTION === 'true';
+
+let _apnProvider = null;
+function getApnProvider() {
+  if (_apnProvider) return _apnProvider;
+  if (!APPLE_TEAM_ID || !APPLE_APNS_KEY_ID || !APPLE_APNS_PRIVATE_KEY) {
+    console.warn('⚠ APNs env not configured — push notifications disabled.');
+    return null;
+  }
+  try {
+    _apnProvider = new apn.Provider({
+      token: {
+        key:    APPLE_APNS_PRIVATE_KEY,
+        keyId:  APPLE_APNS_KEY_ID,
+        teamId: APPLE_TEAM_ID,
+      },
+      production: APNS_PRODUCTION,
+    });
+    return _apnProvider;
+  } catch (err) {
+    console.error('APNs provider init failed:', err.message);
+    return null;
+  }
+}
+
+// Send to a single iOS token. Returns { ok, reason? }.
+// On 410 / BadDeviceToken / Unregistered, deletes the token row so we
+// don't keep spraying dead handsets.
+async function sendApnsToToken({ captainId, token, title, body, url }) {
+  const provider = getApnProvider();
+  if (!provider) return { ok: false, reason: 'apns-not-configured' };
+
+  const note = new apn.Notification();
+  note.topic = APPLE_BUNDLE_ID;
+  note.pushType = 'alert';
+  note.priority = 10;
+  note.expiry = Math.floor(Date.now() / 1000) + 3600;
+  note.alert = { title, body };
+  note.sound = 'default';
+  note.threadId = 'openings';
+  if (url) note.payload = { url };
+
+  try {
+    const result = await provider.send(note, token);
+    if (result.sent && result.sent.length > 0) {
+      return { ok: true };
+    }
+    const failure = result.failed && result.failed[0];
+    const reason = (failure && failure.response && failure.response.reason) || 'unknown';
+    if (failure && (failure.status === '410' || reason === 'Unregistered' || reason === 'BadDeviceToken')) {
+      await db.query(
+        `DELETE FROM device_tokens WHERE captain_id = $1 AND platform = 'ios' AND token = $2`,
+        [captainId, token]
+      );
+    }
+    return { ok: false, reason };
+  } catch (err) {
+    return { ok: false, reason: err.message || 'send-threw' };
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -635,6 +710,33 @@ app.get('/api/early-adopter-spots', async (req, res) => {
 //                        email verified — alerts arrive via push, not Telegram.
 //   intent='subscribe' → create Stripe Checkout session for the chosen plan
 // Telegram linkage itself is captured via POST /api/telegram/link-code + the bot.
+// POST /api/devices/register — called by /static/push-bootstrap.js on
+// every native app launch after sign-in. Body: { token, platform }.
+// Idempotent: same (captain_id, platform, token) just updates last_seen_at.
+app.post('/api/devices/register', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+  const { token, platform } = req.body || {};
+  if (!token || typeof token !== 'string' || token.length < 20) {
+    return res.status(400).json({ error: 'Invalid token.' });
+  }
+  if (platform !== 'ios' && platform !== 'android') {
+    return res.status(400).json({ error: 'Invalid platform.' });
+  }
+  try {
+    await db.query(
+      `INSERT INTO device_tokens (captain_id, platform, token, last_seen_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (captain_id, platform, token)
+       DO UPDATE SET last_seen_at = NOW()`,
+      [req.user.id, platform, token]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /api/devices/register error:', err);
+    res.status(500).json({ error: 'Could not register device.' });
+  }
+});
+
 app.post('/api/setup', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
 
@@ -1653,6 +1755,39 @@ async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_notification_log_captain ON notification_log(captain_id);
     `);
 
+    // Mobile push tokens — one row per (captain, platform, token). Tokens are
+    // re-registered on every app launch by /static/push-bootstrap.js, so
+    // last_seen_at is the freshness signal. We delete rows when APNs/FCM
+    // returns "token unregistered" (410 / messaging/registration-token-not-registered).
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS device_tokens (
+        id SERIAL PRIMARY KEY,
+        captain_id INT NOT NULL REFERENCES captains(id) ON DELETE CASCADE,
+        platform TEXT NOT NULL CHECK (platform IN ('ios','android')),
+        token TEXT NOT NULL,
+        last_seen_at TIMESTAMPTZ DEFAULT NOW(),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE (captain_id, platform, token)
+      );
+      CREATE INDEX IF NOT EXISTS idx_device_tokens_captain ON device_tokens(captain_id);
+    `);
+
+    // Push dispatch log — analogue of notification_log but for APNs/FCM.
+    // Keeps one row per (captain, token, alert) attempt so we can audit
+    // delivery and spot patterns of dead tokens.
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS push_log (
+        id SERIAL PRIMARY KEY,
+        captain_id INT REFERENCES captains(id),
+        platform TEXT,
+        token TEXT,
+        status TEXT,
+        error_message TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_push_log_captain ON push_log(captain_id);
+    `);
+
     await db.query(`
       CREATE TABLE IF NOT EXISTS feedback (
         id           SERIAL PRIMARY KEY,
@@ -2077,15 +2212,21 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
     // Recipients = pro subscribers, admins, and beta testers — anyone who
     // should see what the app is producing. Beta testers come from the
     // captains.beta_access column (admin-toggleable); admins from is_admin.
+    // Recipients = captains with Telegram OR registered device tokens.
+    // Without this OR, native-only users (SIWA on iOS) who skipped the
+    // Telegram step would never receive alerts.
     const captains = await db.query(
-      `SELECT id, telegram_chat_id, name FROM captains
-       WHERE telegram_chat_id IS NOT NULL
-       AND alerts_enabled = true
-       AND (regions && $1 OR regions = ARRAY['PWS'])
+      `SELECT c.id, c.telegram_chat_id, c.name FROM captains c
+       WHERE c.alerts_enabled = true
+       AND (c.regions && $1 OR c.regions = ARRAY['PWS'])
        AND (
-         (tier = 'pro' AND subscription_active = true)
-         OR is_admin = true
-         OR beta_access = true
+         c.telegram_chat_id IS NOT NULL
+         OR EXISTS (SELECT 1 FROM device_tokens dt WHERE dt.captain_id = c.id)
+       )
+       AND (
+         (c.tier = 'pro' AND c.subscription_active = true)
+         OR c.is_admin = true
+         OR c.beta_access = true
        )`,
       [districts]
     );
@@ -2096,23 +2237,61 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
     }
 
     const text = buildAlertText(districts, district_details, opts);
+    // Push notifications use a tighter body — APNs caps at 4 KB and the
+    // notification banner truncates long text anyway. Strip the HTML and
+    // grab the first useful line.
+    const pushTitle = `PWS opening — ${districts.slice(0, 3).join(', ')}${districts.length > 3 ? '…' : ''}`;
+    const pushBody = text
+      .replace(/<[^>]+>/g, '')           // drop <i>…</i> wrappers
+      .replace(/\n+/g, ' ')
+      .slice(0, 220)
+      .trim();
 
     for (const captain of captains.rows) {
-      const result = await sendTelegramMessage(captain.telegram_chat_id, text);
-      if (result.ok) {
+      // 1. Telegram (if linked)
+      if (captain.telegram_chat_id) {
+        const result = await sendTelegramMessage(captain.telegram_chat_id, text);
+        if (result.ok) {
+          await db.query(
+            `INSERT INTO notification_log (captain_id, chat_id, message, status, telegram_message_id)
+             VALUES ($1, $2, $3, 'sent', $4)`,
+            [captain.id, captain.telegram_chat_id, text, result.message_id]
+          );
+          console.log(`✓ Telegram sent to ${captain.name} (chat ${captain.telegram_chat_id})`);
+        } else {
+          await db.query(
+            `INSERT INTO notification_log (captain_id, chat_id, message, status, error_message)
+             VALUES ($1, $2, $3, 'failed', $4)`,
+            [captain.id, captain.telegram_chat_id, text, result.error]
+          );
+          console.error(`❌ Telegram failed for chat ${captain.telegram_chat_id}: ${result.error}`);
+        }
+      }
+
+      // 2. Push to every registered device token (iOS now, Android later).
+      const tokens = await db.query(
+        `SELECT platform, token FROM device_tokens WHERE captain_id = $1`,
+        [captain.id]
+      );
+      for (const dev of tokens.rows) {
+        if (dev.platform !== 'ios') continue;  // FCM in a follow-up
+        const pushResult = await sendApnsToToken({
+          captainId: captain.id,
+          token: dev.token,
+          title: pushTitle,
+          body: pushBody,
+          url: 'https://akfishinfo.com/app',
+        });
         await db.query(
-          `INSERT INTO notification_log (captain_id, chat_id, message, status, telegram_message_id)
-           VALUES ($1, $2, $3, 'sent', $4)`,
-          [captain.id, captain.telegram_chat_id, text, result.message_id]
+          `INSERT INTO push_log (captain_id, platform, token, status, error_message)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [captain.id, dev.platform, dev.token, pushResult.ok ? 'sent' : 'failed', pushResult.reason || null]
         );
-        console.log(`✓ Telegram sent to ${captain.name} (chat ${captain.telegram_chat_id})`);
-      } else {
-        await db.query(
-          `INSERT INTO notification_log (captain_id, chat_id, message, status, error_message)
-           VALUES ($1, $2, $3, 'failed', $4)`,
-          [captain.id, captain.telegram_chat_id, text, result.error]
-        );
-        console.error(`❌ Telegram failed for chat ${captain.telegram_chat_id}: ${result.error}`);
+        if (pushResult.ok) {
+          console.log(`✓ APNs sent to ${captain.name} (${dev.token.slice(0, 8)}…)`);
+        } else {
+          console.error(`❌ APNs failed for ${captain.name}: ${pushResult.reason}`);
+        }
       }
     }
   } catch (err) {
