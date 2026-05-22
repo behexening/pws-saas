@@ -243,8 +243,13 @@
       <button type="submit" class="btn-submit">Sign in</button>
     </form>
 
-    <div class="toggle-row">
+    <div class="toggle-row web-only">
       Don't have an account?<a href="/signup">Sign up</a>
+    </div>
+    <!-- Native: per App Store 3.1.3(f) we don't show signup CTAs.
+         Users sign up at akfishinfo.com on the web and then download. -->
+    <div class="toggle-row native-only">
+      New here? Visit akfishinfo.com to get started.
     </div>
   </div>
   </main>

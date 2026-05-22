@@ -393,7 +393,12 @@ async function loadAccount() {
   document.getElementById('acc-tier').innerHTML   = tierHtml;
   document.getElementById('acc-status').innerHTML = statusHtml;
 
-  if (user.has_billing) {
+  // On iOS native (Path B / App Store 3.1.3(f)), we cannot show a
+  // "Manage billing" button — it links to Stripe's external customer
+  // portal, which Apple Review treats as a purchase CTA. The portal
+  // remains available on the web account page.
+  const isNativeAccount = !!(window.akfiPlatform && window.akfiPlatform.isNative);
+  if (user.has_billing && !isNativeAccount) {
     document.getElementById('billing-portal-row').style.display = 'flex';
   }
 

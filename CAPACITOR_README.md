@@ -1,5 +1,59 @@
 # Capacitor build notes — read before App Store / Play submission
 
+## Locked payment decision: **Path B (App Store guideline 3.1.3(f))**
+
+The iOS app is a **free companion to the akfishinfo.com web service**. It
+contains **zero in-app purchases**, **zero subscribe buttons**, **zero
+pricing**, and **zero calls to action for purchase** anywhere users can
+reach. RevenueCat / StoreKit are NOT wired up and won't be.
+
+Users buy on the web via Stripe; the iOS app honors their existing
+subscription on sign-in. That dodges Apple's 15–30% cut entirely.
+
+### What this means for any future iOS UI work
+
+Anything that could be read as "go pay us" must be hidden on native.
+We enforce this two ways:
+
+1. **CSS** — `.web-only` / `.native-only` classes from
+   `public/static/platform.css`. `<html data-native="1">` flips them.
+2. **Server-side** — `isNativeRequest(req)` helper in `backend_v2.js`
+   checks `X-Client: native-*` header AND the `akFISHinfo-Native`
+   User-Agent suffix (`appendUserAgent` in `capacitor.config.json`).
+   Routes that exist for paying-flow purposes hard-redirect to `/login`
+   or `/setup` when the request is native:
+     - `/signup`, `/pricing`, `/request-beta` → redirect
+     - `/app` (no access) → `/setup` (not `/pricing`)
+     - `POST /api/setup`, `/api/register`, `/api/billing/portal` → 403
+       with a "manage on akfishinfo.com" error
+
+### Phases of the original migration plan that are NOW SKIPPED
+
+- **Phase 2.5 — RevenueCat IAP**: not implemented, not on the roadmap.
+- **Phase 2.6 — "Save on web" external-link CTA**: not implemented.
+  The whole external-link entitlement isn't needed because we don't
+  link out for purchase at all.
+
+The RevenueCat dashboard account exists but is unused. Safe to leave
+or delete.
+
+### Review-time copy audit checklist
+
+Before every TestFlight submission, grep the bundled `public/` tree
+for these terms and confirm each hit is either inside a `.web-only`
+wrapper OR is informational (no purchase CTA):
+
+```
+grep -rn -iE "subscribe|/pricing|/signup|start.*trial|upgrade|stripe|buy|purchase" public/
+```
+
+Reviewers WILL test that the iOS app cannot reach a purchase flow.
+A single un-gated "Subscribe" button = automatic rejection.
+
+---
+
+
+
 ## ⚠️ `server.url` is set to production in `capacitor.config.json`
 
 Current value:

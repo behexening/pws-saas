@@ -441,6 +441,21 @@ function isAlaskaGov(email) {
   return !!(email && email.toLowerCase().endsWith('@alaska.gov'));
 }
 
+// True when the request is coming from the Capacitor-wrapped iOS/Android
+// shell. Two signals because we receive both fetch and full-page
+// navigations from the WebView:
+//   1. X-Client header — set by public/static/platform.js fetch wrapper
+//   2. User-Agent suffix — `appendUserAgent: "akFISHinfo-Native"` in
+//      capacitor.config.json so every WebView request carries it
+// Used to enforce App Store 3.1.3(f): no purchase / trial / pricing
+// CTAs reachable from the native shell.
+function isNativeRequest(req) {
+  if (!req) return false;
+  if (/^native-(ios|android)$/.test(req.get('X-Client') || '')) return true;
+  if (/akFISHinfo-Native/i.test(req.get('User-Agent') || '')) return true;
+  return false;
+}
+
 // Express middleware: 403 unless the request belongs to an admin captain.
 function requireAdmin(req, res, next) {
   if (!req.isAuthenticated || !req.isAuthenticated() || !req.user?.is_admin) {
@@ -661,6 +676,11 @@ app.get('/api/me', (req, res) => {
 // POST /api/billing/portal — open Stripe customer portal for self-serve billing
 app.post('/api/billing/portal', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
+  // Path B / App Store 3.1.3(f): Stripe customer portal is a purchase
+  // surface — manage on the web only.
+  if (isNativeRequest(req)) {
+    return res.status(403).json({ error: 'Manage your billing on akfishinfo.com.' });
+  }
   if (!req.user.stripe_customer_id) {
     return res.status(400).json({ error: 'No billing account on file.' });
   }
@@ -740,30 +760,38 @@ app.post('/api/devices/register', express.json(), async (req, res) => {
 app.post('/api/setup', express.json(), async (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Not logged in' });
 
-  const isNativeClient = /^native-(ios|android)$/.test(req.get('X-Client') || '');
+  const isNativeClient = isNativeRequest(req);
 
   try {
     const intent = req.body.intent || (req.body.grant_trial ? 'trial' : 'subscribe');
     const plan = req.body.plan;
 
+    // Path B / App Store 3.1.3(f): native shells can't initiate any
+    // purchase-adjacent flow. Trials lead to paid subscriptions, so
+    // they're treated as "calls to action for purchase" under Apple's
+    // anti-steering rules. Subscribe/Stripe checkout obviously also.
+    if (isNativeClient) {
+      return res.status(403).json({
+        error: 'Subscriptions are managed on akfishinfo.com. Sign in here to use an existing subscription.',
+      });
+    }
+
     if (intent === 'trial') {
       if (!req.user.email_verified) {
         return res.status(400).json({ error: 'Please verify your email address before starting a trial. Check your inbox for a verification link.' });
       }
-      if (!isNativeClient) {
-        if (!req.user.telegram_chat_id) {
-          return res.status(400).json({ error: 'Link your Telegram account first so we can deliver alerts.' });
-        }
-        const priorTrial = await db.query(
-          `SELECT id FROM captains
-           WHERE telegram_chat_id = $1
-           AND trial_ends_at IS NOT NULL
-           AND id != $2`,
-          [req.user.telegram_chat_id, req.user.id]
-        );
-        if (priorTrial.rows.length > 0) {
-          return res.status(400).json({ error: 'This Telegram account has already been used for a trial. Please subscribe to continue.' });
-        }
+      if (!req.user.telegram_chat_id) {
+        return res.status(400).json({ error: 'Link your Telegram account first so we can deliver alerts.' });
+      }
+      const priorTrial = await db.query(
+        `SELECT id FROM captains
+         WHERE telegram_chat_id = $1
+         AND trial_ends_at IS NOT NULL
+         AND id != $2`,
+        [req.user.telegram_chat_id, req.user.id]
+      );
+      if (priorTrial.rows.length > 0) {
+        return res.status(400).json({ error: 'This Telegram account has already been used for a trial. Please subscribe to continue.' });
       }
       const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await db.query('UPDATE captains SET trial_ends_at = $1, updated_at = NOW() WHERE id = $2',
@@ -1452,6 +1480,13 @@ async function notifyAdminsOfBetaRequest({ name, email, source, requestId }) {
 
 // POST /api/register — create account with email + password
 app.post('/api/register', authLimiter, express.json(), async (req, res) => {
+  // Path B / App Store 3.1.3(f): account creation is a purchase entry
+  // point in Apple's framing. Sign-up happens on the web.
+  if (isNativeRequest(req)) {
+    return res.status(403).json({
+      error: 'Create your akFISHinfo account at akfishinfo.com, then sign in here.',
+    });
+  }
   const { name, email, password, remember_me } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
@@ -2857,17 +2892,26 @@ app.get('/login', (req, res) => {
  * Registration page — public, redirects away if already logged in
  */
 app.get(['/signup', '/signup.html'], (req, res) => {
+  // Path B (App Store 3.1.3(f)): native shell never sees the signup
+  // page — that's a purchase entry point in Apple's framing.
+  if (isNativeRequest(req)) {
+    return res.redirect(req.user ? '/setup' : '/login');
+  }
   if (req.user) return res.redirect(hasAccess(req.user) ? '/app' : '/setup');
   res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
 /**
  * GET /app
- * The main map/results interface — requires login + active access
+ * The main map/results interface — requires login + active access.
+ * Native shell users without access land on /setup (no purchase CTA)
+ * instead of /pricing (App Store 3.1.3(f) compliance).
  */
 app.get('/app', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  if (!hasAccess(req.user)) return res.redirect('/pricing');
+  if (!hasAccess(req.user)) {
+    return res.redirect(isNativeRequest(req) ? '/setup' : '/pricing');
+  }
   res.sendFile(path.join(__dirname, 'public', 'app.html'));
 });
 
@@ -2885,18 +2929,26 @@ app.get('/setup', (req, res) => {
 
 /**
  * GET /pricing
- * Redirect unauthenticated users to login first
+ * Path B: blocked entirely on the native shell — Apple 3.1.3(f).
+ * Signed-in users land on /setup, unauthed go to /login.
  */
 app.get('/pricing', (req, res) => {
+  if (isNativeRequest(req)) {
+    return res.redirect(req.user ? '/setup' : '/login');
+  }
   if (!req.user) return res.redirect('/login');
   res.sendFile(path.join(__dirname, 'public', 'pricing.html'));
 });
 
 /**
- * GET /about
- * Public about page — no auth required
+ * GET /request-beta
+ * Public on web; redirects on native (the form lets people sign up for
+ * the beta, which is a purchase CTA in Apple's framing).
  */
-app.get('/request-beta', (_req, res) => {
+app.get('/request-beta', (req, res) => {
+  if (isNativeRequest(req)) {
+    return res.redirect(req.user ? '/setup' : '/login');
+  }
   res.sendFile(path.join(__dirname, 'public', 'request-beta.html'));
 });
 

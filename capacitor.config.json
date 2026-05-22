@@ -2,6 +2,7 @@
   "appId": "info.akfish.app",
   "appName": "akFISHinfo",
   "webDir": "public",
+  "appendUserAgent": "akFISHinfo-Native",
   "server": {
     "url": "https://akfishinfo.com",
     "androidScheme": "https",
