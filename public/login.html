@@ -344,6 +344,13 @@
             showError(d.error || 'Apple sign-in failed.');
             return;
           }
+          // Save the bearer for cross-origin auth — WKWebView won't
+          // replay session cookies across capacitor://localhost →
+          // akfishinfo.com, so platform.js sends this on every native
+          // request as `Authorization: Bearer <jwt>`.
+          if (d.bearer) {
+            try { localStorage.setItem('akfi.bearer', d.bearer); } catch (_) {}
+          }
           akfiNav(d.redirect || '/app');
         } catch (err) {
           // The plugin rejects with code 1001 when the user cancels — don't

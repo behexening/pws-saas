@@ -39,7 +39,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
-const { createRemoteJWKSet, jwtVerify } = require('jose');
+const { createRemoteJWKSet, jwtVerify, SignJWT } = require('jose');
 const apn = require('@parse/node-apn');
 const fcmAdmin = require('firebase-admin');
 
@@ -175,6 +175,69 @@ passport.deserializeUser(async (id, done) => {
   } catch (err) {
     done(err);
   }
+});
+
+// ============================================================
+// Bearer-token auth for the native Capacitor shells
+// ============================================================
+// iOS WKWebView running our bundle at capacitor://localhost can't reliably
+// receive + replay session cookies set by akfishinfo.com cross-origin —
+// even with SameSite=None;Secure + CORS + CORP correctly configured,
+// WKWebView's network stack refuses the credentialed fetch with an
+// opaque "Load failed". (Reproduced repeatedly on iOS 17 simulator.)
+//
+// Workaround: in addition to setting a session cookie, the SIWA + login
+// endpoints issue a short-lived signed JWT. The native client stores it
+// (localStorage in the WebView) and sends it as `Authorization: Bearer
+// <jwt>` on every subsequent request. The middleware below hydrates
+// req.user from the bearer when no passport session is present.
+//
+// Web users still use the cookie session — the bearer is purely a
+// fallback for cross-origin native traffic.
+const JWT_ALG = 'HS256';
+const JWT_TTL_SECONDS = 60 * 60 * 24 * 30;  // 30 days
+const _jwtSecret = Buffer.from(process.env.SESSION_SECRET || 'dev-only-fallback');
+
+async function issueBearerForUser(user) {
+  return await new SignJWT({ uid: user.id })
+    .setProtectedHeader({ alg: JWT_ALG })
+    .setIssuedAt()
+    .setIssuer('akfishinfo')
+    .setAudience('akfishinfo-native')
+    .setExpirationTime(Math.floor(Date.now() / 1000) + JWT_TTL_SECONDS)
+    .sign(_jwtSecret);
+}
+
+async function verifyBearer(token) {
+  const { payload } = await jwtVerify(token, _jwtSecret, {
+    issuer: 'akfishinfo',
+    audience: 'akfishinfo-native',
+  });
+  return payload;
+}
+
+// Middleware: if Authorization: Bearer <jwt> is present AND no session
+// user is already attached, verify the JWT and hydrate req.user from the
+// captains table. Runs after passport.session() so cookie-based sessions
+// still take precedence.
+app.use(async (req, res, next) => {
+  if (req.user) return next();  // session-authed already
+  const auth = req.get('Authorization') || '';
+  if (!auth.toLowerCase().startsWith('bearer ')) return next();
+  const token = auth.slice(7).trim();
+  if (!token) return next();
+  try {
+    const payload = await verifyBearer(token);
+    const r = await db.query('SELECT * FROM captains WHERE id = $1', [payload.uid]);
+    if (r.rows.length) {
+      req.user = r.rows[0];
+      // Passport's req.isAuthenticated() reads from req.session.passport,
+      // not req.user directly. Some handlers gate on isAuthenticated(),
+      // so emulate.
+      req.isAuthenticated = function () { return true; };
+    }
+  } catch (_) { /* invalid token — leave req.user undefined */ }
+  next();
 });
 
 // Anthropic
@@ -757,25 +820,33 @@ app.post('/api/auth/apple/native', express.json(), async (req, res) => {
     }
 
     const user = result.rows[0];
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) {
         console.error('SIWA req.login error:', err);
         return res.status(500).json({ error: 'Session error.' });
       }
       req.session.cookie.maxAge = THIRTY_DAYS;
+
+      // Always issue a bearer JWT — the native client uses it as a
+      // fallback for cross-origin auth where session cookies don't
+      // travel reliably. Web clients ignore it and use the cookie.
+      let bearer = null;
+      try { bearer = await issueBearerForUser(user); }
+      catch (e) { console.warn('issueBearerForUser failed:', e.message); }
+
       // Native clients skip the Telegram link gate entirely — alerts arrive
       // via push (Phase 2.4). Mirror the X-Client native trial-gate logic.
       const isNativeClient = /^native-(ios|android)$/.test(req.get('X-Client') || '');
       if (isNativeClient) {
-        if (hasAccess(user)) return res.json({ redirect: '/app', user });
-        return res.json({ redirect: '/setup', user });
+        if (hasAccess(user)) return res.json({ redirect: '/app', user, bearer });
+        return res.json({ redirect: '/setup', user, bearer });
       }
       // Web path (Service ID flow) — same conditions as Google callback.
       if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin) {
-        return res.json({ redirect: '/setup', user });
+        return res.json({ redirect: '/setup', user, bearer });
       }
-      if (hasAccess(user)) return res.json({ redirect: '/app', user });
-      res.json({ redirect: '/pricing', user });
+      if (hasAccess(user)) return res.json({ redirect: '/app', user, bearer });
+      res.json({ redirect: '/pricing', user, bearer });
     });
   } catch (err) {
     console.error('SIWA verify failed:', err.message);

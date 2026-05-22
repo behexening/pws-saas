@@ -83,6 +83,15 @@
             var headers = new Headers((init && init.headers) ||
               (typeof input !== 'string' && input ? input.headers : null) || undefined);
             if (!headers.has('X-Client')) headers.set('X-Client', clientHeader);
+            // Bearer token (saved by login.html / setup flows) — used
+            // as a fallback when WKWebView refuses to replay the
+            // session cookie cross-origin. No-op when none stored.
+            try {
+              var bearer = localStorage.getItem('akfi.bearer');
+              if (bearer && !headers.has('Authorization')) {
+                headers.set('Authorization', 'Bearer ' + bearer);
+              }
+            } catch (_) {}
             init.headers = headers;
             // Cross-origin session cookie travel requires this.
             if (!init.credentials) init.credentials = 'include';
