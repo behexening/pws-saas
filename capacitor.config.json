@@ -4,7 +4,6 @@
   "webDir": "public",
   "appendUserAgent": "akFISHinfo-Native",
   "server": {
-    "url": "https://akfishinfo.com",
     "androidScheme": "https",
     "iosScheme": "capacitor",
     "allowNavigation": [

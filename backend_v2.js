@@ -67,16 +67,52 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc:  ["'self'", "'unsafe-inline'", "unpkg.com"],
+      // Sentry's Loader Script + chunks live on these CDNs; both web
+      // and native (capacitor:// origin) load them at runtime.
+      scriptSrc:  ["'self'", "'unsafe-inline'", "unpkg.com",
+                   "https://js.sentry-cdn.com", "https://browser.sentry-cdn.com"],
       styleSrc:   ["'self'", "'unsafe-inline'", "unpkg.com"],
       imgSrc:     ["'self'", "data:", "blob:", "*.basemaps.cartocdn.com"],
-      connectSrc: ["'self'"],
+      // Native shells load HTML from capacitor://localhost (iOS) or
+      // https://localhost (Android) and need to fetch akfishinfo.com
+      // cross-origin for /api/* and Sentry ingestion.
+      connectSrc: ["'self'",
+                   "https://akfishinfo.com",
+                   "https://*.ingest.us.sentry.io",
+                   "https://*.sentry.io"],
       fontSrc:    ["'self'", "data:"],
       objectSrc:  ["'none'"],
       frameSrc:   ["'none'"],
     },
   },
 }));
+
+// ──────────────────────────────────────────────────────────────
+// CORS — needed for the Capacitor iOS/Android shells, which load
+// HTML from `capacitor://localhost` (iOS) or `https://localhost`
+// (Android) and fetch the backend at akfishinfo.com cross-origin.
+// Web users are same-origin, so this middleware is a no-op for them.
+// ──────────────────────────────────────────────────────────────
+const NATIVE_ORIGINS = new Set([
+  'capacitor://localhost',
+  'https://localhost',
+  'http://localhost',
+]);
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
+  if (origin && NATIVE_ORIGINS.has(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Vary', 'Origin');
+    if (req.method === 'OPTIONS') {
+      res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+      res.set('Access-Control-Allow-Headers', 'Content-Type, X-Client, Authorization');
+      res.set('Access-Control-Max-Age', '3600');
+      return res.status(204).end();
+    }
+  }
+  next();
+});
 
 // Database — defined early so the session store can use it
 const db = new Pool({
@@ -93,6 +129,17 @@ if (!process.env.SESSION_SECRET) {
   process.exit(1);
 }
 
+// Session cookie config:
+//   - sameSite: 'none' is REQUIRED so the cookie travels on cross-origin
+//     fetches from the Capacitor native shell (WebView origin is
+//     capacitor://localhost / https://localhost; backend is akfishinfo.com).
+//     SameSite=None demands Secure=true, which we have in production.
+//   - In local dev (BASE_URL not https), we fall back to sameSite='lax' +
+//     secure=false so the cookie still works over plain http://localhost.
+//   - Slight web-side trade-off: switching from Lax to None loosens
+//     cross-site CSRF protection a touch; we mitigate via the existing
+//     same-origin checks and the Origin-allowlist CORS above.
+const COOKIE_SECURE = (process.env.BASE_URL || '').startsWith('https://');
 app.use(session({
   store: new pgSession({
     pool: db,
@@ -103,9 +150,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: (process.env.BASE_URL || '').startsWith('https://'),
+    secure: COOKIE_SECURE,
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: COOKIE_SECURE ? 'none' : 'lax',
   },
 }));
 app.use(passport.initialize());
