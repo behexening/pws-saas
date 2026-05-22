@@ -728,52 +728,102 @@
         align-self: flex-start;
       }
 
-      /* Stack map on top, cards below */
+      /* Map-dominant layout: map fills viewport, .left-panel becomes
+         a bottom sheet that snaps to peek/half/full. Apple Maps pattern. */
+      body { overflow: hidden; height: 100dvh; }
+      .app-layout {
+        grid-template-rows: 50px 1fr;
+        height: 100dvh;
+        overflow: hidden;
+      }
       .main-split {
-        display: flex;
-        flex-direction: column;
-        overflow: visible;
-        height: auto;
+        display: block;
+        position: relative;
+        height: 100%;
+        overflow: hidden;
       }
 
-      /* Map: full width, fixed height so it's always visible */
+      /* Map fills the entire main-split area, behind the sheet */
       .map-panel {
+        position: absolute;
+        inset: 0;
         width: 100%;
-        height: 52vw;
-        min-height: 220px;
-        max-height: 360px;
-        flex-shrink: 0;
-        position: relative;
+        height: 100%;
+        z-index: 1;
       }
       #map { height: 100%; width: 100%; }
 
-      /* Collapse map overlays on mobile so they don't eat screen space */
-      .map-legend { display: none; }
-      .map-note   { display: none; }
-      .disclaimer-bar {
-        font-size: 8px;
-        padding: 3px 10px;
-        position: static; /* flow below map rather than overlay */
-      }
+      /* Map overlays we don't want on mobile (legend takes too much room,
+         note is redundant with topbar, disclaimer moves into the sheet) */
+      .map-legend, .map-note, .disclaimer-bar { display: none; }
 
-      /* Cards panel: scrollable below the map */
+      /* Bottom sheet: the left-panel slides up from the bottom */
       .left-panel {
-        order: 2;
-        width: 100%;
-        height: auto;
-        overflow-y: visible;
-        border-right: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: calc(100dvh - 50px);  /* don't cover the topbar */
+        background: var(--bg);
         border-top: 1px solid var(--border);
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.45);
+        z-index: 200;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        /* Default: peek state — ~120px of sheet visible above the bottom safe area */
+        transform: translateY(calc(100% - 120px));
+        transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+        will-change: transform;
+        touch-action: pan-y;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .left-panel.sheet-peek { transform: translateY(calc(100% - 120px)); }
+      .left-panel.sheet-half { transform: translateY(50%); }
+      .left-panel.sheet-full { transform: translateY(0); }
+      .left-panel.sheet-dragging { transition: none; }
+
+      /* Drag handle at the top of the sheet */
+      .sheet-handle {
+        position: sticky;
+        top: 0;
+        z-index: 11;
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 0 8px;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        border-top-left-radius: 14px;
+        border-top-right-radius: 14px;
+      }
+      .sheet-handle::before {
+        content: '';
+        width: 40px;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        transition: background 0.15s;
+      }
+      .left-panel.sheet-dragging .sheet-handle { cursor: grabbing; }
+      .left-panel.sheet-dragging .sheet-handle::before { background: var(--muted); }
+
+      /* ADVISORY header inside the sheet: sticky now sticks to the sheet's
+         scroll container, not the viewport. Solid bg covers cards scrolling
+         under it. `top: 32px` puts it below the sheet handle. */
+      .panel-header {
+        top: 32px;
+        background: var(--bg);
       }
 
-      /* Slightly bigger touch targets on cards */
+      /* Touch-friendly card sizing */
       .district-card { cursor: default; }
       .card-header   { padding: 10px 12px 6px; }
       .card-body     { padding: 0 12px 12px; }
       .district-name { font-size: 13px; }
       .time-row, .constraint-row { font-size: 11px; }
-
-      /* Date scrubber on mobile */
       .date-scrubber { padding: 8px 12px 6px; }
       .ann-picker { max-height: none; }
     }
@@ -2025,5 +2075,114 @@ function initFeedbackWidget(user) {
     </div>
   </div>
 </div>
+
+<!-- Bottom-sheet behavior (mobile only) -->
+<script>
+(function () {
+  // Only run on the mobile breakpoint that uses the bottom-sheet layout.
+  // The CSS @media (max-width: 767px) handles all the visual states; this
+  // JS just injects the drag handle and wires up drag + snap transitions.
+  var MOBILE_MQ = window.matchMedia('(max-width: 767px)');
+  if (!MOBILE_MQ.matches) return;
+
+  var sheet = document.getElementById('left-panel');
+  if (!sheet) return;
+
+  // Inject the drag handle once.
+  var handle = document.createElement('div');
+  handle.className = 'sheet-handle';
+  handle.setAttribute('role', 'button');
+  handle.setAttribute('aria-label', 'Drag to expand or collapse panel');
+  handle.setAttribute('aria-expanded', 'false');
+  sheet.insertBefore(handle, sheet.firstChild);
+
+  sheet.classList.add('sheet-peek');
+
+  // Snap distance is the translateY value (0 = fully open at top).
+  function snapTargets() {
+    var h = sheet.offsetHeight;
+    return [
+      { y: 0,        name: 'full' },
+      { y: h * 0.5,  name: 'half' },
+      { y: h - 120,  name: 'peek' },
+    ];
+  }
+
+  function snapTo(name) {
+    sheet.classList.remove('sheet-peek', 'sheet-half', 'sheet-full', 'sheet-dragging');
+    sheet.classList.add('sheet-' + name);
+    sheet.style.transform = '';  // clear inline; let class take over
+    handle.setAttribute('aria-expanded', name === 'full' ? 'true' : 'false');
+    // Leaflet listens to window resize for invalidating its size — give it
+    // a nudge after the snap transition completes so tiles reflow into the
+    // newly-uncovered map area.
+    setTimeout(function () {
+      window.dispatchEvent(new Event('resize'));
+    }, 320);
+  }
+
+  function getCurrentY() {
+    var t = window.getComputedStyle(sheet).transform;
+    if (!t || t === 'none') return 0;
+    var parts = t.slice(7, -1).split(',').map(parseFloat);
+    return parts[5] || 0;
+  }
+
+  var startY = null;
+  var startTransform = 0;
+  var moved = false;
+
+  function onStart(ev) {
+    var y = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    startY = y;
+    startTransform = getCurrentY();
+    moved = false;
+    sheet.classList.remove('sheet-peek', 'sheet-half', 'sheet-full');
+    sheet.classList.add('sheet-dragging');
+    if (ev.cancelable) ev.preventDefault();
+  }
+
+  function onMove(ev) {
+    if (startY === null) return;
+    var y = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    var delta = y - startY;
+    if (Math.abs(delta) > 4) moved = true;
+    var maxY = sheet.offsetHeight - 60;  // never lower than peek-ish
+    var newY = Math.max(0, Math.min(maxY, startTransform + delta));
+    sheet.style.transform = 'translateY(' + newY + 'px)';
+  }
+
+  function onEnd() {
+    if (startY === null) return;
+    if (!moved) {
+      // Tap, not drag — cycle through snap points.
+      var current = sheet.classList.contains('sheet-full') ? 'full'
+                  : sheet.classList.contains('sheet-half') ? 'half'
+                  : 'peek';
+      var next = current === 'peek' ? 'half' : current === 'half' ? 'full' : 'peek';
+      snapTo(next);
+    } else {
+      var y = getCurrentY();
+      var targets = snapTargets();
+      var nearest = targets.reduce(function (a, b) {
+        return Math.abs(b.y - y) < Math.abs(a.y - y) ? b : a;
+      });
+      snapTo(nearest.name);
+    }
+    startY = null;
+  }
+
+  // Touch — passive:false so we can preventDefault scrolling during drag.
+  handle.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('touchmove',  onMove,  { passive: false });
+  document.addEventListener('touchend',   onEnd);
+  document.addEventListener('touchcancel', onEnd);
+
+  // Mouse (web testing).
+  handle.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onEnd);
+})();
+</script>
 </body>
 </html>
