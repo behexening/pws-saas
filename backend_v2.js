@@ -41,6 +41,7 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const { createRemoteJWKSet, jwtVerify } = require('jose');
 const apn = require('@parse/node-apn');
+const fcmAdmin = require('firebase-admin');
 
 const TRUSTED_SENDER_DOMAINS = ['@adfg.alaska.gov', '@alaska.gov'];
 const EXTRA_ALLOWED_SENDERS = (process.env.EXTRA_ALLOWED_SENDERS || '')
@@ -382,6 +383,77 @@ async function sendApnsToToken({ captainId, token, title, body, url }) {
     return { ok: false, reason };
   } catch (err) {
     return { ok: false, reason: err.message || 'send-threw' };
+  }
+}
+
+// ============================================================
+// FIREBASE CLOUD MESSAGING (FCM, Android)
+// ============================================================
+// Same lazy-init pattern as APNs. FCM_SERVICE_ACCOUNT_JSON is the raw
+// service-account JSON (downloaded from Firebase Console → Project
+// Settings → Service Accounts), stored as a single env var on Railway.
+// We parse it once at first send and reuse the cached admin app.
+
+let _fcmApp = null;
+function getFcmApp() {
+  if (_fcmApp) return _fcmApp;
+  if (!process.env.FCM_SERVICE_ACCOUNT_JSON) {
+    console.warn('⚠ FCM_SERVICE_ACCOUNT_JSON not set — Android push disabled.');
+    return null;
+  }
+  try {
+    const sa = JSON.parse(process.env.FCM_SERVICE_ACCOUNT_JSON);
+    // Named app so re-init across hot-reloads doesn't throw
+    // "default app already exists" — defensive even though Node usually
+    // doesn't hot-reload modules.
+    _fcmApp = fcmAdmin.initializeApp({
+      credential: fcmAdmin.credential.cert(sa),
+    }, 'akfishinfo');
+    return _fcmApp;
+  } catch (err) {
+    console.error('FCM admin init failed:', err.message);
+    return null;
+  }
+}
+
+// Send to a single Android FCM token. Mirrors sendApnsToToken's shape so
+// notifyCaptains can pick a sender by platform without caring about
+// the underlying transport. On a permanent token error
+// (registration-token-not-registered / invalid-registration-token /
+// invalid-argument), deletes the row.
+async function sendFcmToToken({ captainId, token, title, body, url }) {
+  const app = getFcmApp();
+  if (!app) return { ok: false, reason: 'fcm-not-configured' };
+
+  const message = {
+    token,
+    notification: { title, body },
+    data: url ? { url } : {},
+    android: {
+      priority: 'HIGH',
+      notification: {
+        channelId: 'openings',
+        sound: 'default',
+      },
+    },
+  };
+
+  try {
+    await fcmAdmin.messaging(app).send(message);
+    return { ok: true };
+  } catch (err) {
+    const code = (err && (err.code || (err.errorInfo && err.errorInfo.code))) || '';
+    const isPermanent =
+      code === 'messaging/registration-token-not-registered' ||
+      code === 'messaging/invalid-registration-token' ||
+      code === 'messaging/invalid-argument';
+    if (isPermanent) {
+      await db.query(
+        `DELETE FROM device_tokens WHERE captain_id = $1 AND platform = 'android' AND token = $2`,
+        [captainId, token]
+      );
+    }
+    return { ok: false, reason: code || (err && err.message) || 'fcm-send-threw' };
   }
 }
 
@@ -2308,14 +2380,18 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
         }
       }
 
-      // 2. Push to every registered device token (iOS now, Android later).
+      // 2. Push to every registered device token (iOS via APNs, Android via FCM).
       const tokens = await db.query(
         `SELECT platform, token FROM device_tokens WHERE captain_id = $1`,
         [captain.id]
       );
       for (const dev of tokens.rows) {
-        if (dev.platform !== 'ios') continue;  // FCM in a follow-up
-        const pushResult = await sendApnsToToken({
+        const send =
+          dev.platform === 'ios'     ? sendApnsToToken :
+          dev.platform === 'android' ? sendFcmToToken :
+          null;
+        if (!send) continue;
+        const pushResult = await send({
           captainId: captain.id,
           token: dev.token,
           title: pushTitle,
@@ -2327,10 +2403,11 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
            VALUES ($1, $2, $3, $4, $5)`,
           [captain.id, dev.platform, dev.token, pushResult.ok ? 'sent' : 'failed', pushResult.reason || null]
         );
+        const label = dev.platform === 'ios' ? 'APNs' : 'FCM';
         if (pushResult.ok) {
-          console.log(`✓ APNs sent to ${captain.name} (${dev.token.slice(0, 8)}…)`);
+          console.log(`✓ ${label} sent to ${captain.name} (${dev.token.slice(0, 8)}…)`);
         } else {
-          console.error(`❌ APNs failed for ${captain.name}: ${pushResult.reason}`);
+          console.error(`❌ ${label} failed for ${captain.name}: ${pushResult.reason}`);
         }
       }
     }

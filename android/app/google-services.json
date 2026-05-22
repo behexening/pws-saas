@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "982457138413",
+    "project_id": "akfishinfo-e6aa2",
+    "storage_bucket": "akfishinfo-e6aa2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982457138413:android:310c2855a7931094ca60e4",
+        "android_client_info": {
+          "package_name": "info.akfish.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9h27M0S3X-iZUlPyOAY9v8vMphJ48Nwc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
