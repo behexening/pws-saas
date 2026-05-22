@@ -281,7 +281,7 @@
         });
         const d = await r.json();
         if (!r.ok) { showError(d.error || 'Sign-in failed.'); return; }
-        window.location.href = d.redirect;
+        akfiNav(d.redirect);
       } catch { showError('Connection error. Please try again.'); }
     }
 
@@ -344,7 +344,7 @@
             showError(d.error || 'Apple sign-in failed.');
             return;
           }
-          window.location.href = d.redirect || '/app';
+          akfiNav(d.redirect || '/app');
         } catch (err) {
           // The plugin rejects with code 1001 when the user cancels — don't
           // show an error for that, just re-enable the button.
