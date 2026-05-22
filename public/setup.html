@@ -282,20 +282,33 @@
     <div class="linked-state" id="linkedState">
       <div class="code-display" style="border-color:#3fb950">
         <div class="label web-only" style="color:#3fb950">✓ telegram linked</div>
-        <div class="label native-only" style="color:#3fb950">✓ ready</div>
+        <div class="label native-only" style="color:#3fb950">✓ signed in</div>
         <div style="font-size:0.95rem;margin-top:6px" id="linkedAs">Connected.</div>
       </div>
-      <p class="sub" style="margin-top:10px">
-        You're set to receive alerts. Pick your next step:
-      </p>
-      <button type="button" class="btn" id="trialBtn" style="margin-bottom:8px">Start free 7-day trial</button>
-      <a href="/pricing" class="btn secondary">See plans &amp; pricing</a>
-      <p class="price-note web-only" style="margin-top:14px">
-        Trial requires a verified email. One trial per Telegram account.
-      </p>
-      <p class="price-note native-only" style="margin-top:14px">
-        Trial requires a verified email. One trial per account.
-      </p>
+
+      <!-- Web flow: trial / pricing CTAs. -->
+      <div class="web-only">
+        <p class="sub" style="margin-top:10px">
+          You're set to receive alerts. Pick your next step:
+        </p>
+        <button type="button" class="btn" id="trialBtn" style="margin-bottom:8px">Start free 7-day trial</button>
+        <a href="/pricing" class="btn secondary">See plans &amp; pricing</a>
+        <p class="price-note" style="margin-top:14px">
+          Trial requires a verified email. One trial per Telegram account.
+        </p>
+      </div>
+
+      <!-- Native (iOS): per App Store 3.1.3(f) we don't show purchase
+           CTAs. Subscriptions are managed on akfishinfo.com. -->
+      <div class="native-only">
+        <p class="sub" style="margin-top:10px">
+          Your account is signed in.
+        </p>
+        <p class="sub" style="margin-top:10px;line-height:1.55">
+          If you already have an active subscription, alerts will start arriving here automatically. If not, your subscription can be managed from your akfishinfo.com account.
+        </p>
+        <a href="/auth/logout" class="btn secondary" style="margin-top:10px;text-decoration:none">Sign out</a>
+      </div>
     </div>
 
     <p class="price-note">

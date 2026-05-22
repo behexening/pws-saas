@@ -354,7 +354,7 @@
     <div class="nav-right">
       <a href="/about" class="nav-link" style="margin-right:12px">about</a>
       <a href="/login" class="nav-link" id="app-link">sign in</a>
-      <a href="/login" class="btn-nav">Get started</a>
+      <a href="/login" class="btn-nav web-only">Get started</a>
     </div>
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"><span class="icon-sun" aria-hidden="true">☀</span><span class="icon-moon" aria-hidden="true">☾</span></button>
   </nav>
@@ -363,11 +363,14 @@
   <div class="panel">
     <h1 class="hero-h1">Real time alerts<br>for <em>PWS.</em></h1>
     <p class="hero-sub">Know before you go. Instant notification the moment ADF&amp;G issues a Prince William Sound opening.</p>
-    <div class="cta-row">
+    <div class="cta-row web-only">
       <a href="/login" class="btn btn-primary">Start free trial</a>
       <a href="/login" class="btn btn-ghost">Sign in</a>
     </div>
-    <div class="beta-row">
+    <div class="cta-row native-only">
+      <a href="/login" class="btn btn-primary">Sign in</a>
+    </div>
+    <div class="beta-row web-only">
       <a href="/request-beta" class="beta-link">Request free beta access &rarr;</a>
     </div>
 
@@ -705,10 +708,19 @@
     });
 
     // ── Auth swap ───────────────────────────────────────────
+    // On web: signed-in users with access go to /app, otherwise /pricing.
+    // On native (iOS): never link to /pricing — Apple 3.1.3(f) forbids
+    // purchase CTAs. Without access, we point at /setup which shows the
+    // "subscription not active" UI (no purchase link).
     fetch('/api/me').then(r => r.json()).then(({ user }) => {
       if (!user) return;
       const link = document.getElementById('app-link');
-      link.href = user.has_access ? '/app' : '/pricing';
+      const isNative = !!(window.akfiPlatform && window.akfiPlatform.isNative);
+      if (user.has_access) {
+        link.href = '/app';
+      } else {
+        link.href = isNative ? '/setup' : '/pricing';
+      }
       link.textContent = 'open app';
     }).catch(() => {});
 
