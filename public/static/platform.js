@@ -118,10 +118,58 @@
     }
   }
 
+  // ── Navigation helper ─────────────────────────────────────
+  // The bundled Capacitor WebView serves files literally — there's no
+  // Express-style /login → login.html mapping. We rewrite extensionless
+  // internal paths to add `.html` before navigating. Use this anywhere
+  // the JS would otherwise do `location.href = '/setup'`.
+  //
+  // On web, this is a no-op pass-through.
+  function akfiNav(url) {
+    if (!url) return;
+    // Absolute URL? Leave alone (e.g. Stripe portal links, external sites).
+    if (/^https?:\/\//.test(url)) {
+      window.location.href = url;
+      return;
+    }
+    if (isNative && url.charAt(0) === '/' && url.indexOf('.') === -1) {
+      // Preserve query string + hash. Insert .html before them.
+      var match = url.match(/^([^?#]*)(.*)$/);
+      var pathPart = match[1];
+      var qsHash = match[2];
+      url = pathPart + '.html' + qsHash;
+    }
+    window.location.href = url;
+  }
+  window.akfiNav = akfiNav;
+
+  // Document-wide click interceptor — catches <a href="/login"> style
+  // anchor navigation in HTML without needing every page to call
+  // akfiNav directly. Only runs on native; web users get default behavior.
+  if (isNative) {
+    document.addEventListener('click', function (ev) {
+      // Walk up from the click target to find an <a> ancestor.
+      var el = ev.target;
+      while (el && el.nodeName !== 'A') el = el.parentElement;
+      if (!el) return;
+      var href = el.getAttribute('href');
+      if (!href) return;
+      // Ignore anchors that have explicit targets (e.g. target="_blank"),
+      // mail/tel links, JS handlers, or already-absolute URLs.
+      if (el.target && el.target !== '_self') return;
+      if (/^(https?:|mailto:|tel:|javascript:|#)/i.test(href)) return;
+      // Only extensionless internal paths need rewriting.
+      if (href.charAt(0) !== '/' || href.indexOf('.') !== -1) return;
+      ev.preventDefault();
+      akfiNav(href);
+    }, true);
+  }
+
   window.akfiPlatform = {
     isNative: isNative,
     platform: platform,
     clientHeader: clientHeader,
-    backendOrigin: BACKEND_ORIGIN
+    backendOrigin: BACKEND_ORIGIN,
+    nav: akfiNav
   };
 })();

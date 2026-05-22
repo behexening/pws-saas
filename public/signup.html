@@ -377,7 +377,7 @@
         });
         const d = await r.json();
         if (!r.ok) { showError(d.error || 'Sign-up failed.'); return; }
-        window.location.href = d.redirect;
+        akfiNav(d.redirect);
       } catch { showError('Connection error. Please try again.'); }
     }
 

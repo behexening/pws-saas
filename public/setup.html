@@ -432,11 +432,11 @@
       try {
         const r = await fetch('/api/me');
         const { user } = await r.json();
-        if (!user) { location.href = '/login'; return; }
+        if (!user) { akfiNav('/login'); return; }
         if (user.telegram_linked) {
           // Beta testers, admins, alaska.gov, active trials, and paid pros
           // already have access — skip the trial/subscribe gate entirely.
-          if (user.has_access) { location.href = '/app'; return; }
+          if (user.has_access) { akfiNav('/app'); return; }
           statusDot.classList.add('linked');
           statusText.textContent = 'Telegram linked.';
           showLinked(user.telegram_username);
@@ -456,7 +456,7 @@
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Could not start trial');
-        window.location.href = d.redirect;
+        akfiNav(d.redirect);
       } catch (err) {
         showError(err.message);
         trialBtn.disabled = false;
@@ -467,18 +467,18 @@
     // Boot
     const IS_NATIVE = !!(window.akfiPlatform && window.akfiPlatform.isNative);
     fetch('/api/me').then(r => r.json()).then(({ user }) => {
-      if (!user) { location.href = '/login'; return; }
+      if (!user) { akfiNav('/login'); return; }
       const first = (user.name || '').split(' ')[0];
       if (first) document.getElementById('greeting').textContent = first;
       if (IS_NATIVE) {
         // Native shells skip Telegram entirely — alerts arrive via push.
         // Privileged users (admin/alaska.gov/active trial/pro) jump straight to the app.
-        if (user.has_access) { location.href = '/app'; return; }
+        if (user.has_access) { akfiNav('/app'); return; }
         showLinked(null);
         return;
       }
       if (user.telegram_linked) {
-        if (user.has_access) { location.href = '/app'; return; }
+        if (user.has_access) { akfiNav('/app'); return; }
         showLinked(user.telegram_username);
         return;
       }
