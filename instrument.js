@@ -17,10 +17,6 @@ if (!process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
 
-    // TEMPORARY: verbose logging while we verify ingestion. Remove once
-    // events are flowing to the dashboard reliably.
-    debug: true,
-
     // `environment` separates events in the dashboard. Railway sets this
     // to "production" on the live service; local dev gets "development".
     environment: process.env.NODE_ENV || 'production',

@@ -2984,13 +2984,6 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
-// TEMPORARY — Sentry integration smoke test. Throws an error so we can
-// verify Sentry.setupExpressErrorHandler is wired correctly and events
-// land in the dashboard. REMOVE in a follow-up PR after verification.
-app.get('/debug-sentry', function mainHandler(req, res) {
-  throw new Error('My first Sentry error!');
-});
-
 // ============================================================
 // ADMIN PANEL
 // Read-mostly. The only write actions exposed are reparse (already in
