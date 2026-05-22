@@ -52,69 +52,79 @@ A single un-gated "Subscribe" button = automatic rejection.
 
 ---
 
+## ✅ `server.url` is REMOVED — bundled assets only
 
+The iOS / Android WebViews load HTML, JS, and CSS from the bundled
+`public/` directory at the local Capacitor origin
+(`capacitor://localhost` on iOS, `https://localhost` on Android via
+`androidScheme: "https"`). The cross-origin plumbing that lets the
+bundled JS talk to the production backend at `akfishinfo.com`:
 
-## ⚠️ `server.url` is set to production in `capacitor.config.json`
+1. **`public/static/platform.js`** monkey-patches `fetch` + `XHR` to:
+   - Rewrite same-origin paths under `/api`, `/auth`, `/webhooks`,
+     `/health`, `/verify-email`, `/results`, `/awc-points.json` to
+     `https://akfishinfo.com/<path>`
+   - Force `credentials: 'include'` (so the session cookie travels)
+   - Add `X-Client: native-(ios|android)` header
+   - Absolute URLs to other origins (unpkg, Sentry CDN, Apple JWKS,
+     etc.) are left alone
 
-Current value:
+2. **`backend_v2.js` CORS middleware** (right after Helmet) allows
+   `Origin: capacitor://localhost`, `https://localhost`,
+   `http://localhost` with `Access-Control-Allow-Credentials: true`
+   and handles `OPTIONS` preflights. Web users are same-origin, so the
+   middleware is a no-op for them.
+
+3. **Session cookie** is set `SameSite=None; Secure; HttpOnly` in
+   production (BASE_URL https). `SameSite=None` is REQUIRED for the
+   WebView to send the cookie on cross-origin fetches; `Secure` is
+   browser-mandatory whenever `SameSite=None` is used. In local dev
+   (http BASE_URL) we fall back to `SameSite=Lax; Secure=false` so
+   plain `http://localhost` development still works.
+
+4. **Helmet CSP** is widened to allow the cross-origin connections:
+   - `connect-src` includes `https://akfishinfo.com`,
+     `https://*.ingest.us.sentry.io`, `https://*.sentry.io`
+   - `script-src` includes `https://js.sentry-cdn.com`,
+     `https://browser.sentry-cdn.com` for the Sentry Loader Script
+
+### Putting it back temporarily for debugging
+
+If you ever need to point the WebView at production directly (e.g. to
+debug a deploy without rebuilding the app), add `server.url` back:
 
 ```json
-"server": { "url": "https://akfishinfo.com", ... }
+"server": {
+  "url": "https://akfishinfo.com",
+  "androidScheme": "https",
+  ...
+}
 ```
 
-This makes the iOS/Android WebView load the **live site over the network**
-instead of the bundled `public/` assets. Useful during early development
-because:
+DO NOT ship to App Store / Play in that state. Apple Guideline 4.2.2
+("web clipping / repackaged website") is the bright-line rejection.
 
-- Sign-in, OAuth, RevenueCat-less testing, etc. all "just work" — the app
-  is essentially `akfishinfo.com` in a WKWebView.
-- No CORS / cookie / cross-origin plumbing needed yet.
+## Known limitation — Google OAuth on native
 
-The tradeoff is that the **bundled** Phase 2.2 work (`platform.js`,
-`platform.css`, `.web-only` / `.native-only` gating, the `X-Client`
-header injection) is bypassed — the production HTML doesn't include
-those files, so they never execute in this mode.
+Google OAuth (`/auth/google`) is still a server redirect-based flow.
+When the user taps the Google button on the bundled `/login` page, the
+WebView navigates to `accounts.google.com`, then to
+`https://akfishinfo.com/auth/google/callback`, and stays on
+akfishinfo.com after sign-in. They keep their session but they're now
+running the web HTML instead of the bundle. Cosmetic only; everything
+still works.
 
-## Before any submission build — STRIP `server.url`
+Fixing this needs `@capacitor/browser` to open an in-app Safari for
+the OAuth flow plus a deep-link back into the bundle. Defer until
+real users complain.
 
-```diff
- "server": {
--  "url": "https://akfishinfo.com",
-   "androidScheme": "https",
-   "iosScheme": "capacitor",
-   "allowNavigation": ["akfishinfo.com", "*.akfishinfo.com"]
- }
-```
-
-If you ship with `server.url`, Apple App Review will almost certainly
-reject under guideline **4.2.2** ("web clipping / repackaged website").
-Play Console accepts it but it's still a degraded UX (no offline fallback,
-slow cold-launch).
-
-## Removing it requires also wiring real cross-origin auth
-
-When `server.url` is stripped, the WebView loads `capacitor://localhost`
-on iOS and `https://localhost` on Android. Bundled JS then needs to:
-
-1. Rewrite `/api/*` and `/auth/*` fetches to `https://akfishinfo.com/*`
-   (extend the monkey-patch already in `public/static/platform.js`).
-2. Pass `credentials: 'include'` on every cross-origin call.
-3. Have `backend_v2.js` answer CORS preflight from `capacitor://localhost`
-   with `Access-Control-Allow-Credentials: true`.
-4. Have the session cookie set with `sameSite: 'none'; secure: true`
-   when the request carries `X-Client: native-*`.
-5. Replace the Google OAuth redirect-in-WebView flow with
-   `@capacitor/browser` opening an external Safari (Phase 2.3 SIWA work
-   covers this pattern).
-
-That work is **Phase 2.3 / 2.4** in `docs/plans/app-store-migration/`.
-Until then, leave `server.url` in for development convenience and accept
-that the bundle's gating logic isn't exercised.
+Sign in with Apple uses the native plugin (no redirect, no WebView
+navigation) so it stays inside the bundle the whole time.
 
 ## Quick dev loop
 
 ```bash
-# After editing capacitor.config.json or public/*:
+# After editing public/* or backend_v2.js:
 npm run cap:sync:ios     # or cap:sync:android
 
 # Open the native IDE:
