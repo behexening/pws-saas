@@ -5,7 +5,8 @@
   "appendUserAgent": "akFISHinfo-Native",
   "server": {
     "androidScheme": "https",
-    "iosScheme": "capacitor",
+    "iosScheme": "https",
+    "hostname": "localhost",
     "allowNavigation": [
       "akfishinfo.com",
       "*.akfishinfo.com"
