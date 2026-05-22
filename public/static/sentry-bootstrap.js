@@ -39,7 +39,7 @@
   };
 
   var s = document.createElement('script');
-  s.src = 'https://js.sentry-cdn.com/190c4393228ba3b7ce8143b508fdca96.min.js';
+  s.src = 'https://js.sentry-cdn.com/e3b7f51db4466f70a745e941739a522d.min.js';
   s.crossOrigin = 'anonymous';
   s.defer = true;
   document.head.appendChild(s);
