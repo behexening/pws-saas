@@ -13,6 +13,11 @@
   <link rel="stylesheet" href="/static/platform.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Offline tile caching: stores Carto tiles in IndexedDB so the map
+       still renders out on the boat with no cell signal. `idb` is the
+       leaflet.offline plugin's dependency (Promise-wrapped IndexedDB). -->
+  <script src="https://unpkg.com/idb@7/build/umd.js"></script>
+  <script src="https://unpkg.com/leaflet.offline@3.0.0/dist/bundle.js"></script>
   <style>
     @font-face {
       font-family: 'Blackbird';
@@ -708,6 +713,33 @@
     }
     .disclaimer-bar strong { color: var(--warn); }
 
+    /* leaflet.offline save/clear control — match our dark UI */
+    .leaflet-control.savetiles {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: 0;
+      font-family: inherit;
+    }
+    .leaflet-control.savetiles a,
+    .leaflet-control.savetiles a:hover {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: var(--surface);
+      border: none;
+      border-bottom: 1px solid var(--border);
+      width: auto;
+      height: auto;
+      line-height: 1.2;
+    }
+    .leaflet-control.savetiles a:last-child { border-bottom: none; }
+    .leaflet-control.savetiles a:hover { background: var(--surface2); }
+
     /* ── Mobile layout ────────────────────────────────────────────────────── */
     @media (max-width: 767px) {
       /* Allow the page to scroll on mobile */
@@ -1234,16 +1266,57 @@ function tileUrlForTheme() {
     ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
     : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 }
-let tileLayer = L.tileLayer(tileUrlForTheme(), {
-  attribution: '&copy; OpenStreetMap &copy; CARTO',
-  subdomains: 'abcd', maxZoom: 17,
-}).addTo(map);
-window.addEventListener('themechange', function () {
-  if (tileLayer) map.removeLayer(tileLayer);
-  tileLayer = L.tileLayer(tileUrlForTheme(), {
+// Use the offline variant when the leaflet.offline plugin loaded
+// successfully. Falls back to plain L.tileLayer if the CDN failed (e.g.
+// on the very first cold start out of cell range). Tiles already saved
+// to IndexedDB will be served when offline regardless of map state.
+const offlineTilesAvailable = !!(L.tileLayer.offline && L.control.savetiles);
+function buildTileLayer() {
+  const opts = {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd', maxZoom: 17,
-  }).addTo(map);
+  };
+  return offlineTilesAvailable
+    ? L.tileLayer.offline(tileUrlForTheme(), opts)
+    : L.tileLayer(tileUrlForTheme(), opts);
+}
+let tileLayer = buildTileLayer().addTo(map);
+
+// Save / clear-cache control. Pre-caches the current view at zooms 9–13,
+// which is enough to navigate PWS while underway. Confirmation prompts
+// before downloading and before deleting.
+let saveControl = null;
+if (offlineTilesAvailable) {
+  saveControl = L.control.savetiles(tileLayer, {
+    position: 'topleft',
+    zoomlevels: [9, 10, 11, 12, 13],
+    saveText: '⇩ save area',
+    rmText:   '✕ clear cache',
+    confirm: function (layer, save) {
+      const n = (layer._tilesforSave || []).length;
+      if (n === 0) return;
+      const ok = confirm('Save ~' + n + ' map tiles for offline use? Will use roughly ' +
+        Math.ceil(n * 15 / 1024) + ' MB of storage.');
+      if (ok) save();
+    },
+    confirmRemoval: function (_layer, remove) {
+      if (confirm('Remove all cached offline tiles?')) remove();
+    },
+  });
+  saveControl.addTo(map);
+  // Background save progress logged to console; not surfaced in UI for now.
+  tileLayer.on('savestart', e => console.log('Caching', e._tilesforSave?.length, 'tiles'));
+  tileLayer.on('saveend',   () => console.log('Offline cache saved.'));
+  tileLayer.on('tilesremoved', () => console.log('Offline cache cleared.'));
+}
+
+window.addEventListener('themechange', function () {
+  if (tileLayer) map.removeLayer(tileLayer);
+  tileLayer = buildTileLayer().addTo(map);
+  // The savetiles control retains its reference to the original layer; if
+  // theme switching is going to be a regular thing we'd rebuild the
+  // control too. For now light/dark caches live independently.
+  if (saveControl) saveControl._layer = tileLayer;
   if (typeof currentResult !== 'undefined' && currentResult) renderMap(currentResult);
 });
 
