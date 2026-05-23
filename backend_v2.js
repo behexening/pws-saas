@@ -3052,6 +3052,12 @@ app.get('/api/result/:id/pdf', async (req, res) => {
  */
 app.post('/api/result/:id/reparse', requireAdmin, express.json(), async (req, res) => {
   try {
+    // Whether to fire a "Correction" alert after the reparse finishes.
+    // Default true for backwards compatibility; the admin UI opts out
+    // when the reparse is purely a geometry / parser fix users don't
+    // need to hear about again.
+    const notify = !(req.body && req.body.notify === false);
+
     // Get the announcement_id from the parsed result
     const prRow = await db.query(
       `SELECT announcement_id FROM parsed_results WHERE id = $1`,
@@ -3143,10 +3149,12 @@ app.post('/api/result/:id/reparse', requireAdmin, express.json(), async (req, re
                 }
                 console.log(`✓ Reparse complete for result #${req.params.id}`);
               } catch (e) { console.error('reparse DB update failed:', e); }
-              if (freshDistricts.length) {
+              if (freshDistricts.length && notify) {
                 try {
                   await notifyCaptains(freshDistricts, freshDetails, { kind: 'correction' });
                 } catch (e) { console.error('reparse correction alert failed:', e); }
+              } else if (freshDistricts.length) {
+                console.log(`[silent] Reparse for result #${req.params.id} — skipping correction alert`);
               }
               resolve();
             }
