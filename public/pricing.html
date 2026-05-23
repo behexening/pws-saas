@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Pricing — akFISHinfo</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
   <script src="/static/platform.js"></script>
@@ -29,6 +29,8 @@
       justify-content: space-between;
       padding: 0 22px;
       height: 50px;
+      padding-top: env(safe-area-inset-top);
+      box-sizing: content-box;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       position: sticky;

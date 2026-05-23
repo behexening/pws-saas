@@ -1,0 +1,1408 @@
+{
+  "regulation": "5 AAC 24.350",
+  "title": "Closed waters",
+  "source": "docs/closedwaters/5AAC24.350",
+  "captured_date": "2026-04-19",
+  "schema_notes": [
+    "Each closure is one sub-paragraph (e.g. (3)(B) = Sheep Bay).",
+    "Coords use the regulation's DMS format: 'DD MM.MM N|S' for lat, 'DDD MM.MM E|W' for lon.",
+    "scope.feature: name of the bay/inlet the closure sits in (used to look up a polygon scope).",
+    "scope.district: parent district (always set; used as fallback scope).",
+    "scope.feature_buffer_km: optional explicit radius around the gazetteer centroid when no bbox exists.",
+    "ops: list of operations producing geometry. combined per `combine`.",
+    "  half_plane: {op, side: north|south|east|west, line: [[lat,lon],[lat,lon]]} -- closed area is on `side` of line.",
+    "  polyline_split: same as half_plane but the line is multi-segment. Splits district along polyline, keeps `side`.",
+    "  whole_feature: {op, feature: <name>} -- the entire named feature polygon is closed.",
+    "  buffer_streams: {op, radius_yards, filter?} -- buffers all AWC stream-mouth points in scope (and matching filter).",
+    "  buffer_points: {op, radius_yards, points: [[lat,lon],...]} -- buffers explicit terminus points.",
+    "  custom_polygon: {op, ring: [[lat,lon],...]} -- a hand-traced closed ring.",
+    "combine: union (default) | intersection. Compound 'south of LAT and east of LON' closures use intersection.",
+    "exception: regulation id whose EO can override this closure (e.g. '5AAC24.361(b)').",
+    "review_notes: anything the reviewer should know — interpretive choices, PDF cross-checks, AWC dependencies."
+  ],
+  "closures": [
+    {
+      "id": "24.350(1)(A)",
+      "district": "Copper River District",
+      "paragraph": "(1)(A)",
+      "name": "Copper River Flats - outside (Whitshed to Strawberry Reef)",
+      "definition_text": "within a line from Point Whitshed south to a point at 60° 26.49' N. lat., 145° 52.86' W. long. to a point at Alaganik Slough North at 60° 24.65' N. lat., 145° 36.70' W. long. to a point at Pete Dahl East at 60° 20.44' N. lat., 145° 29.14' W. long. to a point at West Kokinhenik at 60° 14.88' N. lat., 145° 10.01' W. long. to a point at East 'East Side' at 60° 14.83' N. lat., 145° 03.36' W. long. to a point at Coffee Creek East at 60° 14.19' N. lat., 144° 58.01' W. long. to a point at Charlie Mohr North at 60° 15.15' N. lat., 144° 56.43' W. long. to a point at Martin River North at 60° 15.29' N. lat., 144° 52.52' W. long. to a point on Strawberry Reef at 60° 13.93' N. lat., 144° 50.66' W. long., and at all times within sloughs and in Boswell Bay within the bay",
+      "scope": {"district": "Copper River District", "feature": null},
+      "ops": [
+        {"op": "polyline_split", "side": "north",
+         "line": [
+           ["60 27.30 N", "146 09.50 W"],
+           ["60 26.49 N", "145 52.86 W"],
+           ["60 24.65 N", "145 36.70 W"],
+           ["60 20.44 N", "145 29.14 W"],
+           ["60 14.88 N", "145 10.01 W"],
+           ["60 14.83 N", "145 03.36 W"],
+           ["60 14.19 N", "144 58.01 W"],
+           ["60 15.15 N", "144 56.43 W"],
+           ["60 15.29 N", "144 52.52 W"],
+           ["60 13.93 N", "144 50.66 W"]
+         ]},
+        {"op": "whole_feature", "feature": "Boswell Bay"}
+      ],
+      "combine": "union",
+      "exception": null,
+      "review_notes": "First point in line is Point Whitshed (~60° 27.3' N, 146° 09.5' W) — coords approximated from gazetteer/PDF since the regulation only names it. The 'sloughs within the bay' clause is implicit in the Copper River delta and not separately drawn here; the polyline_split should already capture the delta interior. Verify against PDF 212-200."
+    },
+    {
+      "id": "24.350(1)(B)",
+      "district": "Copper River District",
+      "paragraph": "(1)(B)",
+      "name": "Copper River Flats - inside closure (Steamboat to Coffee Creek W)",
+      "definition_text": "except as provided in 5 AAC 24.361(b), the inside closure area defined as all waters north of line from a point at Steamboat South at 60° 22.31' N. lat., 145° 33.50' W. long. to the west side of the Pete Dahl entrance at 60° 18.89' N. lat., 145° 30.99' W. long. to the western end of the Grass Island Bar at 60° 18.30' N. lat., 145° 28.42' W. long. to the eastern end of Grass Island Bar at 60° 15.24' N. lat., 145° 17.89' W. long. to the western end of Kokinhenik Bar at 60° 15.00' N. lat., 145° 16.20' W. long. to the eastern tip of Kokinhenik Bar at 60° 13.65' N. lat., 145° 09.46' W. long. to the western tip of Softuk Bar at 60° 13.68' N. lat., 145° 05.78' W. long. to Coffee Creek West at 60° 14.13' N. lat., 144° 58.31' W. long.",
+      "scope": {"district": "Copper River District", "feature": null},
+      "ops": [
+        {"op": "polyline_split", "side": "north",
+         "line": [
+           ["60 22.31 N", "145 33.50 W"],
+           ["60 18.89 N", "145 30.99 W"],
+           ["60 18.30 N", "145 28.42 W"],
+           ["60 15.24 N", "145 17.89 W"],
+           ["60 15.00 N", "145 16.20 W"],
+           ["60 13.65 N", "145 09.46 W"],
+           ["60 13.68 N", "145 05.78 W"],
+           ["60 14.13 N", "144 58.31 W"]
+         ]}
+      ],
+      "combine": "union",
+      "exception": "5AAC24.361(b)",
+      "review_notes": "Inside closure. Exception: Commissioner may open up to one 12-hour fishing period within this area during stat weeks 20 and 21. Renderer should hide this polygon when an EO explicitly opens the inside area."
+    },
+    {
+      "id": "24.350(2)(A)",
+      "district": "Bering River District",
+      "paragraph": "(2)(A)",
+      "name": "Bering River - eastern boundary lines (Pt Hey/Kanak/Okalee)",
+      "definition_text": "east of a line from Point Hey to a point on the northeastern shore of Kanak Island at 60° 09.06' N. lat., 144° 22.42' W. long., and east of a line from a point on the southeasternmost shore of Kanak Island at 60° 06.56' N. lat., 144° 19.42' W. long. to 60° 06.56' N. lat., 144° 18.32' W. long. to 60° 04.97' N. lat., 144° 11.12' W. long. to a point on Okalee Spit at 60° 04.46' N. lat., 144° 11.12' W. long.",
+      "scope": {"district": "Bering River District", "feature": null},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [
+           ["60 12.10 N", "144 33.20 W"],
+           ["60 09.06 N", "144 22.42 W"]
+         ]},
+        {"op": "polyline_split", "side": "east",
+         "line": [
+           ["60 06.56 N", "144 19.42 W"],
+           ["60 06.56 N", "144 18.32 W"],
+           ["60 04.97 N", "144 11.12 W"],
+           ["60 04.46 N", "144 11.12 W"]
+         ]}
+      ],
+      "combine": "union",
+      "review_notes": "Point Hey coordinates approximated from PDF (~60° 12.1' N, 144° 33.2' W). Verify against PDF 212-200."
+    },
+    {
+      "id": "24.350(2)(B)",
+      "district": "Bering River District",
+      "paragraph": "(2)(B)",
+      "name": "Cape Suckling / Kayak Island enclosed area",
+      "definition_text": "waters bounded on the east by the longitude of Cape Suckling (144° W. long.), on the north by a line along the beach from Cape Suckling to the longitude of Lemesurier Point (144° 11.72' W. long.), and on the west by a line along the longitude of Lemesurier Point from Okalee Spit to Lemesurier Point, then along the eastern beach of Kayak Island to Pinnacle Rock, then extending south along the longitude of the southernmost tip of Pinnacle Point",
+      "scope": {"district": "Bering River District", "feature": null},
+      "ops": [
+        {"op": "custom_polygon", "ring": [
+          ["60 04.46 N", "144 11.72 W"],
+          ["60 01.00 N", "144 11.72 W"],
+          ["59 53.50 N", "144 21.40 W"],
+          ["59 47.30 N", "144 27.40 W"],
+          ["59 47.30 N", "144 00.00 W"],
+          ["60 01.00 N", "144 00.00 W"],
+          ["60 02.00 N", "144 01.50 W"]
+        ]}
+      ],
+      "combine": "union",
+      "review_notes": "PRIORITY REVIEW: enclosed-polygon shape approximated from PDF — uses Lemesurier Pt longitude as west edge, 144°W as east edge, Kayak Island's eastern shoreline traced via PDF inspection points (Pinnacle Rock at ~59° 47.3' N, 144° 27.4' W; Pinnacle Point southern tip at ~59° 47.3' N). The 'beach line from Cape Suckling to Lemesurier Pt longitude' is the northern coast — points reflect best read of PDF. Cross-check with 212-200 PDF before commit."
+    },
+    {
+      "id": "24.350(3)(A)",
+      "district": "Eastern District",
+      "paragraph": "(3)(A)",
+      "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+      "definition_text": "Simpson Bay, north of 60° 38.00' N. lat.. Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point, and all of Orca Inlet southeast of Hawkins Island",
+      "scope": {"district": "Eastern District", "feature": null},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 38.00 N", "146 00.00 W"], ["60 38.00 N", "145 50.00 W"]],
+         "scope_feature": "Simpson Bay"},
+        {"op": "half_plane", "side": "south",
+         "line": [["60 33.50 N", "145 56.30 W"], ["60 32.30 N", "145 53.00 W"]],
+         "scope_feature": "Orca Inlet"},
+        {"op": "whole_feature", "feature": "Orca Inlet southeast of Hawkins Island"}
+      ],
+      "combine": "union",
+      "review_notes": "Multi-part: (1) Simpson Bay north of 60°38'N parallel; (2) Orca Inlet/Nelson Bay south-east of Salmo Pt → Shepard Pt line — approximated from gazetteer (Salmo Pt ~60° 33.5' N, 145° 56.3' W; Shepard Pt ~60° 32.3' N, 145° 53.0' W); (3) all Orca Inlet SE of Hawkins Island — encoded as whole_feature placeholder, may need a hand-drawn ring. Verify against PDF 221."
+    },
+    {
+      "id": "24.350(3)(B)",
+      "district": "Eastern District",
+      "paragraph": "(3)(B)",
+      "name": "Sheep Bay",
+      "definition_text": "north of a line from 60° 41.99' N. lat., 145° 56.11' W. long., to 60° 41.17' N. lat., 145° 55.87' W. long.; and east of a line from 60° 40.08' N. lat., 145° 58.61' W. long., to 60° 39.45' N. lat., 145° 58.88' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Sheep Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 41.99 N", "145 56.11 W"], ["60 41.17 N", "145 55.87 W"]]},
+        {"op": "half_plane", "side": "east",
+         "line": [["60 40.08 N", "145 58.61 W"], ["60 39.45 N", "145 58.88 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Two separate stream-mouth closures within Sheep Bay; union."
+    },
+    {
+      "id": "24.350(3)(C)",
+      "district": "Eastern District",
+      "paragraph": "(3)(C)",
+      "name": "Plateau Creek",
+      "definition_text": "south of a line from 60° 42.60' N. lat., 146° 08.28' W. long., to 60° 42.67' N, lat., 146° 07.80' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Plateau Creek"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 42.60 N", "146 08.28 W"], ["60 42.67 N", "146 07.80 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(D)",
+      "district": "Eastern District",
+      "paragraph": "(3)(D)",
+      "name": "Comfort Cove",
+      "definition_text": "east of a line from 60° 42.96' N. lat., 146° 05.67' W. long.; to 60° 42.70' N. lat., 146° 05.78' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Comfort Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 42.96 N", "146 05.67 W"], ["60 42.70 N", "146 05.78 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(E)",
+      "district": "Eastern District",
+      "paragraph": "(3)(E)",
+      "name": "Olsen Bay",
+      "definition_text": "north of 60° 44.06' N. lat.",
+      "scope": {"district": "Eastern District", "feature": "Olsen Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 44.06 N", "146 12.00 W"], ["60 44.06 N", "146 09.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(F)",
+      "district": "Eastern District",
+      "paragraph": "(3)(F)",
+      "name": "Beartrap Bay",
+      "definition_text": "east of a line from 60° 44.86' N. lat., 145° 59.64' W. long., to 60° 44.60' N. lat., 145° 59.86' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Beartrap Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 44.86 N", "145 59.64 W"], ["60 44.60 N", "145 59.86 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(G)",
+      "district": "Eastern District",
+      "paragraph": "(3)(G)",
+      "name": "Port Gravina",
+      "definition_text": "north of 60° 46.30' N, lat.",
+      "scope": {"district": "Eastern District", "feature": "Port Gravina"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 46.30 N", "146 15.00 W"], ["60 46.30 N", "145 50.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(H)",
+      "district": "Eastern District",
+      "paragraph": "(3)(H)",
+      "name": "St. Matthews Bay",
+      "definition_text": "east of a line at 146° 18.09' W. long., and within 500 yards of the northwestern shore, north of 60° 45.36' N. lat.",
+      "scope": {"district": "Eastern District", "feature": "Saint Matthews Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 44.00 N", "146 18.09 W"], ["60 47.00 N", "146 18.09 W"]]},
+        {"op": "buffer_streams", "radius_yards": 500,
+         "filter": {"north_of_lat": "60 45.36 N", "shore": "northwestern"}}
+      ],
+      "combine": "union",
+      "review_notes": "TWO PARTS: (a) east of meridian 146°18.09'W (whole bay east of that line); (b) within 500yd of NW shore, north of 60°45.36'N. Part (b) is a coastline-buffered strip, not a stream-buffer — the buffer_streams op here is a placeholder approximation. Reviewer: should this be a coastline buffer along the NW shore between two latitudes? Suggest hand-drawing this strip in QGIS."
+    },
+    {
+      "id": "24.350(3)(I)",
+      "district": "Eastern District",
+      "paragraph": "(3)(I)",
+      "name": "Snug Corner Cove",
+      "definition_text": "south of a line from 60° 43.51' N. lat, 146° 38.51' W. long., to 60° 43.82' N. lat, 146° 38.00' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Snug Corner Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 43.51 N", "146 38.51 W"], ["60 43.82 N", "146 38.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(J)",
+      "district": "Eastern District",
+      "paragraph": "(3)(J)",
+      "name": "Two Moon Bay",
+      "definition_text": "south of a line from 60° 44.74' N. lat., 146° 30.15' W. long. to 60° 44.63' N. lat., 146° 30.93' W. long.; and south of a line from 60° 44.25' N. lat., 146° 34.42' W. long., to 60° 44.23' N. lat, 146° 35.10' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Two Moon Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 44.74 N", "146 30.15 W"], ["60 44.63 N", "146 30.93 W"]]},
+        {"op": "half_plane", "side": "south",
+         "line": [["60 44.25 N", "146 34.42 W"], ["60 44.23 N", "146 35.10 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(K)",
+      "district": "Eastern District",
+      "paragraph": "(3)(K)",
+      "name": "Irish Cove",
+      "definition_text": "south of a line from 60° 46.13' N. lat., 146° 26.84' W. long., to 60° 46.06' N. lat., 146° 26.62' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Irish Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 46.13 N", "146 26.84 W"], ["60 46.06 N", "146 26.62 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Eastern-District Irish Cove (not the Northern-District one of the same name)."
+    },
+    {
+      "id": "24.350(3)(L)",
+      "district": "Eastern District",
+      "paragraph": "(3)(L)",
+      "name": "Whalen Bay",
+      "definition_text": "east of a line from 60° 49.23' N. lat., 146° 15.17' W. long., to 60° 48.59' N. lat., 146° 16.02' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Whalen Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 49.23 N", "146 15.17 W"], ["60 48.59 N", "146 16.02 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(M)",
+      "district": "Eastern District",
+      "paragraph": "(3)(M)",
+      "name": "Fidalgo River Delta",
+      "definition_text": "north of a line from 60° 51.79' N. lat., 146° 13.64' W. long., to 60° 51.75' N. lat., 146° 10.19' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Fidalgo River Delta"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 51.79 N", "146 13.64 W"], ["60 51.75 N", "146 10.19 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(N)",
+      "district": "Eastern District",
+      "paragraph": "(3)(N)",
+      "name": "Sunny River Delta",
+      "definition_text": "north of a line from 60° 51.99' N. lat., 146° 13.82' W. long., to 60° 51.85' N. lat., 146° 16.13' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Sunny River Delta"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 51.99 N", "146 13.82 W"], ["60 51.85 N", "146 16.13 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(O)",
+      "district": "Eastern District",
+      "paragraph": "(3)(O)",
+      "name": "Fidalgo Bay",
+      "definition_text": "east of a line from 60° 50.93' N. lat., 146° 08.05' W. long., to 60° 50.20' N. lat., 146° 07.03' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Fidalgo Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 50.93 N", "146 08.05 W"], ["60 50.20 N", "146 07.03 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(P)",
+      "district": "Eastern District",
+      "paragraph": "(3)(P)",
+      "name": "Short Creek",
+      "definition_text": "north of a line from 60° 50.99' N. lat., 146° 16.85' W. long., to 60° 51.12' N. lat., 146° 16.00' W. long., and west of a line from 60° 51.16' N. lat., 146° 15.93' W. long., to 60° 51.35' N. lat., 146° 16.10' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Short Creek"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 50.99 N", "146 16.85 W"], ["60 51.12 N", "146 16.00 W"]]},
+        {"op": "half_plane", "side": "west",
+         "line": [["60 51.16 N", "146 15.93 W"], ["60 51.35 N", "146 16.10 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(Q)",
+      "district": "Eastern District",
+      "paragraph": "(3)(Q)",
+      "name": "Fish Bay",
+      "definition_text": "north of 60° 48.92' N. lat.",
+      "scope": {"district": "Eastern District", "feature": "Fish Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 48.92 N", "146 22.00 W"], ["60 48.92 N", "146 18.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(R)",
+      "district": "Eastern District",
+      "paragraph": "(3)(R)",
+      "name": "Banzer Creek",
+      "definition_text": "within the bay east of a line from 60° 48.56' N. lat., 146° 33.53' W. long., to 60° 49.11' N. lat., 146° 33.85' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Banzer Creek"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 48.56 N", "146 33.53 W"], ["60 49.11 N", "146 33.85 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(S)",
+      "district": "Eastern District",
+      "paragraph": "(3)(S)",
+      "name": "Landlocked Bay",
+      "definition_text": "within the bay east of a line in the narrows from 60° 51.13' N. lat., 146° 34.05' W. long., to 60° 51.42' N. lat., 146° 34.12' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Landlocked Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 51.13 N", "146 34.05 W"], ["60 51.42 N", "146 34.12 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(T)",
+      "district": "Eastern District",
+      "paragraph": "(3)(T)",
+      "name": "Galena Bay",
+      "definition_text": "east of a line from 60° 55.64' N. lat., 146° 38.16' W. long., to 60° 56.41' N. lat., 146° 36.22' W. long., and within 1,000 yards of the north shore between 60° 57.13' N. lat., 146° 38.83' W. long., and 60° 56.81' N. lat., 146° 36.55' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Galena Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 55.64 N", "146 38.16 W"], ["60 56.41 N", "146 36.22 W"]]},
+        {"op": "buffer_points", "radius_yards": 1000,
+         "points": [["60 57.13 N", "146 38.83 W"], ["60 56.81 N", "146 36.55 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Second clause is a 1000yd shoreline strip between two named points on the north shore — encoded as point buffers as approximation. Hand-trace as coastline strip if precision matters."
+    },
+    {
+      "id": "24.350(3)(U)",
+      "district": "Eastern District",
+      "paragraph": "(3)(U)",
+      "name": "Jack Bay",
+      "definition_text": "south and east of a line from 61° 01.76' N. lat., 146° 34.52' W. long., to 61° 01.01' N. lat., 146° 34.34' W. long., and within 1,000 yards of the terminus of all other salmon streams of the bay",
+      "scope": {"district": "Eastern District", "feature": "Jack Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["61 01.76 N", "146 34.52 W"], ["61 01.01 N", "146 34.34 W"]]},
+        {"op": "buffer_streams", "radius_yards": 1000,
+         "filter": {"within_feature": "Jack Bay"}}
+      ],
+      "combine": "union",
+      "review_notes": "'south and east' = both — but the line is roughly N-S so 'south and east' realistically means SE side. Encoding as 'south'. Verify which side of the line by PDF."
+    },
+    {
+      "id": "24.350(3)(V)",
+      "district": "Eastern District",
+      "paragraph": "(3)(V)",
+      "name": "Mineral Creek Delta, Gold Creek, and Kadis Creek",
+      "definition_text": "north of a line from 61° 07.45' N. lat., 146° 23.75' W. long., to 61° 07.45' N. lat., 146° 29.80' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Port Valdez"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["61 07.45 N", "146 23.75 W"], ["61 07.45 N", "146 29.80 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(W)",
+      "district": "Eastern District",
+      "paragraph": "(3)(W)",
+      "name": "Head of Port Valdez",
+      "definition_text": "waters east of a line from a point west of the Valdez boat harbor at 61° 07.47' N. lat., 146° 22.67' W. long., to a point on the south shore at 61° 05.13' N. lat., 146° 17.82' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Port Valdez"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["61 07.47 N", "146 22.67 W"], ["61 05.13 N", "146 17.82 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(3)(X)",
+      "district": "Eastern District",
+      "paragraph": "(3)(X)",
+      "name": "Allison Creek, Sawmill Creek, Alyeska Safety Zone",
+      "definition_text": "within 200 yards of the shore from Allison Point at 61° 05.16' N. lat., 146° 20.72' W. long., to a point west of Sawmill Creek at 61° 04.81' N. lat., 146° 27.32' W. long.",
+      "scope": {"district": "Eastern District", "feature": "Port Valdez"},
+      "ops": [
+        {"op": "buffer_points", "radius_yards": 200,
+         "points": [
+           ["61 05.16 N", "146 20.72 W"],
+           ["61 05.05 N", "146 22.00 W"],
+           ["61 04.95 N", "146 23.50 W"],
+           ["61 04.85 N", "146 25.00 W"],
+           ["61 04.81 N", "146 27.32 W"]
+         ]}
+      ],
+      "combine": "union",
+      "review_notes": "200yd shoreline buffer between two endpoints on the south shore of Port Valdez. Encoded as point-buffers along the shore — hand-trace to coastline for precision."
+    },
+    {
+      "id": "24.350(3)(Y)",
+      "district": "Eastern District",
+      "paragraph": "(3)(Y)",
+      "name": "Sawmill Bay (Valdez Arm)",
+      "definition_text": "north of a line along 61° 03.14' N. lat., in the northern arm of the bay, and west of a line from 61° 03.14' N. lat., 146° 47.41' W. long., to 61° 02.74' N. lat., 146° 47.27' W. long., in the western arm of the bay",
+      "scope": {"district": "Eastern District", "feature": "Sawmill Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["61 03.14 N", "146 48.50 W"], ["61 03.14 N", "146 46.50 W"]]},
+        {"op": "half_plane", "side": "west",
+         "line": [["61 03.14 N", "146 47.41 W"], ["61 02.74 N", "146 47.27 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Two arms of Sawmill Bay (Valdez Arm — not the Southwestern District Sawmill Bay). Eastern District scope."
+    },
+    {
+      "id": "24.350(4)(A)",
+      "district": "Northern District",
+      "paragraph": "(4)(A)",
+      "name": "Long Bay (Northern)",
+      "definition_text": "north of a line from 60° 59.09' N. lat., 147° 14.52' W. long. to 60° 58.97' N. lat., 147° 13.17' W. long., north of a line from 60° 59.24' N. lat., 147° 16.35' W. long. to 60° 59.26' N. lat., 147° 16.59' W. long., north of a line from 60° 59.14' N. lat., 147° 16.93' W. long., to 60° 59.03' N. lat., 147° 17.32' W. long., and west of a line from 60° 58.46' N. lat., 147° 16.52' W. long., to 60° 57.52' N. lat., 147° 16.56' W. long.",
+      "scope": {"district": "Northern District", "feature": "Long Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 59.09 N", "147 14.52 W"], ["60 58.97 N", "147 13.17 W"]]},
+        {"op": "half_plane", "side": "north",
+         "line": [["60 59.24 N", "147 16.35 W"], ["60 59.26 N", "147 16.59 W"]]},
+        {"op": "half_plane", "side": "north",
+         "line": [["60 59.14 N", "147 16.93 W"], ["60 59.03 N", "147 17.32 W"]]},
+        {"op": "half_plane", "side": "west",
+         "line": [["60 58.46 N", "147 16.52 W"], ["60 57.52 N", "147 16.56 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Four separate stream-mouth/arm closures within Long Bay (Northern); union."
+    },
+    {
+      "id": "24.350(4)(B)",
+      "district": "Northern District",
+      "paragraph": "(4)(B)",
+      "name": "Granite Bay (Northern)",
+      "definition_text": "east of a line from 60° 55.35' N. lat., 147° 24.24' W. long., to 60° 55.26' N. lat., 147° 24.19' W. long.",
+      "scope": {"district": "Northern District", "feature": "Granite Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 55.35 N", "147 24.24 W"], ["60 55.26 N", "147 24.19 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Granite Bay in Northern District; not the Granite Bay Subdistrict in Coghill."
+    },
+    {
+      "id": "24.350(4)(C)",
+      "district": "Northern District",
+      "paragraph": "(4)(C)",
+      "name": "Cedar Bay (Northern)",
+      "definition_text": "north of 60° 58.00' N. lat.",
+      "scope": {"district": "Northern District", "feature": "Cedar Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 58.00 N", "147 27.00 W"], ["60 58.00 N", "147 22.00 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Northern-District Cedar Bay. Two same-named bays exist; gazetteer disambiguates by district."
+    },
+    {
+      "id": "24.350(4)(D)",
+      "district": "Northern District",
+      "paragraph": "(4)(D)",
+      "name": "Eaglek Bay",
+      "definition_text": "north of 60° 53.46' N. lat.",
+      "scope": {"district": "Northern District", "feature": "Eaglek Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 53.46 N", "147 47.00 W"], ["60 53.46 N", "147 39.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(4)(E)",
+      "district": "Northern District",
+      "paragraph": "(4)(E)",
+      "name": "Wells Bay",
+      "definition_text": "east of a line from 61° 00.59' N. lat., 147° 25.59' W. long., to 61° 00.16' N. lat., 147° 25.48' W. long., and north of a line from 61° 00.17' N. lat., 147° 28.88' W. long., to 61° 00.11' N. lat., 147° 29.31' W. long.",
+      "scope": {"district": "Northern District", "feature": "Wells Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["61 00.59 N", "147 25.59 W"], ["61 00.16 N", "147 25.48 W"]]},
+        {"op": "half_plane", "side": "north",
+         "line": [["61 00.17 N", "147 28.88 W"], ["61 00.11 N", "147 29.31 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(4)(F)",
+      "district": "Northern District",
+      "paragraph": "(4)(F)",
+      "name": "Siwash Bay",
+      "definition_text": "west of a line from 60° 57.48' N. lat., 147° 39.73' W. long., to 60° 56.97' N. lat., 147° 39.52' W. long.",
+      "scope": {"district": "Northern District", "feature": "Siwash Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 57.48 N", "147 39.73 W"], ["60 56.97 N", "147 39.52 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(4)(G)",
+      "district": "Northern District",
+      "paragraph": "(4)(G)",
+      "name": "Jonah Bay",
+      "definition_text": "west of a line from 61° 00.82' N. lat., 147° 38.63' W. long., to 60° 56.96' N. lat., 147° 38.51' W. long.",
+      "scope": {"district": "Northern District", "feature": "Jonah Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["61 00.82 N", "147 38.63 W"], ["60 56.96 N", "147 38.51 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(4)(H)",
+      "district": "Northern District",
+      "paragraph": "(4)(H)",
+      "name": "Unakwik Inlet (Northern portion)",
+      "definition_text": "within 1,000 yards of the terminus of all salmon streams north of 60° 51.97' N. lat.",
+      "scope": {"district": "Northern District", "feature": "Unakwik Inlet"},
+      "ops": [
+        {"op": "buffer_streams", "radius_yards": 1000,
+         "filter": {"north_of_lat": "60 51.97 N", "within_feature": "Unakwik Inlet"}}
+      ],
+      "combine": "union",
+      "review_notes": "Depends on AWC stream termini. May be empty if AWC has no points in this scope."
+    },
+    {
+      "id": "24.350(4)(I)",
+      "district": "Northern District",
+      "paragraph": "(4)(I)",
+      "name": "Derickson Bay",
+      "definition_text": "west of a line from 60° 52.18' N. lat., 147° 48.43' W. long., to 60° 51.88' N. lat., 147° 48.48' W. long.",
+      "scope": {"district": "Northern District", "feature": "Derickson Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 52.18 N", "147 48.43 W"], ["60 51.88 N", "147 48.48 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(4)(J)",
+      "district": "Northern District",
+      "paragraph": "(4)(J)",
+      "name": "Schoppe Bay",
+      "definition_text": "east of 147° 39.55' W. long.",
+      "scope": {"district": "Northern District", "feature": "Schoppe Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 53.00 N", "147 39.55 W"], ["60 56.00 N", "147 39.55 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(5)(A)",
+      "district": "Unakwik District",
+      "paragraph": "(5)(A)",
+      "name": "Unakwik Inlet (Southern portion)",
+      "definition_text": "Unakwik Inlets within 1,000 yards of the terminus of all salmon streams south of 61° 04.97' N. lat.",
+      "scope": {"district": "Unakwik District", "feature": "Unakwik Inlet"},
+      "ops": [
+        {"op": "buffer_streams", "radius_yards": 1000,
+         "filter": {"south_of_lat": "61 04.97 N", "within_feature": "Unakwik Inlet"}}
+      ],
+      "combine": "union",
+      "review_notes": "Depends on AWC stream termini in Unakwik Inlet south of 61° 04.97' N."
+    },
+    {
+      "id": "24.350(5)(B)",
+      "district": "Unakwik District",
+      "paragraph": "(5)(B)",
+      "name": "Miners Bay",
+      "definition_text": "east of a line from 61° 03.80' N. lat., 147° 30.27' W. long., to 61° 04.32' N. lat., 147° 29.94' W. long.",
+      "scope": {"district": "Unakwik District", "feature": "Miners Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["61 03.80 N", "147 30.27 W"], ["61 04.32 N", "147 29.94 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(A)",
+      "district": "Coghill District",
+      "paragraph": "(6)(A)",
+      "name": "Esther Passage",
+      "definition_text": "east of a line from 60° 51.49' N. lat., 147° 54.65' W, long., to 60° 52.36' N. lat., 147° 54.85' W. long.; and east of a line from 60° 54.20' N. lat., 147° 56.91' W. long., to 60° 53.83' N, lat., 147° 56.63' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Esther Passage"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 51.49 N", "147 54.65 W"], ["60 52.36 N", "147 54.85 W"]]},
+        {"op": "half_plane", "side": "east",
+         "line": [["60 54.20 N", "147 56.91 W"], ["60 53.83 N", "147 56.63 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(B)",
+      "district": "Coghill District",
+      "paragraph": "(6)(B)",
+      "name": "Golden River",
+      "definition_text": "east of a line from 60° 57.76' N. lat., 148° 00.82' W. long., to 60° 58.76' N. lat., 147° 59.59' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Golden River"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 57.76 N", "148 00.82 W"], ["60 58.76 N", "147 59.59 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(C)",
+      "district": "Coghill District",
+      "paragraph": "(6)(C)",
+      "name": "Coghill River",
+      "definition_text": "north of a line from 61° 04.06' N. lat., 147° 57.01' W. long., to 61° 03.33' N. lat., 147° 55.62' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Coghill River"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["61 04.06 N", "147 57.01 W"], ["61 03.33 N", "147 55.62 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(D)",
+      "district": "Coghill District",
+      "paragraph": "(6)(D)",
+      "name": "Barry Arm",
+      "definition_text": "north of a line from 61° 00.62' N. lat., 148° 05.61' W. long., to 61° 02.31' N. lat., 148° 07.00' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Barry Arm"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["61 00.62 N", "148 05.61 W"], ["61 02.31 N", "148 07.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(E)",
+      "district": "Coghill District",
+      "paragraph": "(6)(E)",
+      "name": "Harrison Lagoon",
+      "definition_text": "west of a line from 60° 59.37' N. lat., 148° 11.00' W. long., to 60° 58.14' N. lat., 148° 11.43' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Harrison Lagoon"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 59.37 N", "148 11.00 W"], ["60 58.14 N", "148 11.43 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(F)",
+      "district": "Coghill District",
+      "paragraph": "(6)(F)",
+      "name": "Hobo Bay",
+      "definition_text": "north of a line from 60° 57.14' N. lat., 148° 13.13' W. long., to 60° 56.76' N. lat., 148° 14.02' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Hobo Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 57.14 N", "148 13.13 W"], ["60 56.76 N", "148 14.02 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(6)(G)",
+      "district": "Coghill District",
+      "paragraph": "(6)(G)",
+      "name": "Bettles Bay",
+      "definition_text": "north and west of a line from 60° 56.42' N. lat., 148° 17.82' W. long., to 60° 56.76' N. lat., 148° 16.69' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Bettles Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 56.42 N", "148 17.82 W"], ["60 56.76 N", "148 16.69 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "'north and west' both apply — encoded as 'north' since the line trends WSW-ENE. Verify against PDF 223."
+    },
+    {
+      "id": "24.350(6)(H)",
+      "district": "Coghill District",
+      "paragraph": "(6)(H)",
+      "name": "Hummer Bay",
+      "definition_text": "north of a line from 60° 53.43' N. lat., 148° 17.42' W. long., to 60° 53.24' N. lat., 148° 18.31' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Hummer Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 53.43 N", "148 17.42 W"], ["60 53.24 N", "148 18.31 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Regulation text reads 'Hnmmer Bay' — almost certainly OCR for 'Hummer Bay'."
+    },
+    {
+      "id": "24.350(6)(I)",
+      "district": "Coghill District",
+      "paragraph": "(6)(I)",
+      "name": "Pirate Cove",
+      "definition_text": "west of a line from 60° 52.54' N. lat., 148° 17.68' W. long., to 60° 52.07' N. lat., 148° 17.62' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Pirate Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 52.54 N", "148 17.68 W"], ["60 52.07 N", "148 17.62 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Regulation text reads 'Pirate Coye' — almost certainly OCR for 'Pirate Cove'."
+    },
+    {
+      "id": "24.350(6)(J)",
+      "district": "Coghill District",
+      "paragraph": "(6)(J)",
+      "name": "Pigot Bay",
+      "definition_text": "west of a line from 60° 51.02' N. lat., 148° 20.97' W. long., to 60° 49.94' N. lat., 148° 21.92' W. long.",
+      "scope": {"district": "Coghill District", "feature": "Pigot Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 51.02 N", "148 20.97 W"], ["60 49.94 N", "148 21.92 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(A)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(A)",
+      "name": "Logging Camp Bay",
+      "definition_text": "north of a line from 60° 49.36' N. lat., 148° 25.29' W. long., to 60° 49.79' N. lat., 148° 26.22' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Logging Camp Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 49.36 N", "148 25.29 W"], ["60 49.79 N", "148 26.22 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(B)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(B)",
+      "name": "Blackstone Bay",
+      "definition_text": "south of a line from 60° 45.95' N. lat., 148° 29.56' W. long., to 60° 45.81' N. lat., 148° 26.61' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Blackstone Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 45.95 N", "148 29.56 W"], ["60 45.81 N", "148 26.61 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(C)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(C)",
+      "name": "Passage Canal (Shotgun Cove)",
+      "definition_text": "south of a line from 60° 48.11' N. lat., 148° 33.08' W. long., to 60° 47.90' N. lat., 148° 32.09' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Shotgun Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 48.11 N", "148 33.08 W"], ["60 47.90 N", "148 32.09 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(D)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(D)",
+      "name": "Cochrane Bay (multi-arm)",
+      "definition_text": "southwest of a line from 60° 39.61' N. lat., 148° 25.41' W. long., to 60° 38.17' N. lat., 148° 24.57' W. long., west of a line from 60° 43.76' N. lat., 148° 22.52' W. long., to 60° 41.45' N. lat., 148° 23.09' W. long., east of a line from 60° 39.96' N. lat., 148° 21.67' W. long., to 60° 39.33' N. lat., 148° 22.27' W. long., and Surprise Cove west of a line from 60° 45.89' N. lat., 148° 22.02' W. long., to 60° 45.12' N. lat., 148° 22.31' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Cochrane Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 39.61 N", "148 25.41 W"], ["60 38.17 N", "148 24.57 W"]]},
+        {"op": "half_plane", "side": "west",
+         "line": [["60 43.76 N", "148 22.52 W"], ["60 41.45 N", "148 23.09 W"]]},
+        {"op": "half_plane", "side": "east",
+         "line": [["60 39.96 N", "148 21.67 W"], ["60 39.33 N", "148 22.27 W"]]},
+        {"op": "half_plane", "side": "west",
+         "line": [["60 45.89 N", "148 22.02 W"], ["60 45.12 N", "148 22.31 W"]],
+         "scope_feature": "Surprise Cove"}
+      ],
+      "combine": "union",
+      "review_notes": "OCR'd '60° 38.1 T' interpreted as '60° 38.17' (Tier-2 transcription guess). 'southwest of' encoded as 'south'. Multi-arm closure — verify against PDF 224."
+    },
+    {
+      "id": "24.350(7)(E)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(E)",
+      "name": "Long Bay (Culross Passage)",
+      "definition_text": "west of a line from 60° 41.87' N. lat., 148° 15.74' W. long., to 60° 41.61' N. lat., 148° 15.52' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Long Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 41.87 N", "148 15.74 W"], ["60 41.61 N", "148 15.52 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Long Bay in Culross Passage (NW District) — distinct from Long Bay (Northern District 4.A). Gazetteer disambiguates by district."
+    },
+    {
+      "id": "24.350(7)(F)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(F)",
+      "name": "Port Nellie Juan (Mink Creek)",
+      "definition_text": "northwest of a line from 60° 35.66' N. lat., 148° 13.82' W. long., to 60° 34.56' N. lat., 148° 16.47' W. long.; and north of a line from 60° 33.61' N. lat., 148° 17.79' W. long., to 60° 33.90' N. lat., 148° 17.34' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Port Nellie Juan"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 35.66 N", "148 13.82 W"], ["60 34.56 N", "148 16.47 W"]]},
+        {"op": "half_plane", "side": "north",
+         "line": [["60 33.61 N", "148 17.79 W"], ["60 33.90 N", "148 17.34 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "'northwest of' encoded as 'north'."
+    },
+    {
+      "id": "24.350(7)(G)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(G)",
+      "name": "East Finger Inlet",
+      "definition_text": "north of 60° 32.51' N. lat.",
+      "scope": {"district": "Northwestern District", "feature": "East Finger Inlet"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 32.51 N", "148 24.00 W"], ["60 32.51 N", "148 21.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(H)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(H)",
+      "name": "West Finger Inlet",
+      "definition_text": "north of a line from 60° 34.16' N. lat., 148° 27.02' W. long., to 60° 34.11' N. lat., 148° 26.21' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "West Finger Inlet"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 34.16 N", "148 27.02 W"], ["60 34.11 N", "148 26.21 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(I)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(I)",
+      "name": "Kings Bay",
+      "definition_text": "south of a line from 60° 28.27' N. lat., 148° 41.50' W. long., to 60° 27.81' N. lat., 148° 37.94' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Kings Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 28.27 N", "148 41.50 W"], ["60 27.81 N", "148 37.94 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(J)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(J)",
+      "name": "Greystone Bay",
+      "definition_text": "south of a line from 60° 31.53' N. lat., 148° 26.16' W. long., to 60° 31.00' N. lat., 148° 25.58' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "Greystone Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 31.53 N", "148 26.16 W"], ["60 31.00 N", "148 25.58 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(7)(K)",
+      "district": "Northwestern District",
+      "paragraph": "(7)(K)",
+      "name": "McClure Bay",
+      "definition_text": "south of a line from 60° 30.21' N. lat., 148° 10.95' W. long., to 60° 30.29' N. lat., 148° 09.61' W. long.",
+      "scope": {"district": "Northwestern District", "feature": "McClure Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 30.21 N", "148 10.95 W"], ["60 30.29 N", "148 09.61 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(8)(A)",
+      "district": "Eshamy District",
+      "paragraph": "(8)(A)",
+      "name": "Eshamy Bay (Lagoon and tributaries)",
+      "definition_text": "Eshamy Bay and its tributary waters: waters within the Eshamy Lagoon and its tributaries and within 100 yards outside the narrows at the entrance of Eshamy Lagoon",
+      "scope": {"district": "Eshamy District", "feature": "Eshamy Bay"},
+      "ops": [
+        {"op": "whole_feature", "feature": "Eshamy Lagoon"},
+        {"op": "buffer_points", "radius_yards": 100,
+         "points": [["60 27.50 N", "147 58.50 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Eshamy Lagoon polygon must come from gazetteer/OSM. Buffer point at narrows is approximate; verify against PDF 225."
+    },
+    {
+      "id": "24.350(8)(B)",
+      "district": "Eshamy District",
+      "paragraph": "(8)(B)",
+      "name": "Gumboot Creek",
+      "definition_text": "within 750 yards of the terminus of Gumboot Creek on the northern shore of Eshamy Bay",
+      "scope": {"district": "Eshamy District", "feature": "Eshamy Bay"},
+      "ops": [
+        {"op": "buffer_streams", "radius_yards": 750,
+         "filter": {"name_contains": "Gumboot"}}
+      ],
+      "combine": "union",
+      "review_notes": "Depends on AWC having a Gumboot Creek terminus point. If absent, falls back to nothing — flag for review."
+    },
+    {
+      "id": "24.350(9)(A)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(A)",
+      "name": "Dangerous Passage stream buffers",
+      "definition_text": "within 1,000 yards of all salmon streams in Dangerous Passage between 148° 08.87' W. long. and 148° 02.62' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Dangerous Passage"},
+      "ops": [
+        {"op": "buffer_streams", "radius_yards": 1000,
+         "filter": {"between_lon": ["148 08.87 W", "148 02.62 W"], "within_feature": "Dangerous Passage"}}
+      ],
+      "combine": "union",
+      "review_notes": "Depends on AWC stream points within Dangerous Passage between two longitudes."
+    },
+    {
+      "id": "24.350(9)(B)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(B)",
+      "name": "Ewan Bay",
+      "definition_text": "west of 148° 08.35' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Ewan Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 28.00 N", "148 08.35 W"], ["60 32.00 N", "148 08.35 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(C)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(C)",
+      "name": "Paddy Bay",
+      "definition_text": "north of a line from 60° 23.97' N. lat., 148° 06.07' W. long. to 60° 23.91' N. lat., 148° 04.91' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Paddy Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 23.97 N", "148 06.07 W"], ["60 23.91 N", "148 04.91 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(D)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(D)",
+      "name": "Jackpot Bay",
+      "definition_text": "north and west of a line from 60° 20.74' N. lat., 148° 13.18' W. long. to 60° 20.52' N. lat., 148° 13.41' W. long",
+      "scope": {"district": "Southwestern District", "feature": "Jackpot Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 20.74 N", "148 13.18 W"], ["60 20.52 N", "148 13.41 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "'north and west of' — line is roughly NE-SW; closure is the upper/west pocket. Encoded as 'north'."
+    },
+    {
+      "id": "24.350(9)(E)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(E)",
+      "name": "Whale Bay",
+      "definition_text": "south of 60° 14.16' N. lat.",
+      "scope": {"district": "Southwestern District", "feature": "Whale Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 14.16 N", "148 18.00 W"], ["60 14.16 N", "148 06.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(F)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(F)",
+      "name": "Port Bainbridge",
+      "definition_text": "north of a line from 60° 09.72' N. lat., 148° 19.96' W. long. to 60° 09.68' N. lat., 148° 20.56' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Port Bainbridge"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 09.72 N", "148 19.96 W"], ["60 09.68 N", "148 20.56 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(G)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(G)",
+      "name": "Hogg Bay",
+      "definition_text": "north of a line from 60° 05.10' N. lat., 148° 12.05' W. long., to 60° 04.94' N. lat., 148° 11.75' W. long., and east of a line from 60° 04.32' N. lat., 148° 11.47' W. long., to 60° 04.01' N. lat., 148° 11.62' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Hogg Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 05.10 N", "148 12.05 W"], ["60 04.94 N", "148 11.75 W"]]},
+        {"op": "half_plane", "side": "east",
+         "line": [["60 04.32 N", "148 11.47 W"], ["60 04.01 N", "148 11.62 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(H)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(H)",
+      "name": "Bainbridge Island bay",
+      "definition_text": "within the bay south of a line from 60° 07.58' N. lat., 148° 06.83' W. long., to 60° 07.80' N. lat., 148° 06.31' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Bainbridge Island"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 07.58 N", "148 06.83 W"], ["60 07.80 N", "148 06.31 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(I)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(I)",
+      "name": "Ikuta Bay",
+      "definition_text": "south of a line from 60° 06.58' N. lat., 148° 00.80' W. long., to 60° 06.60' N. lat., 148° 00.12' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Ikuta Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 06.58 N", "148 00.80 W"], ["60 06.60 N", "148 00.12 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(J)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(J)",
+      "name": "Mummy Bay",
+      "definition_text": "north of a line from 60° 13.75' N. lat., 147° 49.12' W. long., to 60° 13.31' N. lat., 147° 48.57' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Mummy Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 13.75 N", "147 49.12 W"], ["60 13.31 N", "147 48.57 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(K)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(K)",
+      "name": "Thumb Bay",
+      "definition_text": "south and east of a line from 60° 12.83' N. lat., 147° 48.82' W. long., to 60° 12.61' N. lat., 147° 49.52' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Thumb Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 12.83 N", "147 48.82 W"], ["60 12.61 N", "147 49.52 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "'south and east of' — encoded as 'south'."
+    },
+    {
+      "id": "24.350(9)(L)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(L)",
+      "name": "Hogan Bay",
+      "definition_text": "north of 60° 12.00' N. lat.",
+      "scope": {"district": "Southwestern District", "feature": "Hogan Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 12.00 N", "147 47.00 W"], ["60 12.00 N", "147 44.00 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(9)(M)",
+      "district": "Southwestern District",
+      "paragraph": "(9)(M)",
+      "name": "Snug Harbor",
+      "definition_text": "west of 147° 45.55' W. long.",
+      "scope": {"district": "Southwestern District", "feature": "Snug Harbor"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 09.00 N", "147 45.55 W"], ["60 12.00 N", "147 45.55 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(10)(A)",
+      "district": "Montague District",
+      "paragraph": "(10)(A)",
+      "name": "Zaikof Bay",
+      "definition_text": "south of 60° 16.86' N. lat., and within 1,000 yards of the southeastern shore of the bay from a point at 60° 17.94' N. lat., 147° 00.15' W. long. to a line at 60° 16.86' N. lat.",
+      "scope": {"district": "Montague District", "feature": "Zaikof Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 16.86 N", "147 03.00 W"], ["60 16.86 N", "146 56.00 W"]]},
+        {"op": "buffer_points", "radius_yards": 1000,
+         "points": [["60 17.94 N", "147 00.15 W"], ["60 17.40 N", "146 59.40 W"], ["60 16.86 N", "146 58.80 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Two clauses: parallel cut + 1000yd shoreline strip on SE shore. Strip approximated by point buffers along the shore from 60°17.94'N down to the parallel — hand-trace if precision matters."
+    },
+    {
+      "id": "24.350(10)(B)",
+      "district": "Montague District",
+      "paragraph": "(10)(B)",
+      "name": "Rocky Bay",
+      "definition_text": "west of a line from a point at 60° 21.30' N. lat., 147° 06.66' W. long. to a point at 60° 20.54' N. lat., 147° 05.61' W. long.",
+      "scope": {"district": "Montague District", "feature": "Rocky Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 21.30 N", "147 06.66 W"], ["60 20.54 N", "147 05.61 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(10)(C)",
+      "district": "Montague District",
+      "paragraph": "(10)(C)",
+      "name": "Stockdale Harbor",
+      "definition_text": "east of a line from a point at 60° 19.56' N. lat., 147° 12.02' W. long. to a point at 60° 18.26' N. lat., 147° 11.72' W. long.",
+      "scope": {"district": "Montague District", "feature": "Stockdale Harbor"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 19.56 N", "147 12.02 W"], ["60 18.26 N", "147 11.72 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(10)(D)",
+      "district": "Montague District",
+      "paragraph": "(10)(D)",
+      "name": "Port Chalmers",
+      "definition_text": "within a line from a point at 60° 16.97' N. lat., 147° 12.62' W. long. to a point at 60° 16.06' N. lat., 147° 12.63' W. long., from a point at 60° 15.37' N. lat., 147° 12.31' W. long. to a point at 60° 14.16' N. lat., 147° 14.42' W. long., and from a point at 60° 13.86' N. lat., 147° 14.77' W. long. to a point at 60° 13.56' N. lat., 147° 16.82' W. long.",
+      "scope": {"district": "Montague District", "feature": "Port Chalmers"},
+      "ops": [
+        {"op": "polyline_split", "side": "east",
+         "line": [
+           ["60 16.97 N", "147 12.62 W"],
+           ["60 16.06 N", "147 12.63 W"],
+           ["60 15.37 N", "147 12.31 W"],
+           ["60 14.16 N", "147 14.42 W"],
+           ["60 13.86 N", "147 14.77 W"],
+           ["60 13.56 N", "147 16.82 W"]
+         ]}
+      ],
+      "combine": "union",
+      "review_notes": "Multi-segment line bounding the closure on its outer (eastern/seaward) side. 'east' picks the inner Port Chalmers side. Verify against PDF 227 — this may need to be 'west' depending on how the line is drawn."
+    },
+    {
+      "id": "24.350(10)(E)",
+      "district": "Montague District",
+      "paragraph": "(10)(E)",
+      "name": "Hanning Bay",
+      "definition_text": "east of a line from a point at 59° 58.93' N. lat., 147° 41.46' W. long. to a point at 59° 57.15' N. lat., 147° 42.99' W. long.",
+      "scope": {"district": "Montague District", "feature": "Hanning Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["59 58.93 N", "147 41.46 W"], ["59 57.15 N", "147 42.99 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(10)(F)",
+      "district": "Montague District",
+      "paragraph": "(10)(F)",
+      "name": "MacLeod Harbor",
+      "definition_text": "east of a line from a point at 59° 53.26' N. lat., 147° 46.12' W. long. to a point at 59° 52.46' N. lat., 147° 46.52' W. long.",
+      "scope": {"district": "Montague District", "feature": "MacLeod Harbor"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["59 53.26 N", "147 46.12 W"], ["59 52.46 N", "147 46.52 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(10)(G)",
+      "district": "Montague District",
+      "paragraph": "(10)(G)",
+      "name": "Montague Strait shoreline strip",
+      "definition_text": "within 500 yards of the northwestern shore of Montague Island from 60° 04.61' N. lat., 147° 28.82' W. long. to 60° 03.13' N. lat., 147° 33.17' W. long., and from 60° 02.10' N. lat., 147° 34.28' W. long. to 59° 59.94' N. lat., 147° 40.57' W. long.",
+      "scope": {"district": "Montague District", "feature": null},
+      "ops": [
+        {"op": "buffer_points", "radius_yards": 500,
+         "points": [
+           ["60 04.61 N", "147 28.82 W"], ["60 04.20 N", "147 30.20 W"], ["60 03.70 N", "147 31.70 W"], ["60 03.13 N", "147 33.17 W"],
+           ["60 02.10 N", "147 34.28 W"], ["60 01.45 N", "147 35.80 W"], ["60 00.85 N", "147 37.50 W"], ["60 00.30 N", "147 39.10 W"], ["59 59.94 N", "147 40.57 W"]
+         ]}
+      ],
+      "combine": "union",
+      "review_notes": "Two 500yd shoreline strips along NW coast of Montague Island. Encoded with intermediate interpolated points; hand-trace to coastline for precision."
+    },
+    {
+      "id": "24.350(10)(H)",
+      "district": "Montague District",
+      "paragraph": "(10)(H)",
+      "name": "Green Island",
+      "definition_text": "west of a line from 60° 18.19' N. lat., 147° 23.51' W. long., to 60° 18.19' N. lat., 147° 21.02' W. long., and east of a line from 60° 16.37' N. lat., 147° 26.51' W. long., to 60° 16.99' N. lat., 147° 26.07' W. long.",
+      "scope": {"district": "Montague District", "feature": "Green Island"},
+      "ops": [
+        {"op": "half_plane", "side": "west",
+         "line": [["60 18.19 N", "147 23.51 W"], ["60 18.19 N", "147 21.02 W"]]},
+        {"op": "half_plane", "side": "east",
+         "line": [["60 16.37 N", "147 26.51 W"], ["60 16.99 N", "147 26.07 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "Two separate closure lines around Green Island (north shore + west shore stream mouth). Verify sides against PDF 227."
+    },
+    {
+      "id": "24.350(11)(A)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(A)",
+      "name": "Port Etches",
+      "definition_text": "east of a line from 60° 21.09' N. lat., 146° 33.94' W. long. to 60° 20.06' N. lat., 146° 32.72' W. long., and south of a line from 60° 19.71' N. lat., 146° 34.11' W. long., to 60° 19.01' N. lat., 146° 35.62' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Port Etches"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 21.09 N", "146 33.94 W"], ["60 20.06 N", "146 32.72 W"]]},
+        {"op": "half_plane", "side": "south",
+         "line": [["60 19.71 N", "146 34.11 W"], ["60 19.01 N", "146 35.62 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(B)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(B)",
+      "name": "Constantine Harbor",
+      "definition_text": "within the harbor from 60° 21.25' N. lat., 146° 36.29' W. long., to 60° 21.04' N. lat., 146° 37.10' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Constantine Harbor"},
+      "ops": [
+        {"op": "half_plane", "side": "north",
+         "line": [["60 21.25 N", "146 36.29 W"], ["60 21.04 N", "146 37.10 W"]]}
+      ],
+      "combine": "union",
+      "review_notes": "'within the harbor from A to B' — interpreted as the harbor north/inside of the entrance line. Verify side against PDF 228."
+    },
+    {
+      "id": "24.350(11)(C)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(C)",
+      "name": "Deer Cove (Hinchinbrook Island)",
+      "definition_text": "east of a line from 60° 23.35' N. lat., 146° 43.58' W. long., to 60° 23.81' N. lat., 146° 42.73' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Deer Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 23.35 N", "146 43.58 W"], ["60 23.81 N", "146 42.73 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(D)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(D)",
+      "name": "Juania Cove (Hinchinbrook Island)",
+      "definition_text": "east of a line from 60° 24.07' N. lat., 146° 42.73' W. long., to 60° 24.70' N. lat., 146° 42.30' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Juania Cove"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 24.07 N", "146 42.73 W"], ["60 24.70 N", "146 42.30 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(E)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(E)",
+      "name": "Shelter Bay (Hinchinbrook Island)",
+      "definition_text": "east of a line from 60° 26.31' N. lat., 146° 40.12' W. long., to 60° 25.66' N. lat., 146° 40.02' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Shelter Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "east",
+         "line": [["60 26.31 N", "146 40.12 W"], ["60 25.66 N", "146 40.02 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(F)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(F)",
+      "name": "Anderson Bay",
+      "definition_text": "south of a line from 60° 28.24' N. lat., 146° 30.78' W. long., to 60° 28.42' N. lat., 146° 31.20' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Anderson Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 28.24 N", "146 30.78 W"], ["60 28.42 N", "146 31.20 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(G)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(G)",
+      "name": "Double Bay",
+      "definition_text": "south of a line from 60° 28.03' N. lat., 146° 29.11' W. long., to 60° 28.26' N. lat., 146° 28.55' W. long., and south of a line from 60° 28.25' N. lat., 146° 27.71' W. long., to 60° 28.02' N. lat., 146° 26.61' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Double Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 28.03 N", "146 29.11 W"], ["60 28.26 N", "146 28.55 W"]]},
+        {"op": "half_plane", "side": "south",
+         "line": [["60 28.25 N", "146 27.71 W"], ["60 28.02 N", "146 26.61 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(H)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(H)",
+      "name": "Hawkins Cutoff / Orca Inlet",
+      "definition_text": "south of a line from 60° 27.86' N. lat., 146° 19.72' W. long., to 60° 27.65' N. lat., 146° 21.39' W. long., and Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point, and all of Orca Inlet southeast of Hawkins Island",
+      "scope": {"district": "Southeastern District", "feature": null},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 27.86 N", "146 19.72 W"], ["60 27.65 N", "146 21.39 W"]]},
+        {"op": "half_plane", "side": "south",
+         "line": [["60 33.50 N", "145 56.30 W"], ["60 32.30 N", "145 53.00 W"]]},
+        {"op": "whole_feature", "feature": "Orca Inlet southeast of Hawkins Island"}
+      ],
+      "combine": "union",
+      "review_notes": "Restates Eastern (3)(A) Orca Inlet/Hawkins clauses. Verify Salmo Pt and Shepard Pt coords against gazetteer."
+    },
+    {
+      "id": "24.350(11)(I)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(I)",
+      "name": "Canoe Passage",
+      "definition_text": "south of a line from 60° 31.18' N. lat., 146° 07.43' W. long., to 60° 31.13' N. lat., 146° 07.07' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Canoe Passage"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 31.18 N", "146 07.43 W"], ["60 31.13 N", "146 07.07 W"]]}
+      ],
+      "combine": "union"
+    },
+    {
+      "id": "24.350(11)(J)",
+      "district": "Southeastern District",
+      "paragraph": "(11)(J)",
+      "name": "Windy Bay",
+      "definition_text": "south of a line from 60° 33.89' N. lat., 145° 57.69' W. long., to 60° 33.71' N. lat., 145° 58.64' W. long.",
+      "scope": {"district": "Southeastern District", "feature": "Windy Bay"},
+      "ops": [
+        {"op": "half_plane", "side": "south",
+         "line": [["60 33.89 N", "145 57.69 W"], ["60 33.71 N", "145 58.64 W"]]}
+      ],
+      "combine": "union"
+    }
+  ],
+  "omitted": [
+    {
+      "id": "24.350(12)",
+      "reason": "5 AAC 39.290 stream-mouth buffer rule. Per user direction, the AWC stream-mouth filter layer in public/awc-points.json already covers this on the frontend. No static polygons drawn here."
+    }
+  ]
+}

@@ -174,6 +174,19 @@
     }, true);
   }
 
+  // ── Subtle haptic feedback on tap (native only) ────────────
+  // Fires a light impact when any button or .btn is tapped. iOS users
+  // expect this; Android Capacitor maps it to vibrate. On web it's
+  // a no-op. Disabled controls don't fire.
+  if (isNative && Cap && Cap.Plugins && Cap.Plugins.Haptics) {
+    document.addEventListener('click', function (ev) {
+      var t = ev.target && ev.target.closest && ev.target.closest('button, .btn, [role="button"]');
+      if (!t) return;
+      if (t.disabled || t.getAttribute('aria-disabled') === 'true') return;
+      try { Cap.Plugins.Haptics.impact({ style: 'LIGHT' }); } catch (_) {}
+    }, true);
+  }
+
   window.akfiPlatform = {
     isNative: isNative,
     platform: platform,
