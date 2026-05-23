@@ -1409,6 +1409,52 @@ function pointInGeoJSON(lon, lat, fc) {
   return false;
 }
 
+// Closest-point distance from (lon, lat) to any edge of any Polygon /
+// MultiPolygon in `fc`, in meters. Uses an equirectangular projection
+// anchored at each segment\'s mean latitude — good to ~0.1% at PWS
+// scales (sub-km distances at lat ~60). Stops early once a sub-radius
+// hit is found.
+function distancePointToGeoJSONMeters(lon, lat, fc, earlyExitMeters) {
+  if (!fc || !fc.features) return Infinity;
+  const R = 6371000;
+  const DEG = Math.PI / 180;
+  function segDist(ax, ay, bx, by) {
+    const meanLat = (ay + by) * 0.5 * DEG;
+    const lonToM = R * Math.cos(meanLat) * DEG;
+    const latToM = R * DEG;
+    const Px = (lon - ax) * lonToM;
+    const Py = (lat - ay) * latToM;
+    const Bx = (bx - ax) * lonToM;
+    const By = (by - ay) * latToM;
+    const len2 = Bx * Bx + By * By;
+    let t = len2 ? (Px * Bx + Py * By) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const cx = Bx * t, cy = By * t;
+    return Math.sqrt((Px - cx) * (Px - cx) + (Py - cy) * (Py - cy));
+  }
+  let minD = Infinity;
+  const visitRing = (ring) => {
+    for (let i = 0; i + 1 < ring.length; i++) {
+      const d = segDist(ring[i][0], ring[i][1], ring[i + 1][0], ring[i + 1][1]);
+      if (d < minD) {
+        minD = d;
+        if (earlyExitMeters != null && minD <= earlyExitMeters) return true;
+      }
+    }
+    return false;
+  };
+  for (const f of fc.features) {
+    const g = f.geometry; if (!g) continue;
+    const polys = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
+    for (const poly of polys) {
+      for (const ring of poly) {
+        if (visitRing(ring)) return minD;
+      }
+    }
+  }
+  return minD;
+}
+
 function rebuildStreamLayer() {
   if (!streamLayerRef || !AWC_POINTS_CACHE) return;
   streamLayerRef.clearLayers();
@@ -1417,7 +1463,18 @@ function rebuildStreamLayer() {
   const fc = SUSPENDED_STREAM_ZONES;
   let suppressed = 0;
   for (const pt of AWC_POINTS_CACHE) {
-    if (fc && pointInGeoJSON(pt.lon, pt.lat, fc)) { suppressed++; continue; }
+    if (fc) {
+      // Suppress if the point is inside a suspended zone OR if the
+      // point\'s buffer circle (radius_yards) reaches the zone. ADF&G
+      // anadromous-buffer points often sit just outside the polygon
+      // edge while the 500-yard buffer extends well inside.
+      const bufM = pt.yards * YARDS_TO_M;
+      if (pointInGeoJSON(pt.lon, pt.lat, fc) ||
+          distancePointToGeoJSONMeters(pt.lon, pt.lat, fc, bufM) <= bufM) {
+        suppressed++;
+        continue;
+      }
+    }
     L.circle([pt.lat, pt.lon], {
       renderer: canvasRenderer,
       radius: pt.yards * YARDS_TO_M,

@@ -151,6 +151,43 @@ def extract_text_from_string(text):
 # CLAUDE PARSING
 # ============================================================
 
+_HATCHERY_AREA_TO_DISTRICT = None  # {"afk tha": "southwestern district", ...}
+
+
+def _hatchery_area_district(name):
+    """Return the lowercased parent district name for a hatchery area alias,
+    or None if unknown. Lazily reads from the stat-areas shapefile so the
+    lookup matches whatever ADF&G ships.
+    """
+    global _HATCHERY_AREA_TO_DISTRICT
+    if _HATCHERY_AREA_TO_DISTRICT is None:
+        _HATCHERY_AREA_TO_DISTRICT = {}
+        # Build a stat_id -> district lookup, then alias -> district.
+        stat_areas_dir = next((p for p in DATA.glob("*StatisticalAreas*") if p.is_dir()), None)
+        if stat_areas_dir:
+            shp = next(stat_areas_dir.glob("*.shp"), None)
+            if shp:
+                try:
+                    sf = shapefile.Reader(str(shp))
+                    fields = [f[0] for f in sf.fields[1:]]
+                    stat_to_dist = {}
+                    for rec in sf.shapeRecords():
+                        a = dict(zip(fields, rec.record))
+                        try:
+                            sid = int(a.get('STAT_AREA') or 0)
+                        except (ValueError, TypeError):
+                            continue
+                        dist = (a.get('DISTRICT_N') or '').strip().lower()
+                        if sid and dist:
+                            stat_to_dist[sid] = dist
+                    for alias, sid in HATCHERY_ALIAS_TO_STAT_AREA.items():
+                        if sid in stat_to_dist:
+                            _HATCHERY_AREA_TO_DISTRICT[alias] = stat_to_dist[sid]
+                except Exception as e:
+                    print(f"WARNING: failed to build hatchery->district map: {e}", file=sys.stderr)
+    return _HATCHERY_AREA_TO_DISTRICT.get((name or '').lower().strip())
+
+
 def _normalize_hatchery_only_openings(districts, full_text):
     """Defensive backstop for hatchery-only openings.
 
@@ -177,6 +214,26 @@ def _normalize_hatchery_only_openings(districts, full_text):
         d_name = d.get('district') or ''
         if not d_name or d.get('status') != 'open':
             continue
+
+        # 0. Strip cross-district hallucinations. Claude sometimes copies
+        #    a hatchery list from one district\'s clause onto another\'s
+        #    output. Validate every entry against the stat-areas shapefile
+        #    and drop anything whose parent district doesn\'t match d_name.
+        raw_restrict = d.get('restrict_to_hatchery_areas') or []
+        if raw_restrict:
+            d_lower = d_name.lower().strip()
+            kept = []
+            for area in raw_restrict:
+                parent = _hatchery_area_district(area)
+                if parent and parent != d_lower:
+                    print(f"  [normalize] {d_name}: dropping cross-district "
+                          f"restrict_to_hatchery_areas entry {area!r} "
+                          f"(belongs to {parent!r})", file=sys.stderr)
+                    continue
+                kept.append(area)
+            if kept != raw_restrict:
+                d['restrict_to_hatchery_areas'] = kept
+
         para = _slice_district_paragraph(full_text, d_name)
         if not para:
             continue
@@ -2121,9 +2178,12 @@ def build_html(all_results, geojson_data, pdf_texts):
                 d_name, _slice_district_paragraph(pdf_texts.get(pdf_name, ''), d_name)
             )
             override_geom = None
+            override_subd_label = None
             if override_entry is not None:
                 override_geom = override_entry.get('geom')
                 clip_subd = override_entry.get('subdistrict')
+                if clip_subd:
+                    override_subd_label = clip_subd.title()
                 if clip_subd and override_geom is not None:
                     subd_geom = subd_geoms.get(clip_subd)
                     if subd_geom is not None:
@@ -2184,6 +2244,16 @@ def build_html(all_results, geojson_data, pdf_texts):
             if open_geom is None:
                 print(f"WARNING: open area is empty/invalid for '{d_name}', skipping", file=sys.stderr)
                 continue
+
+            # Note the scope label for the card notice — prefer the override
+            # subdistrict if the geometry came from an override, then the
+            # hatchery-area list when restricted, otherwise the district name.
+            if override_subd_label:
+                d['_scope_label'] = override_subd_label
+            elif d.get('restrict_to_hatchery_areas'):
+                d['_scope_label'] = ', '.join(d['restrict_to_hatchery_areas'])
+            else:
+                d['_scope_label'] = d_name
 
             district_open_geoms[district_key] = open_geom
 
@@ -2400,17 +2470,12 @@ def build_html(all_results, geojson_data, pdf_texts):
             # Stream-closure suspension notice — surface the
             # anadromous_closures_suspended flag in plain text so users
             # know WHY the orange stream-buffer circles disappeared on the
-            # map for this opening.
+            # map for this opening. Scope label is set during geometry
+            # resolution and is the override subdistrict, the restricted
+            # hatchery list, or the district name (in that priority).
             suspension_html = ""
             if d.get('anadromous_closures_suspended'):
-                # Name the suspended area as specifically as possible:
-                # - if the opening is restricted to hatchery areas, list those;
-                # - else fall back to the district name.
-                restrict_names = d.get('restrict_to_hatchery_areas') or []
-                if restrict_names:
-                    scope = ', '.join(restrict_names)
-                else:
-                    scope = d.get('district') or 'this opening'
+                scope = d.get('_scope_label') or d.get('district') or 'this opening'
                 suspension_html = (
                     f'<div class="suspend-notice">'
                     f'Stream closures within {scope} have been suspended for this period.'
