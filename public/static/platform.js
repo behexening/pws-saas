@@ -187,11 +187,113 @@
     }, true);
   }
 
+  // ── Native confirm dialog ─────────────────────────────────
+  // Replacement for browser `confirm()`. The system confirm is fine but
+  // looks identifiably "web" inside the Capacitor shell (rounded white
+  // box, OS button styles). This one is theme-matched (sharp corners,
+  // dark/light), safe-area aware, focus-trapped, and returns a Promise
+  // so callers can `await akfiConfirm('...')`.
+  //
+  // Falls back to native confirm() if document isn't ready (e.g. early
+  // in page load).
+  function akfiConfirm(message, opts) {
+    opts = opts || {};
+    var okText     = opts.ok     || 'OK';
+    var cancelText = opts.cancel || 'Cancel';
+    var destructive = !!opts.destructive;
+    if (typeof document === 'undefined' || !document.body) {
+      return Promise.resolve(window.confirm(message));
+    }
+    return new Promise(function (resolve) {
+      var backdrop = document.createElement('div');
+      backdrop.setAttribute('role', 'dialog');
+      backdrop.setAttribute('aria-modal', 'true');
+      backdrop.style.cssText =
+        'position:fixed;inset:0;background:rgba(0,0,0,0.55);' +
+        'display:flex;align-items:center;justify-content:center;' +
+        'padding:max(20px,env(safe-area-inset-left)) max(20px,env(safe-area-inset-right));' +
+        'padding-top:max(20px,env(safe-area-inset-top));' +
+        'padding-bottom:max(20px,env(safe-area-inset-bottom));' +
+        'z-index:99999;font-family:-apple-system,BlinkMacSystemFont,sans-serif;';
+      var bg     = getComputedStyle(document.documentElement).getPropertyValue('--surface') || '#0d1520';
+      var bord   = getComputedStyle(document.documentElement).getPropertyValue('--border')  || '#1a2d3f';
+      var text   = getComputedStyle(document.documentElement).getPropertyValue('--text')    || '#dde8f4';
+      var muted  = getComputedStyle(document.documentElement).getPropertyValue('--muted')   || '#5a7288';
+      var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent')  || '#00b4d8';
+      var closed = getComputedStyle(document.documentElement).getPropertyValue('--closed')  || '#ef4444';
+      var primaryBg = destructive ? closed : accent;
+
+      var panel = document.createElement('div');
+      panel.style.cssText =
+        'background:' + bg + ';border:1px solid ' + bord + ';' +
+        'min-width:280px;max-width:420px;width:100%;padding:18px 18px 14px;' +
+        'box-shadow:0 14px 36px rgba(0,0,0,0.5);';
+      var msg = document.createElement('div');
+      msg.textContent = message;
+      msg.style.cssText = 'color:' + text + ';font-size:0.95rem;line-height:1.45;' +
+                          'margin-bottom:18px;white-space:pre-wrap;';
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
+
+      var cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.textContent = cancelText;
+      cancel.style.cssText =
+        'padding:10px 16px;min-height:44px;background:transparent;border:1px solid ' + bord + ';' +
+        'color:' + muted + ';font-size:0.875rem;font-weight:600;cursor:pointer;' +
+        'border-radius:0;font-family:inherit;';
+
+      var ok = document.createElement('button');
+      ok.type = 'button';
+      ok.textContent = okText;
+      ok.style.cssText =
+        'padding:10px 18px;min-height:44px;background:' + primaryBg + ';border:none;' +
+        'color:#000;font-size:0.875rem;font-weight:700;letter-spacing:0.04em;' +
+        'text-transform:uppercase;cursor:pointer;border-radius:0;font-family:inherit;';
+
+      row.appendChild(cancel); row.appendChild(ok);
+      panel.appendChild(msg); panel.appendChild(row); backdrop.appendChild(panel);
+
+      function close(answer) {
+        document.body.removeChild(backdrop);
+        document.removeEventListener('keydown', onKey, true);
+        resolve(answer);
+      }
+      function onKey(ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); close(false); }
+        if (ev.key === 'Enter')  { ev.preventDefault(); close(true);  }
+      }
+      cancel.addEventListener('click', function () { close(false); });
+      ok.addEventListener('click',     function () { close(true);  });
+      backdrop.addEventListener('click', function (ev) {
+        if (ev.target === backdrop) close(false);
+      });
+      document.addEventListener('keydown', onKey, true);
+      document.body.appendChild(backdrop);
+      setTimeout(function () { ok.focus(); }, 10);
+    });
+  }
+  window.akfiConfirm = akfiConfirm;
+
+  // ── Subtle haptic feedback on tap (native only) ────────────
+  // Fires a light impact when any button or .btn is tapped. iOS users
+  // expect this; Android Capacitor maps it to vibrate. On web it's
+  // a no-op. Disabled controls don't fire.
+  if (isNative && Cap && Cap.Plugins && Cap.Plugins.Haptics) {
+    document.addEventListener('click', function (ev) {
+      var t = ev.target && ev.target.closest && ev.target.closest('button, .btn, [role="button"]');
+      if (!t) return;
+      if (t.disabled || t.getAttribute('aria-disabled') === 'true') return;
+      try { Cap.Plugins.Haptics.impact({ style: 'LIGHT' }); } catch (_) {}
+    }, true);
+  }
+
   window.akfiPlatform = {
     isNative: isNative,
     platform: platform,
     clientHeader: clientHeader,
     backendOrigin: BACKEND_ORIGIN,
-    nav: akfiNav
+    nav: akfiNav,
+    confirm: akfiConfirm
   };
 })();

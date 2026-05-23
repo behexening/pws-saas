@@ -30,7 +30,7 @@
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-      font-size: 13px;
+      font-size: 0.8125rem;
       letter-spacing: -0.01em;
       height: 100vh;
       overflow: hidden;
@@ -71,7 +71,7 @@
 
     .wordmark {
       font-family: 'Blackbird', sans-serif;
-      font-size: 19px;
+      font-size: 1.1875rem;
       letter-spacing: 0.03em;
       color: var(--text);
       user-select: none;
@@ -84,7 +84,7 @@
     .live-badge {
       background: #e74c3c;
       color: white;
-      font-size: 9px;
+      font-size: 0.5625rem;
       font-weight: 700;
       padding: 2px 6px;
       border-radius: 0;
@@ -102,10 +102,11 @@
       border: 1px solid var(--border);
       color: var(--muted);
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-      font-size: 11px;
+      font-size: 0.6875rem;
       font-weight: 600;
       letter-spacing: -0.01em;
-      padding: 4px 12px;
+      padding: 0 12px;
+      min-height: 32px;  /* mobile bumps to 44 via @media below */
       border-radius: 0;
       cursor: pointer;
       transition: all 0.15s;
@@ -127,7 +128,7 @@
 
     .nav-link {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 0.75rem;
       font-weight: 500;
       text-decoration: none;
       letter-spacing: -0.01em;
@@ -188,14 +189,14 @@
       margin-bottom: 6px;
     }
     .cond-label {
-      font-size: 9px;
+      font-size: 0.5625rem;
       font-weight: 800;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--muted);
     }
     .cond-sub {
-      font-size: 10px;
+      font-size: 0.625rem;
       color: var(--muted);
       opacity: 0.7;
     }
@@ -209,12 +210,12 @@
       display: flex;
       align-items: baseline;
       gap: 6px;
-      font-size: 12px;
+      font-size: 0.75rem;
       color: var(--text);
     }
     .cond-row .cond-row-label {
       flex: 0 0 auto;
-      font-size: 10px;
+      font-size: 0.625rem;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -229,7 +230,7 @@
 
     /* Eyebrow: tiny uppercase masthead, thin underline */
     .panel-eyebrow {
-      font-size: 9px;
+      font-size: 0.5625rem;
       font-weight: 800;
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -261,7 +262,7 @@
       margin-bottom: 8px;
     }
     .panel-meta {
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.01em;
@@ -285,7 +286,7 @@
       margin-top: 8px;
     }
     .action-btn {
-      font-size: 10px;
+      font-size: 0.625rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -324,7 +325,7 @@
     .statcode {
       font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
       font-variant-numeric: tabular-nums;
-      font-size: 10px;
+      font-size: 0.625rem;
       font-weight: 600;
       letter-spacing: 0.02em;
       color: var(--text);
@@ -343,7 +344,7 @@
       border-top: 1px solid var(--border);
       font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
       font-variant-numeric: tabular-nums;
-      font-size: 9px;
+      font-size: 0.5625rem;
       color: var(--muted);
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -356,7 +357,7 @@
     .panel-telemetry .tm-sep { color: var(--border); }
 
     .stat-pill {
-      font-size: 10px;
+      font-size: 0.625rem;
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 0;
@@ -370,12 +371,12 @@
       padding: 40px 20px;
       text-align: center;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 0.75rem;
       line-height: 1.6;
     }
     .no-data strong {
       display: block;
-      font-size: 13px;
+      font-size: 0.8125rem;
       color: var(--text);
       margin-bottom: 8px;
     }
@@ -416,12 +417,12 @@
       flex-shrink: 0;
     }
     .district-name {
-      font-size: 12px;
+      font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
-    .status-open { color: var(--open); font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
-    .status-closed { color: var(--closed); font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
+    .status-open { color: var(--open); 0.625rem; font-weight: 700; letter-spacing: 0.02em; }
+    .status-closed { color: var(--closed); 0.625rem; font-weight: 700; letter-spacing: 0.02em; }
 
     .card-body {
       padding: 0 11px 10px;
@@ -432,13 +433,13 @@
     .gear-row { display: flex; flex-wrap: wrap; gap: 4px; }
     .badge {
       color: white;
-      font-size: 9px;
+      font-size: 0.5625rem;
       font-weight: 700;
       padding: 2px 7px;
       border-radius: 0;
       letter-spacing: 0.01em;
     }
-    .no-gear { font-size: 10px; color: var(--muted); font-style: italic; }
+    .no-gear { 0.625rem; color: var(--muted); font-style: italic; }
 
     .time-block {
       background: var(--surface2);
@@ -448,13 +449,13 @@
       flex-direction: column;
       gap: 2px;
     }
-    .time-row { display: flex; gap: 6px; font-size: 10px; }
+    .time-row { display: flex; gap: 6px; 0.625rem; }
     .time-label { color: var(--muted); min-width: 36px; }
     .time-val { color: var(--text); }
-    .duration-tag { font-size: 9px; color: var(--warn); font-weight: 700; margin-top: 2px; letter-spacing: 0.01em; }
+    .duration-tag { font-size: 0.5625rem; color: var(--warn); font-weight: 700; margin-top: 2px; letter-spacing: 0.01em; }
 
     .constraint-row {
-      font-size: 10px;
+      font-size: 0.625rem;
       color: var(--text);
       display: flex;
       gap: 5px;
@@ -468,12 +469,12 @@
       padding: 2px 6px;
       border-radius: 0;
       border: 1px solid rgba(52,152,219,0.25);
-      font-size: 10px;
+      font-size: 0.625rem;
     }
 
     .excl-list { display: flex; flex-wrap: wrap; gap: 3px; }
     .excl-tag {
-      font-size: 9px;
+      font-size: 0.5625rem;
       padding: 2px 6px;
       border-radius: 0;
       font-weight: 600;
@@ -482,7 +483,7 @@
     .excl-tag.gen { background: rgba(231,76,60,0.1); color: #e88; border: 1px solid rgba(231,76,60,0.2); }
 
     .sonar-block {
-      font-size: 10px;
+      font-size: 0.625rem;
       color: var(--muted);
       background: var(--surface2);
       padding: 5px 9px;
@@ -490,11 +491,11 @@
     }
     .sonar-label { font-weight: 700; color: var(--text); }
 
-    .streams-active { font-size: 9px; color: var(--warn); font-weight: 700; letter-spacing: 0.01em; }
+    .streams-active { font-size: 0.5625rem; color: var(--warn); font-weight: 700; letter-spacing: 0.01em; }
 
     .closures-section { border-top: 1px solid var(--border); padding-top: 6px; }
     .closures-label {
-      font-size: 9px;
+      font-size: 0.5625rem;
       color: var(--muted);
       font-weight: 700;
       text-transform: uppercase;
@@ -511,9 +512,9 @@
       padding: 6px 8px;
       margin-bottom: 4px;
     }
-    .closure-name { font-size: 10px; font-weight: 700; color: var(--text); }
+    .closure-name { 0.625rem; font-weight: 700; color: var(--text); }
     .closed-side-warning {
-      font-size: 10px;
+      font-size: 0.625rem;
       font-weight: 700;
       color: #e74c3c;
       background: rgba(231,76,60,0.12);
@@ -522,9 +523,9 @@
       border-left: 2px solid #e74c3c;
       margin: 3px 0;
     }
-    .closure-desc { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+    .closure-desc { 0.625rem; color: var(--muted); margin-bottom: 3px; }
     .applies-badge {
-      font-size: 8px;
+      font-size: 0.5rem;
       padding: 1px 5px;
       border-radius: 0;
       font-weight: 700;
@@ -538,21 +539,21 @@
        renders on the map; the entry is just dropped from the per-card list. */
     .closure-entry:has(.applies-badge.allperiods) { display: none; }
 
-    .points-table { width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 4px; }
+    .points-table { width: 100%; border-collapse: collapse; font-size: 0.5625rem; margin-top: 4px; }
     .points-table th { color: var(--muted); font-weight: 700; text-align: left; padding: 2px 5px; border-bottom: 1px solid var(--border); }
     .points-table td { padding: 2px 5px; color: #a0b0d0; font-family: monospace; }
 
     .conf-row { display: flex; align-items: center; gap: 7px; }
-    .conf-text { font-size: 9px; color: var(--muted); min-width: 60px; }
+    .conf-text { font-size: 0.5625rem; color: var(--muted); min-width: 60px; }
     .conf-bar-wrap { flex: 1; background: var(--surface2); border-radius: 0; height: 5px; display: flex; align-items: center; }
     .conf-bar { height: 5px; border-radius: 0; }
-    .conf-label { font-size: 9px; color: var(--muted); margin-left: 5px; min-width: 24px; }
-    .conf-notes { font-size: 9px; color: var(--warn); font-style: italic; }
+    .conf-label { font-size: 0.5625rem; color: var(--muted); margin-left: 5px; min-width: 24px; }
+    .conf-notes { font-size: 0.5625rem; color: var(--warn); font-style: italic; }
     /* Per-district notes: hidden in compact view, revealed when card is expanded */
     .card-notes { display: none; }
     .district-card.expanded .card-notes {
       display: block;
-      font-size: 11px;
+      font-size: 0.6875rem;
       font-style: normal;
       color: var(--text);
       line-height: 1.5;
@@ -564,7 +565,7 @@
     }
     /* Subtle disclosure cue — small caret in card header */
     .card-chevron {
-      font-size: 11px;
+      font-size: 0.6875rem;
       color: var(--muted);
       font-weight: 700;
       margin-left: 8px;
@@ -577,7 +578,7 @@
     /* ── Status badge ── */
     .status-badge {
       display: inline-block;
-      font-size: 9px;
+      font-size: 0.5625rem;
       font-weight: 700;
       padding: 2px 8px;
       border-radius: 0;
@@ -603,8 +604,8 @@
       align-items: center;
       margin-bottom: 6px;
     }
-    .scrubber-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-    .scrubber-date-display { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .scrubber-label { font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .scrubber-date-display { font-size: 0.6875rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
     .date-slider-input {
       -webkit-appearance: none;
       width: 100%;
@@ -639,9 +640,10 @@
       background: none;
       border: 1px solid var(--border);
       color: var(--muted);
-      font-size: 10px;
+      font-size: 0.625rem;
       font-weight: 600;
-      padding: 2px 10px;
+      padding: 0 12px;
+      min-height: 36px;  /* mobile bumps to 44 below */
       border-radius: 0;
       cursor: pointer;
       font-family: inherit;
@@ -649,7 +651,7 @@
     }
     .scrubber-nav-btn:hover { color: var(--text); border-color: var(--muted); }
     .scrubber-status {
-      font-size: 9px;
+      font-size: 0.5625rem;
       color: var(--muted);
       letter-spacing: -0.01em;
     }
@@ -666,8 +668,8 @@
     .ann-row:last-child { border-bottom: none; }
     .ann-row:hover { background: var(--surface); }
     .ann-row.ann-active { background: var(--surface); border-left: 3px solid var(--accent); padding-left: 11px; }
-    .ann-date { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
-    .ann-meta { font-size: 10px; color: var(--muted); }
+    .ann-date { font-size: 0.6875rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .ann-meta { 0.625rem; color: var(--muted); }
 
     /* ── Map ── */
     .map-panel { position: relative; }
@@ -682,11 +684,11 @@
       border: 1px solid var(--border);
       border-radius: 0;
       padding: 9px 13px;
-      font-size: 10px;
+      font-size: 0.625rem;
     }
     .map-legend h4 {
       color: var(--muted);
-      font-size: 9px;
+      font-size: 0.5625rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       font-weight: 700;
@@ -700,7 +702,7 @@
       bottom: 8px;
       right: 10px;
       z-index: 1000;
-      font-size: 9px;
+      font-size: 0.5625rem;
       color: var(--muted);
       background: rgba(6,10,15,0.75);
       padding: 2px 6px;
@@ -717,7 +719,7 @@
       background: rgba(6,10,15,0.85);
       border-top: 1px solid var(--border);
       padding: 5px 14px;
-      font-size: 9px;
+      font-size: 0.5625rem;
       color: var(--muted);
       letter-spacing: -0.01em;
     }
@@ -737,7 +739,7 @@
       color: var(--text);
       text-decoration: none;
       padding: 6px 10px;
-      font-size: 11px;
+      font-size: 0.6875rem;
       font-weight: 600;
       letter-spacing: 0.04em;
       background: var(--surface);
@@ -780,7 +782,7 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 4px;
       }
-      .tab-btn { padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+      .tab-btn { padding: 0 8px; min-height: 44px; font-size: 0.6875rem; white-space: nowrap; }
       .topbar-right {
         order: 2;
         gap: 0;
@@ -792,12 +794,12 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        width: 44px;        /* HIG: 44pt minimum tap target */
+        height: 44px;
         background: none;
         border: 1px solid var(--border);
         color: var(--text);
-        font-size: 18px;
+        font-size: 1.125rem;
         line-height: 1;
         cursor: pointer;
         border-radius: 0;
@@ -820,7 +822,7 @@
       }
       .topbar-right.menu-open .nav-menu { display: flex; }
       .nav-menu .nav-link {
-        font-size: 13px;
+        font-size: 0.8125rem;
         padding: 10px 14px;
         white-space: nowrap;
       }
@@ -933,16 +935,17 @@
       .district-card { cursor: default; }
       .card-header   { padding: 10px 12px 6px; }
       .card-body     { padding: 0 12px 12px; }
-      .district-name { font-size: 13px; }
-      .time-row, .constraint-row { font-size: 11px; }
+      .district-name { font-size: 0.8125rem; }
+      .time-row, .constraint-row { font-size: 0.6875rem; }
       .date-scrubber { padding: 8px 12px 6px; }
+      .scrubber-nav-btn { min-height: 44px; padding: 0 14px; }
       .ann-picker { max-height: none; }
     }
     .skip-link {
       position: absolute; top: -40px; left: 8px;
       background: var(--accent); color: #000;
       padding: 6px 12px; border-radius: 0;
-      font-size: 12px; font-weight: 700; text-decoration: none;
+      0.75rem; font-weight: 700; text-decoration: none;
       z-index: 9999; transition: top 0.15s;
     }
     .skip-link:focus { top: 0; }
@@ -990,7 +993,7 @@
       border: 1px solid var(--border);
       color: var(--text);
       padding: 8px 14px;
-      font-size: 13px;
+      font-size: 0.8125rem;
       cursor: pointer;
       z-index: 900;
       user-select: none;
@@ -1016,7 +1019,7 @@
     }
     #feedback-header {
       padding: 12px 16px;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 600;
       border-bottom: 1px solid var(--border);
     }
@@ -1024,7 +1027,7 @@
       width: 100%;
       min-height: 120px;
       padding: 12px 16px;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-family: inherit;
       background: var(--surface);
       color: var(--text);
@@ -1041,10 +1044,10 @@
       border-top: 1px solid var(--border);
       gap: 8px;
     }
-    #feedback-char { font-size: 11px; color: var(--muted); }
+    #feedback-char { font-size: 0.6875rem; color: var(--muted); }
     #feedback-footer button {
       padding: 6px 14px;
-      font-size: 12px;
+      font-size: 0.75rem;
       cursor: pointer;
       border: 1px solid var(--border);
       background: var(--surface);
@@ -1069,7 +1072,7 @@
       </div>
     </div>
     <div class="topbar-right" id="topbar-right">
-      <span id="trial-badge" style="display:none; font-size:11px; font-weight:600; color:#f39c12; background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.3); padding:3px 8px; border-radius: 0; letter-spacing:-0.01em;"></span>
+      <span id="trial-badge" style="display:none; font-size:0.6875rem; font-weight:600; color:#f39c12; background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.3); padding:3px 8px; border-radius: 0; letter-spacing:-0.01em;"></span>
       <button type="button" class="nav-menu-btn" id="nav-menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
         <span aria-hidden="true">☰</span>
       </button>
@@ -1187,7 +1190,7 @@ map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank
     div.id = 'locate-btn';
     div.innerHTML = 'Locate Me';
     div.style.cssText = 'background:rgba(6,10,15,0.9);color:#3498db;border:1px solid #3498db;' +
-      'padding:5px 10px;border-radius: 0;font-size:11px;font-weight:700;cursor:pointer;user-select:none;' +
+      'padding:5px 10px;border-radius: 0;font-size:0.6875rem;font-weight:700;cursor:pointer;user-select:none;' +
       'margin-top:6px;';
     L.DomEvent.disableClickPropagation(div);
     div.onclick = toggle;
@@ -1309,15 +1312,15 @@ if (offlineTilesAvailable) {
     confirm: function (layer, save) {
       const n = (layer._tilesforSave || []).length;
       if (n === 0) return;
-      // Carto dark tiles average ~8 KB each in practice — 15 KB was a
-      // conservative-to-the-point-of-scary estimate.
       const mb = Math.max(1, Math.ceil(n * 8 / 1024));
-      const ok = confirm('Save ' + n + ' map tiles for offline use? About ' +
-        mb + ' MB of storage.');
-      if (ok) save();
+      const ask = (window.akfiConfirm || (async (m) => window.confirm(m)));
+      ask('Save ' + n + ' map tiles for offline use? About ' + mb + ' MB of storage.')
+        .then(function (ok) { if (ok) save(); });
     },
     confirmRemoval: function (_layer, remove) {
-      if (confirm('Remove all cached offline tiles?')) remove();
+      const ask = (window.akfiConfirm || (async (m) => window.confirm(m)));
+      ask('Remove all cached offline tiles?', { destructive: true, ok: 'Remove' })
+        .then(function (ok) { if (ok) remove(); });
     },
   });
   saveControl.addTo(map);
@@ -1391,7 +1394,7 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
         const div = L.DomUtil.create('div', 'stream-toggle');
         div.innerHTML = 'STREAM CLOSURES: ON';
         div.style.cssText = 'background:rgba(6,10,15,0.9);color:#e67e22;border:1px solid #e67e22;' +
-          'padding:5px 10px;border-radius:0;font-size:11px;font-weight:700;letter-spacing:0.06em;' +
+          'padding:5px 10px;border-radius:0;font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;' +
           'cursor:pointer;user-select:none;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;';
         div.onclick = function() {
           visible = !visible;
@@ -1554,7 +1557,7 @@ function initDateScrubber(results) {
 
   if (!results.length) {
     scrubber.style.display = 'none';
-    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
+    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:0.6875rem">No past announcements.</div>';
     return;
   }
 
@@ -1610,7 +1613,7 @@ function stepSlider(delta) {
 function renderAnnList(results, activeResult) {
   const annList = document.getElementById('ann-list');
   if (!results.length) {
-    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:11px">No past announcements.</div>';
+    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:0.6875rem">No past announcements.</div>';
     return;
   }
   annList.innerHTML = results.map(r => {
@@ -1779,7 +1782,7 @@ function renderPanel(result) {
     /"features"\s*:\s*\[\s*\{/.test(result._html);
   const reparseBtn = hasOAGJ ? '' :
     `<button data-reparse-id="${result.id}" style="
-      margin-left:8px;padding:3px 10px;font-size:10px;font-weight:700;
+      margin-left:8px;padding:3px 10px;0.625rem;font-weight:700;
       background:rgba(0,180,216,0.12);color:#00b4d8;border:1px solid rgba(0,180,216,0.3);
       border-radius: 0;cursor:pointer;letter-spacing:.3px;
     " title="Re-run parser to get clipped geometry">↻ Reparse</button>`;
@@ -1906,7 +1909,7 @@ function prettifyTimeBlock(block) {
   const durationEl = block.querySelector('.duration-tag');
   const durationHtml = durationEl ? durationEl.outerHTML : '';
   block.innerHTML =
-    `<div class="time-row" style="font-size:11.5px;color:var(--text);font-weight:500">${text}</div>` +
+    `<div class="time-row" style="font-size:0.7188rem;color:var(--text);font-weight:500">${text}</div>` +
     durationHtml;
 }
 
@@ -2403,7 +2406,7 @@ function initFeedbackWidget(user) {
       tSta.textContent = data.tides.station_name || '';
       tRows.innerHTML = upcoming.map(function (p) {
         var dayLabel = dayOf(p.time) === todayStr ? '' :
-                       '<span style="font-size:9px;color:var(--muted);opacity:0.7;margin-left:4px">tmrw</span>';
+                       '<span style="font-size:0.5625rem;color:var(--muted);opacity:0.7;margin-left:4px">tmrw</span>';
         return '<div class="cond-row cond-tide-row">' +
                '<span class="cond-row-label ' + p.type + '">' +
                  (p.type === 'high' ? 'HIGH' : 'LOW') + '</span>' +

@@ -147,6 +147,77 @@ def extract_text_from_string(text):
 # CLAUDE PARSING
 # ============================================================
 
+def _normalize_agz_exclusions(districts):
+    """Defensive post-pass for the Main Bay Hatchery AGZ.
+
+    The Eshamy District announcements word the AGZ exclusion as
+    "excluding the MBH AGZ" or — in the PWSAC recommendation paragraph —
+    "in the Main Bay Subdistrict, excluding waters of the AGZ". Earlier
+    parser builds sometimes mis-routed this as a Main Bay Subdistrict
+    closure / excluded_subdistrict, which wipes out the whole subdistrict
+    on the map (and on SMS alerts) when only the small AGZ polygon should
+    be removed. This pass:
+
+      1. Walks closures + excluded_subdistricts and reroutes any AGZ-shaped
+         entry into excluded_hatchery_areas as "MBH AGZ".
+      2. If an AGZ exclusion exists for the district, drops any stray
+         "Main Bay Subdistrict" entry from closures / excluded_subdistricts
+         (it is a misread of the AGZ exclusion or of the PWSAC restatement).
+    """
+    import re
+    agz_re = re.compile(r'\b(agz|alternating\s+gear\s+zone)\b', re.IGNORECASE)
+    main_bay_subd_re = re.compile(r'\bmain\s+bay\s+subdistrict\b', re.IGNORECASE)
+
+    for d in districts:
+        if not isinstance(d, dict):
+            continue
+
+        hatch_list = list(d.get('excluded_hatchery_areas') or [])
+        agz_already = any('agz' in (h or '').lower() for h in hatch_list)
+
+        # 1) Reroute AGZ-shaped closures
+        new_closures = []
+        for c in (d.get('closures') or []):
+            name = (c.get('name') if isinstance(c, dict) else '') or ''
+            definition = (c.get('definition') if isinstance(c, dict) else '') or ''
+            if agz_re.search(name) or agz_re.search(definition):
+                if not agz_already:
+                    hatch_list.append('MBH AGZ')
+                    agz_already = True
+                continue
+            new_closures.append(c)
+        d['closures'] = new_closures
+
+        # 2) Reroute AGZ-shaped excluded_subdistricts
+        new_excl = []
+        for e in (d.get('excluded_subdistricts') or []):
+            if not isinstance(e, str):
+                new_excl.append(e)
+                continue
+            if agz_re.search(e):
+                if not agz_already:
+                    hatch_list.append('MBH AGZ')
+                    agz_already = True
+                continue
+            new_excl.append(e)
+        d['excluded_subdistricts'] = new_excl
+
+        # 3) If we have an AGZ exclusion, strip any bare "Main Bay Subdistrict"
+        #    entry — that's the wholesale-subtraction misread.
+        if agz_already:
+            d['excluded_subdistricts'] = [
+                e for e in d['excluded_subdistricts']
+                if not (isinstance(e, str) and main_bay_subd_re.search(e))
+            ]
+            d['closures'] = [
+                c for c in d['closures']
+                if not (isinstance(c, dict)
+                        and main_bay_subd_re.search((c.get('name') or '')))
+            ]
+
+        d['excluded_hatchery_areas'] = hatch_list
+
+
 def call_claude(pdf_name_or_id, text):
     """
     Parse announcement text with Claude.
@@ -198,10 +269,15 @@ CRITICAL rules for compound boundary clauses:
   The downstream code will intersect the two half-planes to produce the single rectangular closed region.
 - For simple (non-compound) closures, each entry must have exactly ONE direction via "closed_side".
 
-CRITICAL rules for hatchery areas (THA/SHA/THR):
-- PWS hatchery Terminal Harvest Areas (THAs), Special Harvest Areas (SHAs) and Terminal Harvest Regions are named after the hatcheries: AFK (Armin F. Koernig, at Sawmill Bay / Evans Island), WNH (Wally Noerenberg Hatchery, at Esther Island/Lake Bay), CCH (Cannery Creek Hatchery, at Unakwik Inlet), SGH (Solomon Gulch Hatchery, at Port Valdez).
-- When the text mentions that a THA/SHA is EXCLUDED from an opening (e.g. "excluding the AFK THA and SHA" or "excluding WNH SHA inside a line of buoys"), list each one by name in "excluded_hatchery_areas": ["AFK THA", "AFK SHA"] or ["WNH SHA"]. Always split THA and SHA into separate entries even when the text joins them with "and" — e.g. "AFK THA and SHA" → ["AFK THA", "AFK SHA"]. Do NOT put hatchery areas in "closures".
+CRITICAL rules for hatchery areas (THA/SHA/AGZ/THR):
+- PWS hatchery Terminal Harvest Areas (THAs), Special Harvest Areas (SHAs), Alternating Gear Zones (AGZ), and Terminal Harvest Regions are named after the hatcheries: AFK (Armin F. Koernig, at Sawmill Bay / Evans Island), WNH (Wally Noerenberg Hatchery, at Esther Island/Lake Bay), CCH (Cannery Creek Hatchery, at Unakwik Inlet), SGH (Solomon Gulch Hatchery, at Port Valdez), MBH (Main Bay Hatchery, in the Main Bay Subdistrict of the Eshamy District).
+- When the text mentions that a THA/SHA/AGZ is EXCLUDED from an opening (e.g. "excluding the AFK THA and SHA", "excluding WNH SHA inside a line of buoys", or "excluding the MBH AGZ"), list each one by name in "excluded_hatchery_areas": ["AFK THA", "AFK SHA"], ["WNH SHA"], or ["MBH AGZ"]. Always split THA and SHA into separate entries even when the text joins them with "and" — e.g. "AFK THA and SHA" → ["AFK THA", "AFK SHA"]. Do NOT put hatchery areas in "closures".
+- AGZ (Alternating Gear Zone) is ONLY a sub-area inside the Main Bay Subdistrict. Phrases like "the AGZ", "MBH AGZ", "Main Bay AGZ", "Main Bay Alternating Gear Zone", and "waters of the AGZ" all refer to the SAME small hatchery zone and MUST be emitted as "MBH AGZ" in "excluded_hatchery_areas". NEVER emit "Main Bay Subdistrict" as a closure or excluded subdistrict just because the AGZ is being excluded — the rest of Main Bay stays open.
 - Do NOT invent hatchery exclusions. Only extract hatchery areas that are literally named in the text.
+
+CRITICAL rules for advisory / industry-recommendation paragraphs:
+- Announcements sometimes include paragraphs from PWSAC, CDFU, or other industry groups making "recommends" or "requests" statements (e.g. "PWSAC recommends a 36-hour fishing period in the Main Bay Subdistrict, excluding waters of the AGZ" or "PWSAC requests that the WNH SHA remain closed..."). These paragraphs are advisory restatements / refinements of the official opening — they are NOT the official opening boundary and they do NOT add new closures.
+- Do NOT promote PWSAC/CDFU recommendations into new closures, excluded_subdistricts, or excluded_hatchery_areas. Trust ONLY the official "District ... will open" / "will be closed" sentences from the ADF&G department.
 
 CRITICAL rules for redundant restatements:
 - Sometimes an announcement restates a closure that is already implied by an earlier cut. Example: "Waters of the Eastern District, south of a latitude of 60° 55.10' N, will open... Waters of Valdez Arm will remain closed to minimize incidental harvest." Here "Waters of Valdez Arm will remain closed" is redundant because Valdez Arm already sits north of the 60° 55.10' N cut and is therefore already closed.
@@ -2111,10 +2187,12 @@ def main():
     
     print("Calling Claude...", file=sys.stderr)
     districts = call_claude(pdf_name, text)
-    
+
     if not districts:
         print("ERROR: Claude parsing returned no results", file=sys.stderr)
         sys.exit(1)
+
+    _normalize_agz_exclusions(districts)
 
     print(f"Parsed {len(districts)} district(s)", file=sys.stderr)
     for d in districts:

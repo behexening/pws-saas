@@ -1,3 +1,18 @@
+/* Dynamic Type: on iOS Safari + WKWebView, `font: -apple-system-body`
+   ties the root font size to the user's Settings → Display & Brightness
+   → Text Size setting. All px-based font sizes in our CSS are converted
+   to rem so they scale proportionally. Wrapped in @supports so non-iOS
+   browsers fall back to the standard 16px / 100% root size. */
+@supports (font: -apple-system-body) {
+  html { font: -apple-system-body; }
+}
+/* Preserve our font family + smoothing even when -apple-system-body
+   takes over the `font` shorthand above. */
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
 :root,
 [data-theme="dark"] {
   --bg:          #060a0f;
