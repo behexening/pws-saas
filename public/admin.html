@@ -254,7 +254,8 @@
           <td>${esc(a.pdf_filename || a.source || '—')}</td>
           <td class="actions">
             <a class="btn" href="/api/result/${a.result_id}/html" target="_blank">View</a>
-            <button data-reparse="${a.result_id}">Reparse</button>
+            <button data-reparse="${a.result_id}" data-notify="false" title="Re-runs the Claude parser and updates the map. Does NOT send a correction alert.">Reparse (silent)</button>
+            <button data-reparse="${a.result_id}" data-notify="true" title="Re-runs the Claude parser, updates the map, AND sends a correction alert to every eligible captain.">Reparse + Alert</button>
           </td>
         </tr>
       `).join('');
@@ -265,21 +266,32 @@
 
     async function reparse(btn) {
       const id = btn.getAttribute('data-reparse');
-      if (!confirm(`Reparse result #${id}? This re-runs the Claude parser, overwrites the HTML, and DMs every eligible pro captain a "Correction" alert on Telegram.`)) return;
-      btn.disabled = true;
-      btn.textContent = 'Reparsing…';
+      const notify = btn.getAttribute('data-notify') === 'true';
+      const prompt = notify
+        ? `Reparse result #${id} AND send a "Correction" alert to every eligible captain on Telegram?`
+        : `Reparse result #${id} silently? The Claude parser will re-run and the map will refresh, but NO notification will go out.`;
+      if (!confirm(prompt)) return;
+      const row = btn.closest('tr');
+      const buttons = row ? row.querySelectorAll('button[data-reparse]') : [btn];
+      const originalLabel = btn.textContent;
+      buttons.forEach(b => { b.disabled = true; });
+      btn.textContent = notify ? 'Reparsing + alerting…' : 'Reparsing…';
       try {
-        const r = await fetch(`/api/result/${id}/reparse`, { method: 'POST' }).then(r => r.json());
+        const r = await fetch(`/api/result/${id}/reparse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notify }),
+        }).then(r => r.json());
         if (r.error) {
           toast('Reparse failed: ' + r.error, 'fail');
         } else {
-          toast(r.message || 'Reparse started.');
+          toast(r.message || (notify ? 'Reparse + alert started.' : 'Silent reparse started.'));
         }
       } catch (e) {
         toast('Reparse failed: ' + e.message, 'fail');
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Reparse';
+        buttons.forEach(b => { b.disabled = false; });
+        btn.textContent = originalLabel;
       }
     }
 
