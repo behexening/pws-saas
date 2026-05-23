@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Setup — akFISHinfo</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
   <script src="/static/platform.js"></script>
@@ -33,6 +33,8 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: 50px;
+      padding-top: env(safe-area-inset-top);
+      box-sizing: content-box;
       display: flex;
       align-items: center;
       padding: 0 22px;

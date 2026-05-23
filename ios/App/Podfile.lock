@@ -7,6 +7,8 @@ PODS:
   - CapacitorGeolocation (7.1.8):
     - Capacitor
     - IONGeolocationLib (= 1.0.1)
+  - CapacitorHaptics (7.0.5):
+    - Capacitor
   - CapacitorLocalNotifications (7.0.6):
     - Capacitor
   - CapacitorPushNotifications (7.0.6):
@@ -18,6 +20,7 @@ DEPENDENCIES:
   - "CapacitorCommunityAppleSignIn (from `../../node_modules/@capacitor-community/apple-sign-in`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
+  - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
 
@@ -34,6 +37,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorGeolocation:
     :path: "../../node_modules/@capacitor/geolocation"
+  CapacitorHaptics:
+    :path: "../../node_modules/@capacitor/haptics"
   CapacitorLocalNotifications:
     :path: "../../node_modules/@capacitor/local-notifications"
   CapacitorPushNotifications:
@@ -44,10 +49,11 @@ SPEC CHECKSUMS:
   CapacitorCommunityAppleSignIn: 59bc8ade5677e6ea60a14bdca8d3f4bdc91069e2
   CapacitorCordova: 2b36392a7292c3c451dcae154185ee8804d7b6b3
   CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
+  CapacitorHaptics: ec024a10130c230743219149c76a02da5cff6aed
   CapacitorLocalNotifications: ae0b5008877d68731d693156fe21d786d30a4feb
   CapacitorPushNotifications: c6158ba6f3777f281a675aa43e4011e9723e822b
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
 
-PODFILE CHECKSUM: aa4b295d5c631a8144267433ce96799adebe8812
+PODFILE CHECKSUM: 0e1e507afe12188626f42ccfced36dc4d86cf0ad
 
 COCOAPODS: 1.16.2

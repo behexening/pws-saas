@@ -1,0 +1,4425 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 1,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.881,
+          60.4415
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 2,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.611667,
+          60.410833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 3,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #3",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.485667,
+          60.340667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 4,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 4,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #4",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.166833,
+          60.248
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 5,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 5,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #5",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.056,
+          60.247167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 6,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 6,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #6",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.966833,
+          60.2365
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 7,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 7,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #7",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.9405,
+          60.2525
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 8,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 8,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #8",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.875333,
+          60.254833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 9,
+        "closure_id": "1-A",
+        "district": "Copper River District",
+        "name": "Main outside line \u2014 Whitshed \u2192 Strawberry Reef",
+        "vertex": 9,
+        "label": "1-A Main outside line \u2014 Whitshed \u2192 Strawberry Reef #9",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.844333,
+          60.232167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 10,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 1,
+        "label": "1-B Inside closure area #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.558333,
+          60.371833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 11,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 2,
+        "label": "1-B Inside closure area #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.5165,
+          60.314833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 12,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 3,
+        "label": "1-B Inside closure area #3",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.473667,
+          60.305
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 13,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 4,
+        "label": "1-B Inside closure area #4",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.298167,
+          60.254
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 14,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 5,
+        "label": "1-B Inside closure area #5",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.27,
+          60.25
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 15,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 6,
+        "label": "1-B Inside closure area #6",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.157667,
+          60.2275
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 16,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 7,
+        "label": "1-B Inside closure area #7",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.096333,
+          60.228
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 17,
+        "closure_id": "1-B",
+        "district": "Copper River District",
+        "name": "Inside closure area",
+        "vertex": 8,
+        "label": "1-B Inside closure area #8",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.971833,
+          60.2355
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 18,
+        "closure_id": "2-A",
+        "district": "Bering River District",
+        "name": "Kanak Island lines",
+        "vertex": 1,
+        "label": "2-A Kanak Island lines #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.323667,
+          60.109333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 19,
+        "closure_id": "2-A",
+        "district": "Bering River District",
+        "name": "Kanak Island lines",
+        "vertex": 2,
+        "label": "2-A Kanak Island lines #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.305333,
+          60.109333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 20,
+        "closure_id": "2-A",
+        "district": "Bering River District",
+        "name": "Kanak Island lines",
+        "vertex": 3,
+        "label": "2-A Kanak Island lines #3",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.185333,
+          60.082833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 21,
+        "closure_id": "2-A",
+        "district": "Bering River District",
+        "name": "Kanak Island lines",
+        "vertex": 4,
+        "label": "2-A Kanak Island lines #4",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -144.185333,
+          60.074333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 22,
+        "closure_id": "3-A",
+        "district": "Eastern District",
+        "name": "Simpson Bay / Orca Inlet / Nelson Bay",
+        "vertex": null,
+        "label": "3-A Simpson Bay / Orca Inlet / Nelson Bay (approx)",
+        "partial": true,
+        "note": "Simpson Bay north of 60\u00b0 38.00' N. Orca Inlet and Nelson Bay south and east of a line from Salmo Point to Shepard Point. All of Orca Inlet southeast of Hawkins Island."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.85,
+          60.65
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 23,
+        "closure_id": "3-B",
+        "district": "Eastern District",
+        "name": "Sheep Bay",
+        "vertex": 1,
+        "label": "3-B Sheep Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.935167,
+          60.699833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 24,
+        "closure_id": "3-B",
+        "district": "Eastern District",
+        "name": "Sheep Bay",
+        "vertex": 2,
+        "label": "3-B Sheep Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.931167,
+          60.686167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 25,
+        "closure_id": "3-B",
+        "district": "Eastern District",
+        "name": "Sheep Bay",
+        "vertex": 1,
+        "label": "3-B Sheep Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.976833,
+          60.668
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 26,
+        "closure_id": "3-B",
+        "district": "Eastern District",
+        "name": "Sheep Bay",
+        "vertex": 2,
+        "label": "3-B Sheep Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.981333,
+          60.6575
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 27,
+        "closure_id": "3-C",
+        "district": "Eastern District",
+        "name": "Plateau Creek",
+        "vertex": 1,
+        "label": "3-C Plateau Creek #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.138,
+          60.71
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 28,
+        "closure_id": "3-C",
+        "district": "Eastern District",
+        "name": "Plateau Creek",
+        "vertex": 2,
+        "label": "3-C Plateau Creek #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.13,
+          60.711167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 29,
+        "closure_id": "3-D",
+        "district": "Eastern District",
+        "name": "Comfort Cove",
+        "vertex": 1,
+        "label": "3-D Comfort Cove #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.0945,
+          60.716
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 30,
+        "closure_id": "3-D",
+        "district": "Eastern District",
+        "name": "Comfort Cove",
+        "vertex": 2,
+        "label": "3-D Comfort Cove #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.096333,
+          60.711667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 31,
+        "closure_id": "3-E",
+        "district": "Eastern District",
+        "name": "Olsen Bay",
+        "vertex": null,
+        "label": "3-E Olsen Bay (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 44.06' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.2,
+          60.74
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 32,
+        "closure_id": "3-F",
+        "district": "Eastern District",
+        "name": "Beartrap Bay",
+        "vertex": 1,
+        "label": "3-F Beartrap Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.994,
+          60.747667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 33,
+        "closure_id": "3-F",
+        "district": "Eastern District",
+        "name": "Beartrap Bay",
+        "vertex": 2,
+        "label": "3-F Beartrap Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.997667,
+          60.743333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 34,
+        "closure_id": "3-G",
+        "district": "Eastern District",
+        "name": "Port Gravina",
+        "vertex": null,
+        "label": "3-G Port Gravina (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 46.30' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3,
+          60.77
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 35,
+        "closure_id": "3-I",
+        "district": "Eastern District",
+        "name": "Snug Corner Cove",
+        "vertex": 1,
+        "label": "3-I Snug Corner Cove #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.641833,
+          60.725167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 36,
+        "closure_id": "3-I",
+        "district": "Eastern District",
+        "name": "Snug Corner Cove",
+        "vertex": 2,
+        "label": "3-I Snug Corner Cove #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.633333,
+          60.730333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 37,
+        "closure_id": "3-J",
+        "district": "Eastern District",
+        "name": "Two Moon Bay",
+        "vertex": 1,
+        "label": "3-J Two Moon Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5025,
+          60.745667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 38,
+        "closure_id": "3-J",
+        "district": "Eastern District",
+        "name": "Two Moon Bay",
+        "vertex": 2,
+        "label": "3-J Two Moon Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5155,
+          60.743833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 39,
+        "closure_id": "3-J",
+        "district": "Eastern District",
+        "name": "Two Moon Bay",
+        "vertex": 1,
+        "label": "3-J Two Moon Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.573667,
+          60.7375
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 40,
+        "closure_id": "3-J",
+        "district": "Eastern District",
+        "name": "Two Moon Bay",
+        "vertex": 2,
+        "label": "3-J Two Moon Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.585,
+          60.737167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 41,
+        "closure_id": "3-K",
+        "district": "Eastern District",
+        "name": "Irish Cove",
+        "vertex": 1,
+        "label": "3-K Irish Cove #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.447333,
+          60.768833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 42,
+        "closure_id": "3-K",
+        "district": "Eastern District",
+        "name": "Irish Cove",
+        "vertex": 2,
+        "label": "3-K Irish Cove #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.443667,
+          60.767667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 43,
+        "closure_id": "3-L",
+        "district": "Eastern District",
+        "name": "Whalen Bay",
+        "vertex": 1,
+        "label": "3-L Whalen Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.252833,
+          60.8205
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 44,
+        "closure_id": "3-L",
+        "district": "Eastern District",
+        "name": "Whalen Bay",
+        "vertex": 2,
+        "label": "3-L Whalen Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.267,
+          60.809833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 45,
+        "closure_id": "3-M",
+        "district": "Eastern District",
+        "name": "Fidalgo River Delta",
+        "vertex": 1,
+        "label": "3-M Fidalgo River Delta #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.227333,
+          60.863167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 46,
+        "closure_id": "3-M",
+        "district": "Eastern District",
+        "name": "Fidalgo River Delta",
+        "vertex": 2,
+        "label": "3-M Fidalgo River Delta #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.169833,
+          60.8625
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 47,
+        "closure_id": "3-N",
+        "district": "Eastern District",
+        "name": "Sunny River Delta",
+        "vertex": 1,
+        "label": "3-N Sunny River Delta #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.230333,
+          60.8665
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 48,
+        "closure_id": "3-N",
+        "district": "Eastern District",
+        "name": "Sunny River Delta",
+        "vertex": 2,
+        "label": "3-N Sunny River Delta #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.268833,
+          60.864167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 49,
+        "closure_id": "3-O",
+        "district": "Eastern District",
+        "name": "Fidalgo Bay",
+        "vertex": 1,
+        "label": "3-O Fidalgo Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.134167,
+          60.848833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 50,
+        "closure_id": "3-O",
+        "district": "Eastern District",
+        "name": "Fidalgo Bay",
+        "vertex": 2,
+        "label": "3-O Fidalgo Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.117167,
+          60.836667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 51,
+        "closure_id": "3-P",
+        "district": "Eastern District",
+        "name": "Short Creek",
+        "vertex": 1,
+        "label": "3-P Short Creek #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.280833,
+          60.849833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 52,
+        "closure_id": "3-P",
+        "district": "Eastern District",
+        "name": "Short Creek",
+        "vertex": 2,
+        "label": "3-P Short Creek #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.266667,
+          60.852
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 53,
+        "closure_id": "3-P",
+        "district": "Eastern District",
+        "name": "Short Creek",
+        "vertex": 1,
+        "label": "3-P Short Creek #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.2655,
+          60.852667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 54,
+        "closure_id": "3-P",
+        "district": "Eastern District",
+        "name": "Short Creek",
+        "vertex": 2,
+        "label": "3-P Short Creek #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.268333,
+          60.855833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 55,
+        "closure_id": "3-Q",
+        "district": "Eastern District",
+        "name": "Fish Bay",
+        "vertex": null,
+        "label": "3-Q Fish Bay (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 48.92' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.4,
+          60.82
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 56,
+        "closure_id": "3-R",
+        "district": "Eastern District",
+        "name": "Banzer Creek",
+        "vertex": 1,
+        "label": "3-R Banzer Creek #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.558833,
+          60.809333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 57,
+        "closure_id": "3-R",
+        "district": "Eastern District",
+        "name": "Banzer Creek",
+        "vertex": 2,
+        "label": "3-R Banzer Creek #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.564167,
+          60.8185
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 58,
+        "closure_id": "3-S",
+        "district": "Eastern District",
+        "name": "Landlocked Bay",
+        "vertex": 1,
+        "label": "3-S Landlocked Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5675,
+          60.852167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 59,
+        "closure_id": "3-S",
+        "district": "Eastern District",
+        "name": "Landlocked Bay",
+        "vertex": 2,
+        "label": "3-S Landlocked Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.568667,
+          60.857
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 60,
+        "closure_id": "3-T",
+        "district": "Eastern District",
+        "name": "Galena Bay",
+        "vertex": 1,
+        "label": "3-T Galena Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.636,
+          60.927333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 61,
+        "closure_id": "3-T",
+        "district": "Eastern District",
+        "name": "Galena Bay",
+        "vertex": 2,
+        "label": "3-T Galena Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.603667,
+          60.940167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 62,
+        "closure_id": "3-T",
+        "district": "Eastern District",
+        "name": "Galena Bay",
+        "vertex": 1,
+        "label": "3-T Galena Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.647167,
+          60.952167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 63,
+        "closure_id": "3-T",
+        "district": "Eastern District",
+        "name": "Galena Bay",
+        "vertex": 2,
+        "label": "3-T Galena Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.609167,
+          60.946833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 64,
+        "closure_id": "3-U",
+        "district": "Eastern District",
+        "name": "Jack Bay",
+        "vertex": 1,
+        "label": "3-U Jack Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.575333,
+          61.029333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 65,
+        "closure_id": "3-U",
+        "district": "Eastern District",
+        "name": "Jack Bay",
+        "vertex": 2,
+        "label": "3-U Jack Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.572333,
+          61.016833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 66,
+        "closure_id": "3-V",
+        "district": "Eastern District",
+        "name": "Mineral Creek / Gold Creek / Kadis Creek Deltas",
+        "vertex": 1,
+        "label": "3-V Mineral Creek / Gold Creek / Kadis Creek Deltas #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.395833,
+          61.124167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 67,
+        "closure_id": "3-V",
+        "district": "Eastern District",
+        "name": "Mineral Creek / Gold Creek / Kadis Creek Deltas",
+        "vertex": 2,
+        "label": "3-V Mineral Creek / Gold Creek / Kadis Creek Deltas #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.496667,
+          61.124167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 68,
+        "closure_id": "3-W",
+        "district": "Eastern District",
+        "name": "Head of Port Valdez",
+        "vertex": 1,
+        "label": "3-W Head of Port Valdez #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.377833,
+          61.1245
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 69,
+        "closure_id": "3-W",
+        "district": "Eastern District",
+        "name": "Head of Port Valdez",
+        "vertex": 2,
+        "label": "3-W Head of Port Valdez #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.297,
+          61.0855
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 70,
+        "closure_id": "3-X",
+        "district": "Eastern District",
+        "name": "Allison Creek / Sawmill Creek / Alyeska Safety Zone",
+        "vertex": 1,
+        "label": "3-X Allison Creek / Sawmill Creek / Alyeska Safety Zone #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.345333,
+          61.086
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 71,
+        "closure_id": "3-X",
+        "district": "Eastern District",
+        "name": "Allison Creek / Sawmill Creek / Alyeska Safety Zone",
+        "vertex": 2,
+        "label": "3-X Allison Creek / Sawmill Creek / Alyeska Safety Zone #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.455333,
+          61.080167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 72,
+        "closure_id": "3-Y",
+        "district": "Eastern District",
+        "name": "Sawmill Bay, Valdez Arm",
+        "vertex": 1,
+        "label": "3-Y Sawmill Bay, Valdez Arm #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.790167,
+          61.052333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 73,
+        "closure_id": "3-Y",
+        "district": "Eastern District",
+        "name": "Sawmill Bay, Valdez Arm",
+        "vertex": 2,
+        "label": "3-Y Sawmill Bay, Valdez Arm #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.787833,
+          61.045667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 74,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 1,
+        "label": "4-A Long Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.242,
+          60.984833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 75,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 2,
+        "label": "4-A Long Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2195,
+          60.982833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 76,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 1,
+        "label": "4-A Long Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2725,
+          60.987333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 77,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 2,
+        "label": "4-A Long Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2765,
+          60.987667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 78,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 1,
+        "label": "4-A Long Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.282167,
+          60.985667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 79,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 2,
+        "label": "4-A Long Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.288667,
+          60.983833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 80,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 1,
+        "label": "4-A Long Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.275333,
+          60.974333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 81,
+        "closure_id": "4-A",
+        "district": "Northern District",
+        "name": "Long Bay",
+        "vertex": 2,
+        "label": "4-A Long Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.276,
+          60.958667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 82,
+        "closure_id": "4-B",
+        "district": "Northern District",
+        "name": "Granite Bay",
+        "vertex": 1,
+        "label": "4-B Granite Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.404,
+          60.9225
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 83,
+        "closure_id": "4-B",
+        "district": "Northern District",
+        "name": "Granite Bay",
+        "vertex": 2,
+        "label": "4-B Granite Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.403167,
+          60.921
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 84,
+        "closure_id": "4-C",
+        "district": "Northern District",
+        "name": "Cedar Bay",
+        "vertex": null,
+        "label": "4-C Cedar Bay (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 58.00' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.3,
+          60.97
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 85,
+        "closure_id": "4-D",
+        "district": "Northern District",
+        "name": "Eaglek Bay",
+        "vertex": null,
+        "label": "4-D Eaglek Bay (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 53.46' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.7,
+          60.89
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 86,
+        "closure_id": "4-E",
+        "district": "Northern District",
+        "name": "Wells Bay",
+        "vertex": 1,
+        "label": "4-E Wells Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4265,
+          61.009833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 87,
+        "closure_id": "4-E",
+        "district": "Northern District",
+        "name": "Wells Bay",
+        "vertex": 2,
+        "label": "4-E Wells Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.424667,
+          61.002667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 88,
+        "closure_id": "4-E",
+        "district": "Northern District",
+        "name": "Wells Bay",
+        "vertex": 1,
+        "label": "4-E Wells Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.481333,
+          61.002833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 89,
+        "closure_id": "4-E",
+        "district": "Northern District",
+        "name": "Wells Bay",
+        "vertex": 2,
+        "label": "4-E Wells Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4885,
+          61.001833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 90,
+        "closure_id": "4-F",
+        "district": "Northern District",
+        "name": "Siwash Bay",
+        "vertex": 1,
+        "label": "4-F Siwash Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.662167,
+          60.958
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 91,
+        "closure_id": "4-F",
+        "district": "Northern District",
+        "name": "Siwash Bay",
+        "vertex": 2,
+        "label": "4-F Siwash Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.658667,
+          60.9495
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 92,
+        "closure_id": "4-G",
+        "district": "Northern District",
+        "name": "Jonah Bay",
+        "vertex": 1,
+        "label": "4-G Jonah Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.643833,
+          61.013667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 93,
+        "closure_id": "4-G",
+        "district": "Northern District",
+        "name": "Jonah Bay",
+        "vertex": 2,
+        "label": "4-G Jonah Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.641833,
+          60.949333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 94,
+        "closure_id": "4-I",
+        "district": "Northern District",
+        "name": "Derickson Bay",
+        "vertex": 1,
+        "label": "4-I Derickson Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.807167,
+          60.869667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 95,
+        "closure_id": "4-I",
+        "district": "Northern District",
+        "name": "Derickson Bay",
+        "vertex": 2,
+        "label": "4-I Derickson Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.808,
+          60.864667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 96,
+        "closure_id": "4-J",
+        "district": "Northern District",
+        "name": "Schoppe Bay",
+        "vertex": null,
+        "label": "4-J Schoppe Bay (approx)",
+        "partial": true,
+        "note": "East of 147\u00b0 39.55' W. ---"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.65,
+          60.92
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 97,
+        "closure_id": "5-B",
+        "district": "Unakwik District",
+        "name": "Miners Bay",
+        "vertex": 1,
+        "label": "5-B Miners Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.5045,
+          61.063333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 98,
+        "closure_id": "5-B",
+        "district": "Unakwik District",
+        "name": "Miners Bay",
+        "vertex": 2,
+        "label": "5-B Miners Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.499,
+          61.072
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 99,
+        "closure_id": "6-A",
+        "district": "Coghill District",
+        "name": "Esther Passage",
+        "vertex": 1,
+        "label": "6-A Esther Passage #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.910833,
+          60.858167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 100,
+        "closure_id": "6-A",
+        "district": "Coghill District",
+        "name": "Esther Passage",
+        "vertex": 2,
+        "label": "6-A Esther Passage #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.914167,
+          60.872667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 101,
+        "closure_id": "6-A",
+        "district": "Coghill District",
+        "name": "Esther Passage",
+        "vertex": 1,
+        "label": "6-A Esther Passage #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.9485,
+          60.903333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 102,
+        "closure_id": "6-A",
+        "district": "Coghill District",
+        "name": "Esther Passage",
+        "vertex": 2,
+        "label": "6-A Esther Passage #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.943833,
+          60.897167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 103,
+        "closure_id": "6-B",
+        "district": "Coghill District",
+        "name": "Golden River",
+        "vertex": 1,
+        "label": "6-B Golden River #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.013667,
+          60.962667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 104,
+        "closure_id": "6-B",
+        "district": "Coghill District",
+        "name": "Golden River",
+        "vertex": 2,
+        "label": "6-B Golden River #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.993167,
+          60.979333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 105,
+        "closure_id": "6-C",
+        "district": "Coghill District",
+        "name": "Coghill River",
+        "vertex": 1,
+        "label": "6-C Coghill River #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.950167,
+          61.067667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 106,
+        "closure_id": "6-C",
+        "district": "Coghill District",
+        "name": "Coghill River",
+        "vertex": 2,
+        "label": "6-C Coghill River #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.927,
+          61.0555
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 107,
+        "closure_id": "6-D",
+        "district": "Coghill District",
+        "name": "Barry Arm",
+        "vertex": 1,
+        "label": "6-D Barry Arm #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.0935,
+          61.010333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 108,
+        "closure_id": "6-D",
+        "district": "Coghill District",
+        "name": "Barry Arm",
+        "vertex": 2,
+        "label": "6-D Barry Arm #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.116667,
+          61.0385
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 109,
+        "closure_id": "6-E",
+        "district": "Coghill District",
+        "name": "Harrison Lagoon",
+        "vertex": 1,
+        "label": "6-E Harrison Lagoon #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.183333,
+          60.9895
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 110,
+        "closure_id": "6-E",
+        "district": "Coghill District",
+        "name": "Harrison Lagoon",
+        "vertex": 2,
+        "label": "6-E Harrison Lagoon #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.1905,
+          60.969
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 111,
+        "closure_id": "6-F",
+        "district": "Coghill District",
+        "name": "Hobo Bay",
+        "vertex": 1,
+        "label": "6-F Hobo Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.218833,
+          60.952333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 112,
+        "closure_id": "6-F",
+        "district": "Coghill District",
+        "name": "Hobo Bay",
+        "vertex": 2,
+        "label": "6-F Hobo Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.233667,
+          60.946
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 113,
+        "closure_id": "6-G",
+        "district": "Coghill District",
+        "name": "Bettles Bay",
+        "vertex": 1,
+        "label": "6-G Bettles Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.297,
+          60.940333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 114,
+        "closure_id": "6-G",
+        "district": "Coghill District",
+        "name": "Bettles Bay",
+        "vertex": 2,
+        "label": "6-G Bettles Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.278167,
+          60.946
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 115,
+        "closure_id": "6-H",
+        "district": "Coghill District",
+        "name": "Hummer Bay",
+        "vertex": 1,
+        "label": "6-H Hummer Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.290333,
+          60.8905
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 116,
+        "closure_id": "6-H",
+        "district": "Coghill District",
+        "name": "Hummer Bay",
+        "vertex": 2,
+        "label": "6-H Hummer Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.305167,
+          60.887333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 117,
+        "closure_id": "6-I",
+        "district": "Coghill District",
+        "name": "Pirate Cove",
+        "vertex": 1,
+        "label": "6-I Pirate Cove #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.294667,
+          60.875667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 118,
+        "closure_id": "6-I",
+        "district": "Coghill District",
+        "name": "Pirate Cove",
+        "vertex": 2,
+        "label": "6-I Pirate Cove #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.293667,
+          60.867833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 119,
+        "closure_id": "6-J",
+        "district": "Coghill District",
+        "name": "Pigot Bay",
+        "vertex": 1,
+        "label": "6-J Pigot Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.3495,
+          60.850333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 120,
+        "closure_id": "6-J",
+        "district": "Coghill District",
+        "name": "Pigot Bay",
+        "vertex": 2,
+        "label": "6-J Pigot Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.365333,
+          60.832333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 121,
+        "closure_id": "7-A",
+        "district": "Northwestern District",
+        "name": "Logging Camp Bay",
+        "vertex": 1,
+        "label": "7-A Logging Camp Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4215,
+          60.822667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 122,
+        "closure_id": "7-A",
+        "district": "Northwestern District",
+        "name": "Logging Camp Bay",
+        "vertex": 2,
+        "label": "7-A Logging Camp Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.437,
+          60.829833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 123,
+        "closure_id": "7-B",
+        "district": "Northwestern District",
+        "name": "Blackstone Bay",
+        "vertex": 1,
+        "label": "7-B Blackstone Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.492667,
+          60.765833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 124,
+        "closure_id": "7-B",
+        "district": "Northwestern District",
+        "name": "Blackstone Bay",
+        "vertex": 2,
+        "label": "7-B Blackstone Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4435,
+          60.7635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 125,
+        "closure_id": "7-C",
+        "district": "Northwestern District",
+        "name": "Passage Canal (Shotgun Cove)",
+        "vertex": 1,
+        "label": "7-C Passage Canal (Shotgun Cove) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.551333,
+          60.801833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 126,
+        "closure_id": "7-C",
+        "district": "Northwestern District",
+        "name": "Passage Canal (Shotgun Cove)",
+        "vertex": 2,
+        "label": "7-C Passage Canal (Shotgun Cove) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.534833,
+          60.798333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 127,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 1,
+        "label": "7-D Cochrane Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4235,
+          60.660167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 128,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 2,
+        "label": "7-D Cochrane Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.4095,
+          60.636167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 129,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 1,
+        "label": "7-D Cochrane Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.375333,
+          60.729333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 130,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 2,
+        "label": "7-D Cochrane Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.384833,
+          60.690833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 131,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 1,
+        "label": "7-D Cochrane Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.361167,
+          60.666
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 132,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 2,
+        "label": "7-D Cochrane Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.371167,
+          60.6555
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 133,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 1,
+        "label": "7-D Cochrane Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.367,
+          60.764833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 134,
+        "closure_id": "7-D",
+        "district": "Northwestern District",
+        "name": "Cochrane Bay",
+        "vertex": 2,
+        "label": "7-D Cochrane Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.371833,
+          60.752
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 135,
+        "closure_id": "7-E",
+        "district": "Northwestern District",
+        "name": "Long Bay (Culross Passage)",
+        "vertex": 1,
+        "label": "7-E Long Bay (Culross Passage) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.262333,
+          60.697833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 136,
+        "closure_id": "7-E",
+        "district": "Northwestern District",
+        "name": "Long Bay (Culross Passage)",
+        "vertex": 2,
+        "label": "7-E Long Bay (Culross Passage) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.258667,
+          60.6935
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 137,
+        "closure_id": "7-F",
+        "district": "Northwestern District",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "vertex": 1,
+        "label": "7-F Port Nellie Juan (Mink Creek) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.230333,
+          60.594333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 138,
+        "closure_id": "7-F",
+        "district": "Northwestern District",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "vertex": 2,
+        "label": "7-F Port Nellie Juan (Mink Creek) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.2745,
+          60.576
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 139,
+        "closure_id": "7-F",
+        "district": "Northwestern District",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "vertex": 1,
+        "label": "7-F Port Nellie Juan (Mink Creek) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.2965,
+          60.560167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 140,
+        "closure_id": "7-F",
+        "district": "Northwestern District",
+        "name": "Port Nellie Juan (Mink Creek)",
+        "vertex": 2,
+        "label": "7-F Port Nellie Juan (Mink Creek) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.289,
+          60.565
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 141,
+        "closure_id": "7-G",
+        "district": "Northwestern District",
+        "name": "East Finger Inlet",
+        "vertex": null,
+        "label": "7-G East Finger Inlet (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 32.51' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.15,
+          60.54
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 142,
+        "closure_id": "7-H",
+        "district": "Northwestern District",
+        "name": "West Finger Inlet",
+        "vertex": 1,
+        "label": "7-H West Finger Inlet #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.450333,
+          60.569333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 143,
+        "closure_id": "7-H",
+        "district": "Northwestern District",
+        "name": "West Finger Inlet",
+        "vertex": 2,
+        "label": "7-H West Finger Inlet #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.436833,
+          60.5685
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 144,
+        "closure_id": "7-I",
+        "district": "Northwestern District",
+        "name": "Kings Bay",
+        "vertex": 1,
+        "label": "7-I Kings Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.691667,
+          60.471167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 145,
+        "closure_id": "7-I",
+        "district": "Northwestern District",
+        "name": "Kings Bay",
+        "vertex": 2,
+        "label": "7-I Kings Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.632333,
+          60.4635
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 146,
+        "closure_id": "7-J",
+        "district": "Northwestern District",
+        "name": "Greystone Bay",
+        "vertex": 1,
+        "label": "7-J Greystone Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.436,
+          60.5255
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 147,
+        "closure_id": "7-J",
+        "district": "Northwestern District",
+        "name": "Greystone Bay",
+        "vertex": 2,
+        "label": "7-J Greystone Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.426333,
+          60.516667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 148,
+        "closure_id": "7-K",
+        "district": "Northwestern District",
+        "name": "McClure Bay",
+        "vertex": 1,
+        "label": "7-K McClure Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.1825,
+          60.5035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 149,
+        "closure_id": "7-K",
+        "district": "Northwestern District",
+        "name": "McClure Bay",
+        "vertex": 2,
+        "label": "7-K McClure Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.160167,
+          60.504833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 150,
+        "closure_id": "8-A",
+        "district": "Eshamy District",
+        "name": "Eshamy Bay & tributaries",
+        "vertex": null,
+        "label": "8-A Eshamy Bay & tributaries (approx)",
+        "partial": true,
+        "note": "Waters within Eshamy Lagoon and its tributaries, plus within 100 yds outside the narrows at the entrance of Eshamy Lagoon."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.95,
+          60.47
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 151,
+        "closure_id": "8-B",
+        "district": "Eshamy District",
+        "name": "Gumboot Creek",
+        "vertex": null,
+        "label": "8-B Gumboot Creek (approx)",
+        "partial": true,
+        "note": "Within 750 yds of the terminus on the northern shore of Eshamy Bay. ---"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.97,
+          60.48
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 152,
+        "closure_id": "9-A",
+        "district": "Southwestern District",
+        "name": "Dangerous Passage",
+        "vertex": null,
+        "label": "9-A Dangerous Passage (approx)",
+        "partial": true,
+        "note": "Within 1,000 yds of all salmon streams in Dangerous Passage between 148\u00b0 08.87' W and 148\u00b0 02.62' W."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.05,
+          60.27
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 153,
+        "closure_id": "9-B",
+        "district": "Southwestern District",
+        "name": "Ewan Bay",
+        "vertex": null,
+        "label": "9-B Ewan Bay (approx)",
+        "partial": true,
+        "note": "West of 148\u00b0 08.35' W."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.13,
+          60.27
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 154,
+        "closure_id": "9-C",
+        "district": "Southwestern District",
+        "name": "Paddy Bay",
+        "vertex": 1,
+        "label": "9-C Paddy Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.101167,
+          60.3995
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 155,
+        "closure_id": "9-C",
+        "district": "Southwestern District",
+        "name": "Paddy Bay",
+        "vertex": 2,
+        "label": "9-C Paddy Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.081833,
+          60.3985
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 156,
+        "closure_id": "9-D",
+        "district": "Southwestern District",
+        "name": "Jackpot Bay",
+        "vertex": 1,
+        "label": "9-D Jackpot Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.219667,
+          60.345667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 157,
+        "closure_id": "9-D",
+        "district": "Southwestern District",
+        "name": "Jackpot Bay",
+        "vertex": 2,
+        "label": "9-D Jackpot Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.2235,
+          60.342
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 158,
+        "closure_id": "9-E",
+        "district": "Southwestern District",
+        "name": "Whale Bay",
+        "vertex": null,
+        "label": "9-E Whale Bay (approx)",
+        "partial": true,
+        "note": "South of 60\u00b0 14.16' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.06,
+          60.22
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 159,
+        "closure_id": "9-F",
+        "district": "Southwestern District",
+        "name": "Port Bainbridge",
+        "vertex": 1,
+        "label": "9-F Port Bainbridge #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.332667,
+          60.162
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 160,
+        "closure_id": "9-F",
+        "district": "Southwestern District",
+        "name": "Port Bainbridge",
+        "vertex": 2,
+        "label": "9-F Port Bainbridge #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.342667,
+          60.161333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 161,
+        "closure_id": "9-G",
+        "district": "Southwestern District",
+        "name": "Hogg Bay",
+        "vertex": 1,
+        "label": "9-G Hogg Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.200833,
+          60.085
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 162,
+        "closure_id": "9-G",
+        "district": "Southwestern District",
+        "name": "Hogg Bay",
+        "vertex": 2,
+        "label": "9-G Hogg Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.195833,
+          60.082333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 163,
+        "closure_id": "9-G",
+        "district": "Southwestern District",
+        "name": "Hogg Bay",
+        "vertex": 1,
+        "label": "9-G Hogg Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.191167,
+          60.072
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 164,
+        "closure_id": "9-G",
+        "district": "Southwestern District",
+        "name": "Hogg Bay",
+        "vertex": 2,
+        "label": "9-G Hogg Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.193667,
+          60.066833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 165,
+        "closure_id": "9-H",
+        "district": "Southwestern District",
+        "name": "Bainbridge Island",
+        "vertex": 1,
+        "label": "9-H Bainbridge Island #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.113833,
+          60.126333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 166,
+        "closure_id": "9-H",
+        "district": "Southwestern District",
+        "name": "Bainbridge Island",
+        "vertex": 2,
+        "label": "9-H Bainbridge Island #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.105167,
+          60.13
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 167,
+        "closure_id": "9-I",
+        "district": "Southwestern District",
+        "name": "Ikuta Bay",
+        "vertex": 1,
+        "label": "9-I Ikuta Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.013333,
+          60.109667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 168,
+        "closure_id": "9-I",
+        "district": "Southwestern District",
+        "name": "Ikuta Bay",
+        "vertex": 2,
+        "label": "9-I Ikuta Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -148.002,
+          60.11
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 169,
+        "closure_id": "9-J",
+        "district": "Southwestern District",
+        "name": "Mummy Bay",
+        "vertex": 1,
+        "label": "9-J Mummy Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.818667,
+          60.229167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 170,
+        "closure_id": "9-J",
+        "district": "Southwestern District",
+        "name": "Mummy Bay",
+        "vertex": 2,
+        "label": "9-J Mummy Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.8095,
+          60.221833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 171,
+        "closure_id": "9-K",
+        "district": "Southwestern District",
+        "name": "Thumb Bay",
+        "vertex": 1,
+        "label": "9-K Thumb Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.813667,
+          60.213833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 172,
+        "closure_id": "9-K",
+        "district": "Southwestern District",
+        "name": "Thumb Bay",
+        "vertex": 2,
+        "label": "9-K Thumb Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.825333,
+          60.210167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 173,
+        "closure_id": "9-L",
+        "district": "Southwestern District",
+        "name": "Hogan Bay",
+        "vertex": null,
+        "label": "9-L Hogan Bay (approx)",
+        "partial": true,
+        "note": "North of 60\u00b0 12.00' N."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.78,
+          60.18
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 174,
+        "closure_id": "9-M",
+        "district": "Southwestern District",
+        "name": "Snug Harbor",
+        "vertex": null,
+        "label": "9-M Snug Harbor (approx)",
+        "partial": true,
+        "note": "West of 147\u00b0 45.55' W. ---"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.76,
+          60.22
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 175,
+        "closure_id": "10-A",
+        "district": "Montague District",
+        "name": "Zaikof Bay",
+        "vertex": 1,
+        "label": "10-A Zaikof Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.0025,
+          60.299
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 176,
+        "closure_id": "10-B",
+        "district": "Montague District",
+        "name": "Rocky Bay",
+        "vertex": 1,
+        "label": "10-B Rocky Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.111,
+          60.355
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 177,
+        "closure_id": "10-B",
+        "district": "Montague District",
+        "name": "Rocky Bay",
+        "vertex": 2,
+        "label": "10-B Rocky Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.0935,
+          60.342333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 178,
+        "closure_id": "10-C",
+        "district": "Montague District",
+        "name": "Stockdale Harbor",
+        "vertex": 1,
+        "label": "10-C Stockdale Harbor #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.200333,
+          60.326
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 179,
+        "closure_id": "10-C",
+        "district": "Montague District",
+        "name": "Stockdale Harbor",
+        "vertex": 2,
+        "label": "10-C Stockdale Harbor #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.195333,
+          60.304333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 180,
+        "closure_id": "10-D",
+        "district": "Montague District",
+        "name": "Port Chalmers",
+        "vertex": 1,
+        "label": "10-D Port Chalmers #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.210333,
+          60.282833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 181,
+        "closure_id": "10-D",
+        "district": "Montague District",
+        "name": "Port Chalmers",
+        "vertex": 2,
+        "label": "10-D Port Chalmers #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.2105,
+          60.267667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 182,
+        "closure_id": "10-D",
+        "district": "Montague District",
+        "name": "Port Chalmers",
+        "vertex": 1,
+        "label": "10-D Port Chalmers #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.205167,
+          60.256167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 183,
+        "closure_id": "10-D",
+        "district": "Montague District",
+        "name": "Port Chalmers",
+        "vertex": 2,
+        "label": "10-D Port Chalmers #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.240333,
+          60.236
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 184,
+        "closure_id": "10-D",
+        "district": "Montague District",
+        "name": "Port Chalmers",
+        "vertex": 1,
+        "label": "10-D Port Chalmers #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.246167,
+          60.231
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 185,
+        "closure_id": "10-D",
+        "district": "Montague District",
+        "name": "Port Chalmers",
+        "vertex": 2,
+        "label": "10-D Port Chalmers #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.280333,
+          60.226
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 186,
+        "closure_id": "10-E",
+        "district": "Montague District",
+        "name": "Hanning Bay",
+        "vertex": 1,
+        "label": "10-E Hanning Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.691,
+          59.982167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 187,
+        "closure_id": "10-E",
+        "district": "Montague District",
+        "name": "Hanning Bay",
+        "vertex": 2,
+        "label": "10-E Hanning Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.7165,
+          59.9525
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 188,
+        "closure_id": "10-F",
+        "district": "Montague District",
+        "name": "MacLeod Harbor",
+        "vertex": 1,
+        "label": "10-F MacLeod Harbor #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.768667,
+          59.887667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 189,
+        "closure_id": "10-F",
+        "district": "Montague District",
+        "name": "MacLeod Harbor",
+        "vertex": 2,
+        "label": "10-F MacLeod Harbor #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.775333,
+          59.874333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 190,
+        "closure_id": "10-G",
+        "district": "Montague District",
+        "name": "Montague Strait",
+        "vertex": 1,
+        "label": "10-G Montague Strait #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.480333,
+          60.076833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 191,
+        "closure_id": "10-G",
+        "district": "Montague District",
+        "name": "Montague Strait",
+        "vertex": 2,
+        "label": "10-G Montague Strait #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.552833,
+          60.052167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 192,
+        "closure_id": "10-G",
+        "district": "Montague District",
+        "name": "Montague Strait",
+        "vertex": 1,
+        "label": "10-G Montague Strait #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.571333,
+          60.035
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 193,
+        "closure_id": "10-G",
+        "district": "Montague District",
+        "name": "Montague Strait",
+        "vertex": 2,
+        "label": "10-G Montague Strait #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.676167,
+          59.999
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 194,
+        "closure_id": "10-H",
+        "district": "Montague District",
+        "name": "Green Island",
+        "vertex": 1,
+        "label": "10-H Green Island #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.391833,
+          60.303167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 195,
+        "closure_id": "10-H",
+        "district": "Montague District",
+        "name": "Green Island",
+        "vertex": 2,
+        "label": "10-H Green Island #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.350333,
+          60.303167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 196,
+        "closure_id": "10-H",
+        "district": "Montague District",
+        "name": "Green Island",
+        "vertex": 1,
+        "label": "10-H Green Island #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.441833,
+          60.272833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 197,
+        "closure_id": "10-H",
+        "district": "Montague District",
+        "name": "Green Island",
+        "vertex": 2,
+        "label": "10-H Green Island #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -147.4345,
+          60.283167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 198,
+        "closure_id": "11-A",
+        "district": "Southeastern District",
+        "name": "Port Etches",
+        "vertex": 1,
+        "label": "11-A Port Etches #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.565667,
+          60.3515
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 199,
+        "closure_id": "11-A",
+        "district": "Southeastern District",
+        "name": "Port Etches",
+        "vertex": 2,
+        "label": "11-A Port Etches #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.545333,
+          60.334333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 200,
+        "closure_id": "11-A",
+        "district": "Southeastern District",
+        "name": "Port Etches",
+        "vertex": 1,
+        "label": "11-A Port Etches #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.5685,
+          60.3285
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 201,
+        "closure_id": "11-A",
+        "district": "Southeastern District",
+        "name": "Port Etches",
+        "vertex": 2,
+        "label": "11-A Port Etches #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.593667,
+          60.316833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 202,
+        "closure_id": "11-B",
+        "district": "Southeastern District",
+        "name": "Constantine Harbor",
+        "vertex": 1,
+        "label": "11-B Constantine Harbor #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.604833,
+          60.354167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 203,
+        "closure_id": "11-B",
+        "district": "Southeastern District",
+        "name": "Constantine Harbor",
+        "vertex": 2,
+        "label": "11-B Constantine Harbor #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.618333,
+          60.350667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 204,
+        "closure_id": "11-C",
+        "district": "Southeastern District",
+        "name": "Deer Cove (Hinchinbrook Is.)",
+        "vertex": 1,
+        "label": "11-C Deer Cove (Hinchinbrook Is.) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.726333,
+          60.389167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 205,
+        "closure_id": "11-C",
+        "district": "Southeastern District",
+        "name": "Deer Cove (Hinchinbrook Is.)",
+        "vertex": 2,
+        "label": "11-C Deer Cove (Hinchinbrook Is.) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.712167,
+          60.396833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 206,
+        "closure_id": "11-D",
+        "district": "Southeastern District",
+        "name": "Juania Cove (Hinchinbrook Is.)",
+        "vertex": 1,
+        "label": "11-D Juania Cove (Hinchinbrook Is.) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.712167,
+          60.401167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 207,
+        "closure_id": "11-D",
+        "district": "Southeastern District",
+        "name": "Juania Cove (Hinchinbrook Is.)",
+        "vertex": 2,
+        "label": "11-D Juania Cove (Hinchinbrook Is.) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.705,
+          60.411667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 208,
+        "closure_id": "11-E",
+        "district": "Southeastern District",
+        "name": "Shelter Bay (Hinchinbrook Is.)",
+        "vertex": 1,
+        "label": "11-E Shelter Bay (Hinchinbrook Is.) #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.668667,
+          60.4385
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 209,
+        "closure_id": "11-E",
+        "district": "Southeastern District",
+        "name": "Shelter Bay (Hinchinbrook Is.)",
+        "vertex": 2,
+        "label": "11-E Shelter Bay (Hinchinbrook Is.) #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.667,
+          60.427667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 210,
+        "closure_id": "11-F",
+        "district": "Southeastern District",
+        "name": "Anderson Bay",
+        "vertex": 1,
+        "label": "11-F Anderson Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.513,
+          60.470667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 211,
+        "closure_id": "11-F",
+        "district": "Southeastern District",
+        "name": "Anderson Bay",
+        "vertex": 2,
+        "label": "11-F Anderson Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.52,
+          60.473667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 212,
+        "closure_id": "11-G",
+        "district": "Southeastern District",
+        "name": "Double Bay",
+        "vertex": 1,
+        "label": "11-G Double Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.485167,
+          60.467167
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 213,
+        "closure_id": "11-G",
+        "district": "Southeastern District",
+        "name": "Double Bay",
+        "vertex": 2,
+        "label": "11-G Double Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.475833,
+          60.471
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 214,
+        "closure_id": "11-G",
+        "district": "Southeastern District",
+        "name": "Double Bay",
+        "vertex": 1,
+        "label": "11-G Double Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.461833,
+          60.470833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 215,
+        "closure_id": "11-G",
+        "district": "Southeastern District",
+        "name": "Double Bay",
+        "vertex": 2,
+        "label": "11-G Double Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.4435,
+          60.467
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 216,
+        "closure_id": "11-H",
+        "district": "Southeastern District",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "vertex": 1,
+        "label": "11-H Hawkins Cutoff / Orca Inlet #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.328667,
+          60.464333
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 217,
+        "closure_id": "11-H",
+        "district": "Southeastern District",
+        "name": "Hawkins Cutoff / Orca Inlet",
+        "vertex": 2,
+        "label": "11-H Hawkins Cutoff / Orca Inlet #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.3565,
+          60.460833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 218,
+        "closure_id": "11-I",
+        "district": "Southeastern District",
+        "name": "Canoe Passage",
+        "vertex": 1,
+        "label": "11-I Canoe Passage #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.123833,
+          60.519667
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 219,
+        "closure_id": "11-I",
+        "district": "Southeastern District",
+        "name": "Canoe Passage",
+        "vertex": 2,
+        "label": "11-I Canoe Passage #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -146.117833,
+          60.518833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 220,
+        "closure_id": "11-J",
+        "district": "Southeastern District",
+        "name": "Windy Bay",
+        "vertex": 1,
+        "label": "11-J Windy Bay #1",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.9615,
+          60.564833
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 221,
+        "closure_id": "11-J",
+        "district": "Southeastern District",
+        "name": "Windy Bay",
+        "vertex": 2,
+        "label": "11-J Windy Bay #2",
+        "partial": false,
+        "note": ""
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -145.977333,
+          60.561833
+        ]
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>akFISHinfo.</title>
   <meta name="theme-color" content="#060a0f" data-dynamic>
   <script src="/static/platform.js"></script>
@@ -39,7 +39,9 @@
     /* ── Layout ── */
     .app-layout {
       display: grid;
-      grid-template-rows: 48px 1fr;
+      /* `auto` lets the topbar grow to accommodate env(safe-area-inset-top)
+         on iPhones with a notch / Dynamic Island. */
+      grid-template-rows: auto 1fr;
       height: 100vh;
     }
 
@@ -51,6 +53,14 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
+      /* Safe area: lift the topbar contents below the iOS notch /
+         Dynamic Island. min-height keeps the inner row at 48 px while
+         the padding pushes the bg fill up into the inset. */
+      padding-top: env(safe-area-inset-top);
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
+      min-height: calc(48px + env(safe-area-inset-top));
+      box-sizing: border-box;
     }
 
     .topbar-left {
@@ -824,7 +834,8 @@
          a bottom sheet that snaps to peek/half/full. Apple Maps pattern. */
       body { overflow: hidden; height: 100dvh; }
       .app-layout {
-        grid-template-rows: 50px 1fr;
+        /* auto = topbar row sizes to its safe-area-inflated content. */
+        grid-template-rows: auto 1fr;
         height: 100dvh;
         overflow: hidden;
       }
@@ -859,7 +870,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        max-height: calc(100dvh - 50px);  /* never cover the topbar */
+        max-height: calc(100dvh - 48px - env(safe-area-inset-top));  /* never cover the topbar */
         background: var(--bg);
         border-top: 1px solid var(--border);
         border-radius: 14px 14px 0 0;
@@ -876,7 +887,7 @@
       }
       .left-panel.sheet-peek { height: 120px; }
       .left-panel.sheet-half { height: 50dvh; }
-      .left-panel.sheet-full { height: calc(100dvh - 50px); }
+      .left-panel.sheet-full { height: calc(100dvh - 48px - env(safe-area-inset-top)); }
       .left-panel.sheet-dragging { transition: none; }
 
       /* Drag handle at the top of the sheet */
