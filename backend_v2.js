@@ -84,8 +84,11 @@ app.use(helmet({
       // Native shells load HTML from capacitor://localhost (iOS) or
       // https://localhost (Android) and need to fetch akfishinfo.com
       // cross-origin for /api/* and Sentry ingestion.
+      // basemaps.cartocdn.com added so leaflet.offline can fetch() tiles
+      // into IndexedDB on web (native bypasses CSP entirely).
       connectSrc: ["'self'",
                    "https://akfishinfo.com",
+                   "https://*.basemaps.cartocdn.com",
                    "https://*.ingest.us.sentry.io",
                    "https://*.sentry.io"],
       fontSrc:    ["'self'", "data:"],
