@@ -3,6 +3,7 @@
   "appName": "akFISHinfo",
   "webDir": "public",
   "appendUserAgent": "akFISHinfo-Native",
+  "backgroundColor": "#060a0fff",
   "server": {
     "androidScheme": "https",
     "iosScheme": "capacitor",
@@ -12,10 +13,12 @@
     ]
   },
   "ios": {
-    "contentInset": "automatic"
+    "contentInset": "automatic",
+    "backgroundColor": "#060a0fff"
   },
   "android": {
-    "allowMixedContent": false
+    "allowMixedContent": false,
+    "backgroundColor": "#060a0fff"
   },
   "plugins": {
     "CapacitorHttp": {

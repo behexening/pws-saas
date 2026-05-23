@@ -766,7 +766,11 @@
       /* Topbar: single row — three tabs fill the width, hamburger on the right.
          Wordmark is hidden (redundant inside the app), nav links collapse into a dropdown. */
       .topbar {
-        padding: 6px 10px;
+        padding: 6px max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
+        /* Preserve the desktop block's safe-area top padding — the
+           shorthand above would otherwise reset it. */
+        padding-top: calc(6px + env(safe-area-inset-top));
+        min-height: calc(50px + env(safe-area-inset-top));
         gap: 8px;
         position: relative; /* anchor the dropdown */
         align-items: center;
