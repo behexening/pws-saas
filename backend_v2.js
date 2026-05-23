@@ -2791,6 +2791,103 @@ app.get('/api/latest', async (req, res) => {
  * Falls back to "announcement_date = today/tomorrow AKDT" for legacy rows
  * where the parser didn't extract a window.
  */
+// ============================================================
+// TIDES + WEATHER (NOAA)
+// ============================================================
+// Free public APIs:
+//   - api.weather.gov   (gridpoint forecast)
+//   - api.tidesandcurrents.noaa.gov (tide predictions)
+// In-memory cache: one entry per rounded-2dp (lat,lon), 5 min TTL.
+// Server-side fetch (not browser) so we don't need extra CSP entries
+// and we can rate-limit / cache for the whole user base.
+
+const PWS_DEFAULT_LAT = 60.55;
+const PWS_DEFAULT_LON = -145.76;
+// Cordova tide station. Future: pick the nearest of Cordova / Whittier /
+// Valdez / Seward based on user lat/lon.
+const CORDOVA_TIDE_STATION = '9454050';
+const _conditionsCache = new Map();
+const CONDITIONS_TTL_MS = 5 * 60 * 1000;
+const NOAA_UA = 'akFISHinfo (contact: support@akfishinfo.com)';
+
+async function fetchWeatherNoaa(lat, lon) {
+  const pointsResp = await fetch(`https://api.weather.gov/points/${lat},${lon}`, {
+    headers: { 'User-Agent': NOAA_UA, 'Accept': 'application/geo+json' },
+  });
+  if (!pointsResp.ok) throw new Error(`weather.gov points ${pointsResp.status}`);
+  const points = await pointsResp.json();
+  const forecastUrl = points.properties && points.properties.forecast;
+  if (!forecastUrl) throw new Error('no forecast url');
+  const forecastResp = await fetch(forecastUrl, {
+    headers: { 'User-Agent': NOAA_UA, 'Accept': 'application/geo+json' },
+  });
+  if (!forecastResp.ok) throw new Error(`weather.gov forecast ${forecastResp.status}`);
+  const forecast = await forecastResp.json();
+  const periods = (forecast.properties && forecast.properties.periods || [])
+    .slice(0, 4)
+    .map(p => ({
+      name: p.name,
+      isDaytime: p.isDaytime,
+      temperature: p.temperature,
+      temperatureUnit: p.temperatureUnit,
+      windSpeed: p.windSpeed,
+      windDirection: p.windDirection,
+      shortForecast: p.shortForecast,
+    }));
+  return { periods };
+}
+
+async function fetchTidesNoaa(station) {
+  const today = new Date();
+  const yyyymmdd = today.toISOString().slice(0, 10).replace(/-/g, '');
+  const url = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter` +
+              `?station=${station}` +
+              `&product=predictions&datum=MLLW&time_zone=lst_ldt` +
+              `&interval=hilo&units=english&format=json` +
+              `&begin_date=${yyyymmdd}&range=48`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`tidesandcurrents ${r.status}`);
+  const data = await r.json();
+  const predictions = (data.predictions || []).map(p => ({
+    time: p.t,                          // "YYYY-MM-DD HH:MM" in local time
+    height_ft: parseFloat(p.v),
+    type: p.type === 'H' ? 'high' : 'low',
+  }));
+  return { station, station_name: 'Cordova', predictions };
+}
+
+app.get('/api/conditions', async (req, res) => {
+  const latNum = parseFloat(req.query.lat);
+  const lonNum = parseFloat(req.query.lon);
+  const lat = Number.isFinite(latNum) ? latNum : PWS_DEFAULT_LAT;
+  const lon = Number.isFinite(lonNum) ? lonNum : PWS_DEFAULT_LON;
+  const cacheKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+
+  const cached = _conditionsCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < CONDITIONS_TTL_MS) {
+    return res.json(cached.data);
+  }
+
+  try {
+    const [weather, tides] = await Promise.all([
+      fetchWeatherNoaa(lat, lon).catch(err => {
+        console.warn('weather fetch failed:', err.message);
+        return null;
+      }),
+      fetchTidesNoaa(CORDOVA_TIDE_STATION).catch(err => {
+        console.warn('tides fetch failed:', err.message);
+        return null;
+      }),
+    ]);
+    const data = { weather, tides, fetched_at: new Date().toISOString() };
+    _conditionsCache.set(cacheKey, { at: Date.now(), data });
+    res.json(data);
+  } catch (err) {
+    console.error('/api/conditions error:', err.message);
+    res.status(503).json({ error: 'Conditions unavailable.' });
+  }
+});
+
 app.get('/api/results/live', async (req, res) => {
   try {
     const result = await db.query(

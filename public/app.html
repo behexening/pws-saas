@@ -152,6 +152,66 @@
       z-index: 10;
     }
 
+    /* Tides + weather card — slots inside the bottom sheet on mobile,
+       inside the .left-panel on desktop. Always at the top of the sheet
+       so it's visible at peek state. */
+    .conditions-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .cond-section {
+      background: var(--bg);
+      padding: 10px 12px 12px;
+    }
+    .cond-head {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .cond-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .cond-sub {
+      font-size: 10px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    .cond-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 48px;
+    }
+    .cond-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .cond-row .cond-row-label {
+      flex: 0 0 auto;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      min-width: 36px;
+    }
+    .cond-row .cond-row-value {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .cond-tide-row .cond-row-label.high { color: var(--accent); }
+    .cond-tide-row .cond-row-label.low  { color: var(--muted); }
+
     /* Eyebrow: tiny uppercase masthead, thin underline */
     .panel-eyebrow {
       font-size: 9px;
@@ -987,6 +1047,23 @@
 
     <!-- Left panel -->
     <div class="left-panel" id="left-panel">
+      <!-- Tides + weather. Hidden until /api/conditions resolves. -->
+      <div class="conditions-card" id="conditions-card" hidden>
+        <div class="cond-section cond-tides">
+          <div class="cond-head">
+            <span class="cond-label">Tides</span>
+            <span class="cond-sub" id="cond-tide-station">—</span>
+          </div>
+          <div class="cond-rows" id="cond-tide-rows"></div>
+        </div>
+        <div class="cond-section cond-weather">
+          <div class="cond-head">
+            <span class="cond-label">Weather</span>
+            <span class="cond-sub" id="cond-weather-loc">PWS</span>
+          </div>
+          <div class="cond-rows" id="cond-weather-rows"></div>
+        </div>
+      </div>
       <div class="ann-picker" id="ann-picker" style="display:none">
         <div class="date-scrubber" id="date-scrubber" style="display:none">
           <div class="scrubber-top">
@@ -2192,6 +2269,94 @@ function initFeedbackWidget(user) {
   handle.addEventListener('mousedown', onStart);
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup',   onEnd);
+})();
+</script>
+
+<!-- Tides + weather: pulls /api/conditions, renders into the conditions-card.
+     Refreshes every 15 min. Hidden gracefully if the API returns nothing. -->
+<script>
+(function () {
+  var card  = document.getElementById('conditions-card');
+  var tRows = document.getElementById('cond-tide-rows');
+  var tSta  = document.getElementById('cond-tide-station');
+  var wRows = document.getElementById('cond-weather-rows');
+  if (!card || !tRows || !wRows) return;
+
+  function fmtTime(t) {
+    // NOAA tide API returns "YYYY-MM-DD HH:MM" in local-station time.
+    if (!t) return '';
+    var m = t.match(/\d{4}-\d{2}-\d{2}\s+(\d{2}):(\d{2})/);
+    if (!m) return t;
+    var hh = parseInt(m[1], 10), mm = m[2];
+    var ampm = hh >= 12 ? 'pm' : 'am';
+    var h12 = ((hh + 11) % 12) + 1;
+    return h12 + ':' + mm + ampm;
+  }
+
+  function dayOf(t) {
+    var m = t && t.match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+
+  function render(data) {
+    if (!data) { card.hidden = true; return; }
+    var shown = false;
+
+    // ── Tides: show the next ~4 tide events. Group by day in the label. ──
+    if (data.tides && data.tides.predictions && data.tides.predictions.length) {
+      var now = new Date();
+      var todayStr = now.toISOString().slice(0, 10);
+      var upcoming = data.tides.predictions.filter(function (p) {
+        var d = new Date(p.time.replace(' ', 'T'));
+        return !isNaN(d) && d.getTime() > now.getTime() - 1.5 * 60 * 60 * 1000;
+      }).slice(0, 4);
+      tSta.textContent = data.tides.station_name || '';
+      tRows.innerHTML = upcoming.map(function (p) {
+        var dayLabel = dayOf(p.time) === todayStr ? '' :
+                       '<span style="font-size:9px;color:var(--muted);opacity:0.7;margin-left:4px">tmrw</span>';
+        return '<div class="cond-row cond-tide-row">' +
+               '<span class="cond-row-label ' + p.type + '">' +
+                 (p.type === 'high' ? 'HIGH' : 'LOW') + '</span>' +
+               '<span class="cond-row-value">' + fmtTime(p.time) +
+                 dayLabel + ' &middot; ' + p.height_ft.toFixed(1) + ' ft</span>' +
+               '</div>';
+      }).join('') || '<div class="cond-row" style="color:var(--muted)">—</div>';
+      shown = true;
+    } else {
+      tRows.innerHTML = '<div class="cond-row" style="color:var(--muted)">unavailable</div>';
+    }
+
+    // ── Weather: NOAA returns text periods. Show the next 2. ──
+    if (data.weather && data.weather.periods && data.weather.periods.length) {
+      wRows.innerHTML = data.weather.periods.slice(0, 2).map(function (p) {
+        var temp = p.temperature + '°' + (p.temperatureUnit || 'F');
+        var wind = (p.windSpeed || '') + ' ' + (p.windDirection || '');
+        return '<div class="cond-row">' +
+               '<span class="cond-row-label">' + (p.name || '').slice(0, 7) + '</span>' +
+               '<span class="cond-row-value" title="' + (p.shortForecast || '') + '">' +
+                 temp + ' &middot; ' + wind.trim() + ' &middot; ' +
+                 (p.shortForecast || '') +
+               '</span>' +
+               '</div>';
+      }).join('');
+      shown = true;
+    } else {
+      wRows.innerHTML = '<div class="cond-row" style="color:var(--muted)">unavailable</div>';
+    }
+
+    if (shown) card.hidden = false;
+  }
+
+  function load() {
+    fetch('/api/conditions')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(render)
+      .catch(function () { /* keep hidden */ });
+  }
+
+  load();
+  // Refresh every 15 minutes while the page is open.
+  setInterval(load, 15 * 60 * 1000);
 })();
 </script>
 </body>
