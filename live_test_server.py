@@ -663,6 +663,131 @@ HATCHERY_ALIAS_TO_STAT_AREA = {
 
 _HATCHERY_GEOMS = None  # stat_area_id → shapely geom (lazy-loaded)
 _PERMANENT_CLOSURES = None  # unary_union of all polygons in data/closedwaters/DONECLOSURES.shp
+_OPEN_AREA_OVERRIDES = None  # list of {district, corners, geom} dicts (lazy-loaded)
+
+
+def _load_open_area_overrides():
+    """Lazy-load hand-curated open-area overrides from data/open_area_overrides/.
+
+    Each .geojson file holds one or more polygon Features with a
+    "match_corners" property listing the (lat, lon) corners that must
+    appear (within ±0.05°) in the announcement text for the override to
+    fire. Used when an announcement uses a clause pattern the LLM parser
+    cannot yet handle (e.g. Montague's "Port Chalmers Subdistrict ...
+    east of Green Island, north of line A, south of line B" triple cut).
+    The matched polygon replaces the district's open geometry; permanent
+    closed waters are still subtracted afterward.
+    """
+    global _OPEN_AREA_OVERRIDES
+    if _OPEN_AREA_OVERRIDES is not None:
+        return _OPEN_AREA_OVERRIDES
+    _OPEN_AREA_OVERRIDES = []
+    override_dir = DATA / "open_area_overrides"
+    if not override_dir.exists():
+        return _OPEN_AREA_OVERRIDES
+    for path in sorted(override_dir.glob("*.geojson")):
+        try:
+            with open(path) as f:
+                gj = json.load(f)
+            for feat in gj.get('features', []):
+                props = feat.get('properties') or {}
+                geom = feat.get('geometry')
+                if not geom or not props.get('district'):
+                    continue
+                corners = props.get('match_corners') or []
+                if not corners:
+                    continue
+                g = shape(geom)
+                if not g.is_valid:
+                    g = make_valid(g)
+                    g = _polys_only(g) or g
+                _OPEN_AREA_OVERRIDES.append({
+                    'source_file': path.name,
+                    'district': props['district'].lower().strip(),
+                    'corners': [(float(c['lat']), float(c['lon'])) for c in corners],
+                    'geom': g,
+                })
+            print(f"  Loaded open-area override: {path.name}", file=sys.stderr)
+        except Exception as e:
+            print(f"WARNING: failed to load override {path}: {e}", file=sys.stderr)
+    return _OPEN_AREA_OVERRIDES
+
+
+def _dms_to_decimal_iter(text):
+    """Yield (lat, lon) pairs found in announcement text.
+
+    Matches the ADF&G coordinate style (e.g. "60° 9.52' N., 147° 22.38' W.")
+    using simple regex extraction. Apostrophes and degree symbols come in
+    several Unicode variants — be liberal."""
+    import re
+    pat = re.compile(
+        r"(\d{1,3})\s*[°ºo]\s*(\d{1,2}(?:\.\d+)?)\s*['’′]?\s*([NS])\.?\s*,?\s*"
+        r"(\d{1,3})\s*[°ºo]\s*(\d{1,2}(?:\.\d+)?)\s*['’′]?\s*([EW])\.?",
+        re.IGNORECASE,
+    )
+    for m in pat.finditer(text):
+        lat_d, lat_m, lat_h, lon_d, lon_m, lon_h = m.groups()
+        lat = int(lat_d) + float(lat_m) / 60.0
+        lon = int(lon_d) + float(lon_m) / 60.0
+        if lat_h.upper() == 'S':
+            lat = -lat
+        if lon_h.upper() == 'W':
+            lon = -lon
+        yield (lat, lon)
+
+
+def find_open_area_override(district_name, district_text, tolerance=0.05):
+    """Return the override polygon for this district, or None.
+
+    A polygon fires when every corner in its match_corners list is present
+    (within ±tolerance degrees) in the announcement text for the district.
+    """
+    if not district_text:
+        return None
+    overrides = _load_open_area_overrides()
+    if not overrides:
+        return None
+    d_lower = (district_name or '').lower().strip()
+    text_coords = list(_dms_to_decimal_iter(district_text))
+    if not text_coords:
+        return None
+    for entry in overrides:
+        if entry['district'] != d_lower:
+            continue
+        ok = True
+        for (lat, lon) in entry['corners']:
+            if not any(abs(lat - tlat) <= tolerance and abs(lon - tlon) <= tolerance
+                       for (tlat, tlon) in text_coords):
+                ok = False
+                break
+        if ok:
+            print(f"  Open-area override matched: {entry['source_file']} for {district_name}",
+                  file=sys.stderr)
+            return entry['geom']
+    return None
+
+
+def _slice_district_paragraph(full_text, district_name):
+    """Best-effort slice of the paragraph(s) belonging to one district.
+
+    Announcements use ALL-CAPS headings like "MONTAGUE DISTRICT:" to
+    delimit sections. Returns the text from this heading up to the next
+    ALL-CAPS heading (or end of text). If no heading is found, returns
+    the full text — the override matcher requires every corner present
+    in scope, so over-matching is benign."""
+    import re
+    if not full_text or not district_name:
+        return full_text
+    base = district_name.replace(' District', '').upper().strip()
+    head_re = re.compile(rf"\b{re.escape(base)}\s+DISTRICT\s*:", re.IGNORECASE)
+    next_head_re = re.compile(r"\b[A-Z][A-Z ]{2,}\s+(?:DISTRICT|FISHERIES|FISHERY)\s*:", re.IGNORECASE)
+    m = head_re.search(full_text)
+    if not m:
+        return full_text
+    start = m.end()
+    nxt = next_head_re.search(full_text, start)
+    end = nxt.start() if nxt else len(full_text)
+    return full_text[start:end]
 
 
 def _load_permanent_closures():
@@ -1831,7 +1956,25 @@ def build_html(all_results, geojson_data, pdf_texts):
             closures = district_closure_specs.get(dk, [])
             excl_geoms_list = [g for (_name, g) in district_direct_subtract.get(dk, [])]
 
-            open_geom = extract_open_geom(d_geom, closures, excl_geoms_list)
+            # Hand-curated open-area override: if the announcement matches a
+            # known pre-traced polygon (e.g. Montague Port Chalmers triple
+            # compound cut) substitute it as the starting geometry. Closures
+            # and exclusions still apply, and permanent closed waters are
+            # still subtracted inside extract_open_geom — statutory closures
+            # (5 AAC 24.350) are never lifted.
+            override_geom = find_open_area_override(
+                d_name, _slice_district_paragraph(pdf_texts.get(pdf_name, ''), d_name)
+            )
+            starting_geom = override_geom if override_geom is not None else d_geom
+            if override_geom is not None:
+                # Skip district-level closures/exclusions when the override
+                # IS the open area — the curated polygon already encodes
+                # every clause in the opening sentence. Permanent closed
+                # waters still get subtracted in extract_open_geom.
+                closures = []
+                excl_geoms_list = []
+
+            open_geom = extract_open_geom(starting_geom, closures, excl_geoms_list)
             if open_geom is None:
                 print(f"WARNING: open area is empty/invalid for '{d_name}', skipping", file=sys.stderr)
                 continue
