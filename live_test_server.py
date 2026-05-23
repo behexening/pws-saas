@@ -2341,33 +2341,19 @@ def main():
     for d in districts:
         print(f"  · {d.get('district')} — {d.get('status')} — confidence: {d.get('confidence', '?')}", file=sys.stderr)
 
-    # Generate HTML
-    print("Generating HTML...", file=sys.stderr)
-    all_results = {pdf_name: districts}
-    html = build_html(all_results, geojson_data, {pdf_name: text})
-
-    # Write output
-    output_path = args.output or Path('live_output.html')
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    
-    with open(output_path, 'w') as f:
-        f.write(html)
-
-    print(f"✓ Saved to {output_path}", file=sys.stderr)
-
-    # Extract announcement date from text
+    # Build the alert-ready summary BEFORE the slow HTML/geometry phase so
+    # the Node backend can fan out Telegram pushes while the map is still
+    # rendering. Every field below comes straight from Claude's normalized
+    # output — none of it depends on the shapefile work that follows.
     announcement_date = extract_announcement_date(text)
     has_open = any(d.get('status') == 'open' for d in districts)
     district_names = [d.get('district', '') for d in districts if d.get('district')]
 
-    # Extract opening window from parsed districts
     opens_times  = [d['opens_at']  for d in districts if d.get('opens_at')]
     closes_times = [d['closes_at'] for d in districts if d.get('closes_at')]
     earliest_opens_at = min(opens_times)  if opens_times  else None
     latest_closes_at  = max(closes_times) if closes_times else None
 
-    # Compact per-district details for downstream alerting (Telegram).
-    # Only fields the alert renderer needs — keeps stdout JSON small.
     district_details = [
         {
             "district": d.get("district"),
@@ -2382,15 +2368,38 @@ def main():
         for d in districts if d.get("district")
     ]
 
-    # Print structured JSON to stdout for the Node.js backend to read
-    print(json.dumps({
+    summary_payload = {
         "districts": district_names,
         "district_details": district_details,
         "announcement_date": announcement_date,
         "has_open": has_open,
         "earliest_opens_at": earliest_opens_at,
         "latest_closes_at": latest_closes_at,
-    }))
+    }
+
+    # Early NDJSON line so Node can dispatch Telegram now, in parallel
+    # with the geometry/HTML build below. Flush immediately — without it,
+    # subprocess stdout would stay buffered until exit and defeat the
+    # whole point of the early fire.
+    print(json.dumps({"event": "summary", **summary_payload}), flush=True)
+
+    # Generate HTML
+    print("Generating HTML...", file=sys.stderr)
+    all_results = {pdf_name: districts}
+    html = build_html(all_results, geojson_data, {pdf_name: text})
+
+    # Write output
+    output_path = args.output or Path('live_output.html')
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w') as f:
+        f.write(html)
+
+    print(f"✓ Saved to {output_path}", file=sys.stderr)
+
+    # Final NDJSON line — same shape Node has consumed historically, plus
+    # event="complete" so it can tell the two lines apart.
+    print(json.dumps({"event": "complete", **summary_payload}), flush=True)
     sys.exit(0)
 
 if __name__ == '__main__':
