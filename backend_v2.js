@@ -2273,7 +2273,7 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
   try {
     const result = await runLiveTest(announcementId, pdfPath, {
       onSummary: ({ districts, district_details }) => {
-        console.log(`⚡ Early summary received for #${announcementId} — firing Telegram`);
+        console.log(`[early] Summary received for #${announcementId} — firing Telegram`);
         fireAlerts(districts, district_details);
       },
     });
