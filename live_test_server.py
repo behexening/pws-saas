@@ -83,9 +83,13 @@ def shp_to_geojson(shp_path, name_field):
     return {"type": "FeatureCollection", "features": features}
 
 def load_shapefiles():
-    districts_dir  = next(DATA.glob("*Districts*"), None)
-    subdists_dir   = next(DATA.glob("*Subdistricts*"), None)
-    stat_areas_dir = next(DATA.glob("*StatisticalAreas*"), None)
+    # Filter to directories — locally we sometimes have stray .zip or
+    # ".copy" artifacts next to the real shapefile dirs.
+    def _first_dir(pat):
+        return next((p for p in DATA.glob(pat) if p.is_dir() and 'copy' not in p.name.lower()), None)                or next((p for p in DATA.glob(pat) if p.is_dir()), None)
+    districts_dir  = _first_dir("*Districts*")
+    subdists_dir   = _first_dir("*Subdistricts*")
+    stat_areas_dir = _first_dir("*StatisticalAreas*")
 
     result = {}
     if districts_dir:
@@ -704,6 +708,7 @@ def _load_open_area_overrides():
                 _OPEN_AREA_OVERRIDES.append({
                     'source_file': path.name,
                     'district': props['district'].lower().strip(),
+                    'subdistrict': (props.get('subdistrict') or '').lower().strip() or None,
                     'corners': [(float(c['lat']), float(c['lon'])) for c in corners],
                     'geom': g,
                 })
@@ -737,10 +742,13 @@ def _dms_to_decimal_iter(text):
 
 
 def find_open_area_override(district_name, district_text, tolerance=0.05):
-    """Return the override polygon for this district, or None.
+    """Return the matching override ENTRY for this district, or None.
 
     A polygon fires when every corner in its match_corners list is present
     (within ±tolerance degrees) in the announcement text for the district.
+    The returned dict carries 'geom', 'subdistrict', 'source_file', etc.
+    Callers should clip 'geom' to the named subdistrict polygon when one
+    is present — hand-traced overrides typically overshoot the coastline.
     """
     if not district_text:
         return None
@@ -763,7 +771,7 @@ def find_open_area_override(district_name, district_text, tolerance=0.05):
         if ok:
             print(f"  Open-area override matched: {entry['source_file']} for {district_name}",
                   file=sys.stderr)
-            return entry['geom']
+            return entry
     return None
 
 
@@ -1962,13 +1970,37 @@ def build_html(all_results, geojson_data, pdf_texts):
             # and exclusions still apply, and permanent closed waters are
             # still subtracted inside extract_open_geom — statutory closures
             # (5 AAC 24.350) are never lifted.
-            override_geom = find_open_area_override(
+            override_entry = find_open_area_override(
                 d_name, _slice_district_paragraph(pdf_texts.get(pdf_name, ''), d_name)
             )
+            override_geom = None
+            if override_entry is not None:
+                override_geom = override_entry.get('geom')
+                clip_subd = override_entry.get('subdistrict')
+                if clip_subd and override_geom is not None:
+                    subd_geom = subd_geoms.get(clip_subd)
+                    if subd_geom is not None:
+                        try:
+                            clipped = override_geom.intersection(subd_geom)
+                            if not clipped.is_empty:
+                                override_geom = _polys_only(clipped) or clipped
+                                print(f"  Clipped override to subdistrict polygon: {clip_subd}",
+                                      file=sys.stderr)
+                            else:
+                                print(f"WARNING: override x {clip_subd} is empty -- "
+                                      f"falling back to unclipped override",
+                                      file=sys.stderr)
+                        except Exception as e:
+                            print(f"WARNING: failed to clip override to {clip_subd}: {e}",
+                                  file=sys.stderr)
+                    else:
+                        print(f"WARNING: override names subdistrict '{clip_subd}' "
+                              f"but no shapefile geom found -- using unclipped polygon",
+                              file=sys.stderr)
             starting_geom = override_geom if override_geom is not None else d_geom
             if override_geom is not None:
                 # Skip district-level closures/exclusions when the override
-                # IS the open area — the curated polygon already encodes
+                # IS the open area -- the curated polygon already encodes
                 # every clause in the opening sentence. Permanent closed
                 # waters still get subtracted in extract_open_geom.
                 closures = []
