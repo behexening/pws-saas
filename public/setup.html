@@ -44,7 +44,7 @@
     }
     .wordmark {
       font-family: 'Blackbird', sans-serif;
-      font-size: 19px;
+      font-size: 1.1875rem;
       letter-spacing: 0.03em;
       color: var(--text);
       user-select: none;
@@ -89,7 +89,7 @@
       padding-left: 0.4em; /* offset the trailing letter-spacing so digits look centered */
     }
     .code-display .label {
-      font-size: 10px;
+      font-size: 0.625rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
@@ -97,7 +97,7 @@
     }
     .code-display .expires {
       margin-top: 8px;
-      font-size: 11px;
+      font-size: 0.6875rem;
       color: var(--muted);
     }
     .code-display .expires.warn { color: #f87171; }
@@ -211,7 +211,7 @@
       position: absolute; top: -40px; left: 8px;
       background: var(--accent); color: #000;
       padding: 6px 12px; border-radius: 0;
-      font-size: 12px; font-weight: 700; text-decoration: none;
+      0.75rem; font-weight: 700; text-decoration: none;
       z-index: 9999; transition: top 0.15s;
     }
     .skip-link:focus { top: 0; }
@@ -247,8 +247,8 @@
         <li><span class="num">1</span>
           <div>Tap the button below — it opens Telegram with our bot ready to go.
             <details style="margin-top:4px">
-              <summary style="font-size:11px;color:var(--accent);cursor:pointer">Don't have Telegram yet?</summary>
-              <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">
+              <summary style="font-size:0.6875rem;color:var(--accent);cursor:pointer">Don't have Telegram yet?</summary>
+              <div style="font-size:0.6875rem;color:var(--muted);margin-top:6px;line-height:1.5">
                 Telegram is a free messaging app — like iMessage or WhatsApp.
                 Install it once, then alerts arrive as normal DMs.
                 <ul style="margin:6px 0 0 18px;padding:0">
@@ -277,7 +277,7 @@
         <span class="dot" id="statusDot"></span>
         <span id="statusText">Waiting for you to link Telegram…</span>
       </div>
-      <div style="font-size:11px;color:var(--muted);">
+      <div style="font-size:0.6875rem;color:var(--muted);">
         Code expired? <button type="button" class="regen" id="regenBtn">Get a new one</button>
       </div>
     </div>
