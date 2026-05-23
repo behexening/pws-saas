@@ -1289,14 +1289,20 @@ let saveControl = null;
 if (offlineTilesAvailable) {
   saveControl = L.control.savetiles(tileLayer, {
     position: 'topleft',
-    zoomlevels: [9, 10, 11, 12, 13],
+    // Zooms 9–10 are "you're in PWS" overview — not useful for nav. Skip
+    // them. 11–13 covers the level fishermen actually use (district
+    // outline through individual cove detail). Cuts tile count ~5x.
+    zoomlevels: [11, 12, 13],
     saveText: '⇩ save area',
     rmText:   '✕ clear cache',
     confirm: function (layer, save) {
       const n = (layer._tilesforSave || []).length;
       if (n === 0) return;
-      const ok = confirm('Save ~' + n + ' map tiles for offline use? Will use roughly ' +
-        Math.ceil(n * 15 / 1024) + ' MB of storage.');
+      // Carto dark tiles average ~8 KB each in practice — 15 KB was a
+      // conservative-to-the-point-of-scary estimate.
+      const mb = Math.max(1, Math.ceil(n * 8 / 1024));
+      const ok = confirm('Save ' + n + ' map tiles for offline use? About ' +
+        mb + ' MB of storage.');
       if (ok) save();
     },
     confirmRemoval: function (_layer, remove) {
