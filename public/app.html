@@ -1364,34 +1364,103 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
   .then(function(gj) { STATIC_DISTRICTS_GJ = gj; return gj; })
   .catch(function(e) { console.warn('static districts fetch failed:', e); return null; });
 
-// ── AWC stream buffers — loaded once, persists across announcement switches ──
-(function initStreamLayer() {
+// ── AWC stream buffers — loaded once, refilters per-announcement so that
+// openings which suspend anadromous stream closures don't draw the overlay
+// circles inside the suspended zone. window.applySuspendedStreamZones is
+// called by the announcement renderer with the per-record GeoJSON.
+let AWC_POINTS_CACHE = null;        // [{lat, lon, name, yards, overrideText}]
+let SUSPENDED_STREAM_ZONES = null;  // FeatureCollection or null
+let streamLayerRef = null;          // L.layerGroup
+let streamLayerVisible = true;
+
+// Point-in-polygon for [lon, lat] coords against a FeatureCollection of
+// Polygon / MultiPolygon. Ray-cast, no deps.
+function pointInGeoJSON(lon, lat, fc) {
+  if (!fc || !fc.features) return false;
+  const inRing = (ring) => {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j][0], yj = ring[j][1];
+      const intersect = ((yi > lat) !== (yj > lat)) &&
+        (lon < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-12) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+  const inPoly = (rings) => {
+    if (!rings || !rings.length) return false;
+    if (!inRing(rings[0])) return false;          // outside outer ring
+    for (let h = 1; h < rings.length; h++) {
+      if (inRing(rings[h])) return false;         // inside a hole
+    }
+    return true;
+  };
+  for (const f of fc.features) {
+    const g = f.geometry; if (!g) continue;
+    if (g.type === 'Polygon') {
+      if (inPoly(g.coordinates)) return true;
+    } else if (g.type === 'MultiPolygon') {
+      for (const poly of g.coordinates) {
+        if (inPoly(poly)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function rebuildStreamLayer() {
+  if (!streamLayerRef || !AWC_POINTS_CACHE) return;
+  streamLayerRef.clearLayers();
   const canvasRenderer = L.canvas({ padding: 0.5 });
-  const streamLayer = L.layerGroup().addTo(map);
-  let visible = true;
+  const YARDS_TO_M = 0.9144;
+  const fc = SUSPENDED_STREAM_ZONES;
+  let suppressed = 0;
+  for (const pt of AWC_POINTS_CACHE) {
+    if (fc && pointInGeoJSON(pt.lon, pt.lat, fc)) { suppressed++; continue; }
+    L.circle([pt.lat, pt.lon], {
+      renderer: canvasRenderer,
+      radius: pt.yards * YARDS_TO_M,
+      color: '#e67e22', weight: 1, opacity: 0.7,
+      fillColor: '#060a0f', fillOpacity: 0.70,
+    }).bindTooltip(
+      'Stream Closure<br><b>' + pt.name + '</b><br>' + pt.yards + ' yd buffer' +
+      (pt.overrideText ? '<br><i>per ' + pt.overrideText + '</i>' : ''),
+      { direction: 'top', sticky: true }
+    ).addTo(streamLayerRef);
+  }
+  if (suppressed > 0) {
+    console.log('[streams] suppressed ' + suppressed + ' stream point(s) inside suspended zones');
+  }
+}
+
+window.applySuspendedStreamZones = function(fc) {
+  SUSPENDED_STREAM_ZONES = (fc && fc.features && fc.features.length) ? fc : null;
+  rebuildStreamLayer();
+};
+
+(function initStreamLayer() {
+  const layer = L.layerGroup().addTo(map);
+  streamLayerRef = layer;
 
   Promise.all([
     fetch('/awc-points.json').then(r => r.json()),
     fetch('/awc-point-overrides.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
   ])
     .then(function(results) {
-      var pts = results[0];
-      var overrides = results[1];
-      var YARDS_TO_M = 0.9144;
-      pts.forEach(function(pt) {
-        var override = overrides[pt.awc];
-        var yards = override ? override.radius_yds : 500;
-        L.circle([pt.lat, pt.lon], {
-          renderer: canvasRenderer,
-          radius: yards * YARDS_TO_M,
-          color: '#e67e22', weight: 1, opacity: 0.7,
-          fillColor: '#060a0f', fillOpacity: 0.70,
-        }).bindTooltip(
-          'Stream Closure<br><b>' + pt.name + '</b><br>' + yards + ' yd buffer' +
-          (override ? '<br><i>per ' + override.rule + '</i>' : ''),
-          { direction: 'top', sticky: true }
-        ).addTo(streamLayer);
+      const pts = results[0];
+      const overrides = results[1];
+      AWC_POINTS_CACHE = pts.map(function(pt) {
+        const override = overrides[pt.awc];
+        return {
+          lat: pt.lat,
+          lon: pt.lon,
+          name: pt.name,
+          yards: override ? override.radius_yds : 500,
+          overrideText: override ? override.rule : null,
+        };
       });
+      rebuildStreamLayer();
 
       const toggleBtn = L.control({ position: 'topright' });
       toggleBtn.onAdd = function() {
@@ -1401,9 +1470,9 @@ const STATIC_DISTRICTS_READY = fetch('/static/districts.geojson')
           'padding:5px 10px;border-radius:0;font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;' +
           'cursor:pointer;user-select:none;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;';
         div.onclick = function() {
-          visible = !visible;
-          if (visible) { streamLayer.addTo(map); div.innerHTML='STREAM CLOSURES: ON';  div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
-          else         { map.removeLayer(streamLayer); div.innerHTML='STREAM CLOSURES: OFF'; div.style.color='#555';    div.style.borderColor='#555'; }
+          streamLayerVisible = !streamLayerVisible;
+          if (streamLayerVisible) { streamLayerRef.addTo(map); div.innerHTML='STREAM CLOSURES: ON';  div.style.color='#e67e22'; div.style.borderColor='#e67e22'; }
+          else                     { map.removeLayer(streamLayerRef); div.innerHTML='STREAM CLOSURES: OFF'; div.style.color='#555';    div.style.borderColor='#555'; }
         };
         return div;
       };
@@ -2083,6 +2152,19 @@ async function renderMap(result) {
     }).addTo(map);
     activeLayers.push(geoLayer);
     map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
+  }
+
+  // ── Stream-closure suspension zones (per-announcement) ──
+  // Any AWC stream point inside one of these polygons is hidden from the
+  // overlay while THIS record is displayed. Matches the parser's
+  // anadromous_closures_suspended flag.
+  const suspendedZonesGJ = extractBalancedJson(scriptText, 'SUSPENDED_STREAM_ZONES_GJ');
+  if (typeof window.applySuspendedStreamZones === 'function') {
+    if (suspendedZonesGJ && suspendedZonesGJ.features && activeKeysForDate) {
+      suspendedZonesGJ.features = suspendedZonesGJ.features.filter(f =>
+        activeKeysForDate.has(f.properties && f.properties.district_key));
+    }
+    window.applySuspendedStreamZones(suspendedZonesGJ);
   }
 
   // ── Pre-clipped open area polygons — Shapely-cut, fills come from here ──

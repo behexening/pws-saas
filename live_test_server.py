@@ -2083,6 +2083,7 @@ def build_html(all_results, geojson_data, pdf_texts):
 
     # ── Compute OPEN_AREAS_GJ via Shapely polygon cutting ─────────────────
     open_areas_features = []
+    suspended_stream_features = []   # zones where the AWC stream overlay should be hidden
     seen_district_keys = set()
     district_open_geoms = {}  # district_id → shapely open_geom (for redundancy check)
 
@@ -2197,6 +2198,21 @@ def build_html(all_results, geojson_data, pdf_texts):
                 'geometry': _sg.mapping(open_geom),
             })
 
+            # Track zones where the static AWC stream overlay should be hidden
+            # while THIS announcement is being displayed. Driven off the same
+            # anadromous_closures_suspended flag the geometry pipeline used —
+            # the suspended zone IS the open polygon (the announcement scopes
+            # the suspension to the area it just opened).
+            if d.get('anadromous_closures_suspended'):
+                suspended_stream_features.append({
+                    'type': 'Feature',
+                    'properties': {
+                        'district_key': district_key,
+                        'district_name': d_name,
+                    },
+                    'geometry': _sg.mapping(open_geom),
+                })
+
     # ── Redundancy pass: mark closures whose named feature lies almost
     # entirely outside the computed open area. Example: "Waters of Valdez
     # Arm will remain closed" in an Eastern District opening where the
@@ -2250,6 +2266,13 @@ def build_html(all_results, geojson_data, pdf_texts):
                 if inside_frac < 0.15:
                     redundant_closures[(pdf_name, district_id, c_name.lower())] = True
 
+    suspended_stream_zones_json = json.dumps(
+        _round_coords(
+            {'type': 'FeatureCollection', 'features': suspended_stream_features},
+            precision=6,
+        ),
+        separators=(',', ':'),
+    )
     open_areas_gj_json = json.dumps(
         _round_coords(
             {'type': 'FeatureCollection', 'features': open_areas_features},
@@ -2374,6 +2397,26 @@ def build_html(all_results, geojson_data, pdf_texts):
             notes = d.get('notes') or d.get('raw_text') or ''
             notes_html = f'<div class="card-notes">{notes}</div>' if notes else ''
 
+            # Stream-closure suspension notice — surface the
+            # anadromous_closures_suspended flag in plain text so users
+            # know WHY the orange stream-buffer circles disappeared on the
+            # map for this opening.
+            suspension_html = ""
+            if d.get('anadromous_closures_suspended'):
+                # Name the suspended area as specifically as possible:
+                # - if the opening is restricted to hatchery areas, list those;
+                # - else fall back to the district name.
+                restrict_names = d.get('restrict_to_hatchery_areas') or []
+                if restrict_names:
+                    scope = ', '.join(restrict_names)
+                else:
+                    scope = d.get('district') or 'this opening'
+                suspension_html = (
+                    f'<div class="suspend-notice">'
+                    f'Stream closures within {scope} have been suspended for this period.'
+                    f'</div>'
+                )
+
             cards_html += f"""<div class="district-card" id="card-{district_id}" data-district="{district_id}" style="border-left:4px solid {color}">
               <div class="card-header">
                 <div class="card-title-row">
@@ -2386,6 +2429,7 @@ def build_html(all_results, geojson_data, pdf_texts):
                 <div class="gear-row">{gear_html}</div>
                 {time_html}
                 {excl_html}
+                {suspension_html}
                 {sonar_html}
                 {closures_html}
                 {conf_html}
@@ -2435,6 +2479,7 @@ def build_html(all_results, geojson_data, pdf_texts):
   .closure-entry.redundant{{opacity:0.55;border-style:dashed}}
   .applies-badge.redundant{{background:rgba(127,140,141,.2);color:#95a5a6;border:1px solid rgba(127,140,141,.4)}}
   .sonar-block{{font-size:11px;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:5px}}
+  .suspend-notice{{font-size:11px;color:#e8c074;background:rgba(243,156,18,.10);border:1px solid rgba(243,156,18,.30);padding:6px 9px;border-radius:0;font-weight:500;line-height:1.35}}
   .closures-section{{border-top:1px solid var(--border);padding-top:7px}}
   .closures-label{{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}}
   .closure-entry{{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);border-radius:5px;padding:7px 9px;margin-bottom:5px}}
@@ -2464,6 +2509,7 @@ def build_html(all_results, geojson_data, pdf_texts):
 <script>
 const CLOSURE_LINES = {closure_lines_json};
 const OPEN_AREAS_GJ = {open_areas_gj_json};
+const SUSPENDED_STREAM_ZONES_GJ = {suspended_stream_zones_json};
 </script>
 </body>
 </html>"""
