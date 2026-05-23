@@ -1,0 +1,123 @@
+{
+  "type": "FeatureCollection",
+  "name": "montague_port_chalmers_2026_a2",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:EPSG::4326"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Montague District",
+        "subdistrict": "Port Chalmers Subdistrict",
+        "source_announcement": "PWS Salmon Announcement #2, 2026-05-23",
+        "match_corners": [
+          {
+            "name": "south line west",
+            "lat": 60.1587,
+            "lon": -147.373
+          },
+          {
+            "name": "south line east",
+            "lat": 60.2263,
+            "lon": -147.4882
+          },
+          {
+            "name": "north line west",
+            "lat": 60.3037,
+            "lon": -147.341
+          },
+          {
+            "name": "north line east",
+            "lat": 60.3333,
+            "lon": -147.2208
+          }
+        ]
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                -147.373,
+                60.158667
+              ],
+              [
+                -147.488167,
+                60.226333
+              ],
+              [
+                -147.426921,
+                60.257905
+              ],
+              [
+                -147.399736,
+                60.267552
+              ],
+              [
+                -147.364328,
+                60.282076
+              ],
+              [
+                -147.35249,
+                60.294354
+              ],
+              [
+                -147.348543,
+                60.300054
+              ],
+              [
+                -147.345912,
+                60.302657
+              ],
+              [
+                -147.341,
+                60.303667
+              ],
+              [
+                -147.220833,
+                60.333333
+              ],
+              [
+                -147.220028,
+                60.334029
+              ],
+              [
+                -147.209176,
+                60.33555
+              ],
+              [
+                -147.176619,
+                60.339818
+              ],
+              [
+                -147.128605,
+                60.303205
+              ],
+              [
+                -147.15316,
+                60.243024
+              ],
+              [
+                -147.311451,
+                60.153465
+              ],
+              [
+                -147.351352,
+                60.151711
+              ],
+              [
+                -147.373,
+                60.158667
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
