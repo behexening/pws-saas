@@ -28,7 +28,8 @@ const { Pool } = require('pg');
 const Anthropic = require('@anthropic-ai/sdk');
 const crypto = require('crypto');
 const https = require('https');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
+const readline = require('readline');
 const { promisify } = require('util');
 const fs = require('fs').promises;
 const path = require('path');
@@ -2254,8 +2255,29 @@ app.post('/webhooks/email', upload.any(), async (req, res) => {
 async function parseAnnouncementAsync(announcementId, pdfPath) {
   console.log(`🔄 Parsing announcement #${announcementId} from ${pdfPath}...`);
 
+  // Guard against double-firing. live_test_server.py emits two NDJSON lines
+  // (event="summary" then event="complete") with the same alert payload —
+  // we want the first to dispatch notifications and the second only to
+  // drive the DB write.
+  let alertsDispatched = false;
+  const fireAlerts = (districts, district_details) => {
+    if (alertsDispatched) return;
+    alertsDispatched = true;
+    // Don't await — let notifications run concurrently with the rest of
+    // the parse so the user sees Telegram before the map is ready.
+    notifyCaptains(districts, district_details).catch((err) => {
+      console.error('Error in early notifyCaptains:', err);
+    });
+  };
+
   try {
-    const { htmlPath, districts, district_details, announcement_date, has_open, earliest_opens_at, latest_closes_at } = await runLiveTest(announcementId, pdfPath);
+    const result = await runLiveTest(announcementId, pdfPath, {
+      onSummary: ({ districts, district_details }) => {
+        console.log(`⚡ Early summary received for #${announcementId} — firing Telegram`);
+        fireAlerts(districts, district_details);
+      },
+    });
+    const { htmlPath, districts, district_details, announcement_date, has_open, earliest_opens_at, latest_closes_at } = result;
 
     // Read HTML content to store in DB (Railway filesystem is ephemeral)
     const htmlContent = await fs.readFile(htmlPath, 'utf8');
@@ -2276,8 +2298,10 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
     // Mark announcement as parsed
     await db.query('UPDATE announcements SET parsed = true WHERE id = $1', [announcementId]);
 
-    // DM eligible captains via Telegram
-    await notifyCaptains(districts, district_details);
+    // Safety net: if the early summary event never arrived (older Python
+    // build, or the line got truncated mid-flight) we still need to fire
+    // exactly once on the final payload.
+    fireAlerts(districts, district_details);
   } catch (err) {
     console.error(`Error in parseAnnouncementAsync:`, err);
   }
@@ -2291,48 +2315,80 @@ async function parseAnnouncementAsync(announcementId, pdfPath) {
  * 2. Output HTML to a specific location
  * 3. Return exit code 0 on success
  */
-async function runLiveTest(announcementId, pdfPath) {
-  return new Promise(async (resolve, reject) => {
-    const timestamp = Date.now();
-    const outputFilename = `announcement_${announcementId}_${timestamp}.html`;
-    const outputPath = path.join(__dirname, 'public', 'results', outputFilename);
+async function runLiveTest(announcementId, pdfPath, opts = {}) {
+  const { onSummary } = opts;
+  const timestamp = Date.now();
+  const outputFilename = `announcement_${announcementId}_${timestamp}.html`;
+  const outputPath = path.join(__dirname, 'public', 'results', outputFilename);
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
 
-    await fs.mkdir(path.dirname(outputPath), { recursive: true }).catch(reject);
-
-    execFile('python3', [
+  return new Promise((resolve, reject) => {
+    const child = spawn('python3', [
       'live_test_server.py',
       '--announcement-id', announcementId.toString(),
       '--output', outputPath,
       '--pdf-path', pdfPath,
-    ], {
-      cwd: __dirname,
-      timeout: 120000,
-      maxBuffer: 1024 * 1024 * 10,
-    }, (error, stdout, stderr) => {
-      console.log(`live_test_server.py stderr: ${stderr}`);
-      if (error) {
-        console.error(`live_test_server.py failed (exit ${error.code}): ${stderr}`);
-        return reject(error);
+    ], { cwd: __dirname });
+
+    // Hard cap matches the old execFile timeout — Claude + geometry should
+    // never take 2 minutes; if it does, kill and bail out.
+    const killTimer = setTimeout(() => {
+      console.error(`live_test_server.py timed out after 120s — killing`);
+      child.kill('SIGKILL');
+    }, 120000);
+
+    let finalPayload = null;     // last parsed event="complete" (or summary, as fallback)
+    let summarySeen = false;
+    const stderrChunks = [];
+
+    const stdoutRl = readline.createInterface({ input: child.stdout });
+    stdoutRl.on('line', (line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      let obj;
+      try { obj = JSON.parse(trimmed); } catch (_) { return; }
+      const payload = {
+        districts:          obj.districts          || [],
+        district_details:   obj.district_details   || [],
+        announcement_date:  obj.announcement_date  || null,
+        has_open:           obj.has_open           || false,
+        earliest_opens_at:  obj.earliest_opens_at  || null,
+        latest_closes_at:   obj.latest_closes_at   || null,
+      };
+      if (obj.event === 'summary' && !summarySeen) {
+        summarySeen = true;
+        try { if (onSummary) onSummary(payload); }
+        catch (err) { console.error('onSummary handler threw:', err); }
       }
-      let parsed = { districts: [], district_details: [], announcement_date: null, has_open: false, earliest_opens_at: null, latest_closes_at: null };
-      try {
-        const raw = JSON.parse(stdout.trim());
-        if (Array.isArray(raw)) {
-          parsed.districts = raw;
-        } else {
-          parsed = {
-            districts:          raw.districts           || [],
-            district_details:   raw.district_details    || [],
-            announcement_date:  raw.announcement_date   || null,
-            has_open:           raw.has_open            || false,
-            earliest_opens_at:  raw.earliest_opens_at   || null,
-            latest_closes_at:   raw.latest_closes_at    || null,
-          };
-        }
-      } catch (_) {}
-      console.log(`Districts: ${parsed.districts.join(', ')} | Date: ${parsed.announcement_date} | Opens: ${parsed.earliest_opens_at}`);
+      // Always remember the most recent payload — complete > summary.
+      finalPayload = payload;
+    });
+
+    child.stderr.on('data', (chunk) => {
+      stderrChunks.push(chunk);
+    });
+
+    child.on('error', (err) => {
+      clearTimeout(killTimer);
+      reject(err);
+    });
+
+    child.on('close', (code, signal) => {
+      clearTimeout(killTimer);
+      const stderr = Buffer.concat(stderrChunks).toString('utf8');
+      // Mirror the old execFile log so existing log searches still work.
+      console.log(`live_test_server.py stderr: ${stderr}`);
+      if (code !== 0) {
+        console.error(`live_test_server.py failed (exit ${code}, signal ${signal}): ${stderr}`);
+        return reject(new Error(`live_test_server.py exited ${code}`));
+      }
+      if (!finalPayload) {
+        console.error(`live_test_server.py emitted no JSON line — stderr was:\n${stderr}`);
+        return reject(new Error('parser emitted no JSON'));
+      }
+      console.log(`Districts: ${finalPayload.districts.join(', ')} | Date: ${finalPayload.announcement_date} | Opens: ${finalPayload.earliest_opens_at}`);
       fs.stat(outputPath)
-        .then(() => resolve({ htmlPath: outputPath, ...parsed }))
+        .then(() => resolve({ htmlPath: outputPath, ...finalPayload }))
         .catch(reject);
     });
   });
@@ -2454,6 +2510,27 @@ function renderDistrictBlock(detail) {
   return lines.join('\n');
 }
 
+// Telegram bot API tolerates ~30 msg/sec globally; 10 in-flight gives us
+// plenty of headroom while clearing the captain list ~10x faster than the
+// old serial loop. Tunable so we can dial up when the user list grows or
+// dial down if Telegram starts returning 429s.
+const TELEGRAM_FANOUT_CONCURRENCY = Math.max(
+  1,
+  Number.parseInt(process.env.TELEGRAM_FANOUT_CONCURRENCY || '10', 10) || 10,
+);
+
+async function runWithConcurrency(items, concurrency, worker) {
+  const queue = items.slice();
+  const limit = Math.max(1, Math.min(concurrency, items.length));
+  const drain = async () => {
+    while (queue.length) {
+      const item = queue.shift();
+      await worker(item);
+    }
+  };
+  await Promise.all(Array.from({ length: limit }, drain));
+}
+
 function buildAlertText(districts, details, opts = {}) {
   const list = Array.isArray(details) && details.length ? details : districts.map(d => ({ district: d }));
   const headerDate = list.map(d => d.opens_at).find(Boolean);
@@ -2523,7 +2600,7 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
       .slice(0, 220)
       .trim();
 
-    for (const captain of captains.rows) {
+    const sendToCaptain = async (captain) => {
       // 1. Telegram (if linked)
       if (captain.telegram_chat_id) {
         const result = await sendTelegramMessage(captain.telegram_chat_id, text);
@@ -2574,7 +2651,12 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
           console.error(`❌ ${label} failed for ${captain.name}: ${pushResult.reason}`);
         }
       }
-    }
+    };
+
+    await runWithConcurrency(captains.rows, TELEGRAM_FANOUT_CONCURRENCY, async (captain) => {
+      try { await sendToCaptain(captain); }
+      catch (err) { console.error(`notify failed for captain ${captain.id}:`, err); }
+    });
   } catch (err) {
     console.error('Error in notifyCaptains:', err);
   }
@@ -3109,17 +3191,25 @@ app.post('/api/result/:id/reparse', requireAdmin, express.json(), async (req, re
               let freshDetails = [];
               let freshOpens = null;
               let freshCloses = null;
-              try {
-                const raw = JSON.parse(stdout.trim());
-                if (Array.isArray(raw)) {
-                  freshDistricts = raw;
+              // live_test_server.py now emits multiple NDJSON lines
+              // (event="summary" then event="complete"). Take the last
+              // valid line — that's the final payload.
+              let lastObj = null;
+              for (const line of stdout.split('\n')) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                try { lastObj = JSON.parse(trimmed); } catch (_) {}
+              }
+              if (lastObj) {
+                if (Array.isArray(lastObj)) {
+                  freshDistricts = lastObj;
                 } else {
-                  freshDistricts = raw.districts        || [];
-                  freshDetails   = raw.district_details || [];
-                  freshOpens     = raw.earliest_opens_at || null;
-                  freshCloses    = raw.latest_closes_at  || null;
+                  freshDistricts = lastObj.districts        || [];
+                  freshDetails   = lastObj.district_details || [];
+                  freshOpens     = lastObj.earliest_opens_at || null;
+                  freshCloses    = lastObj.latest_closes_at  || null;
                 }
-              } catch (_) {
+              } else {
                 console.warn('reparse: could not parse stdout JSON, falling back to HTML-only update');
               }
               try {
