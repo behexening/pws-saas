@@ -280,6 +280,24 @@
     </div>
   </div>
 
+  <!-- Boundary alerts toggle — visible on web + native. Stores
+       boundary_alerts_enabled server-side; client on /app reads it
+       and starts/stops the geolocation watch. -->
+  <div class="card">
+    <h2 class="card-title">Boundary alerts</h2>
+    <div class="alert alert-ok"  id="ba-ok"></div>
+    <div class="alert alert-err" id="ba-err"></div>
+    <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+      <input type="checkbox" id="ba-toggle" style="margin-top:3px"/>
+      <span>
+        <strong style="display:block;font-size:0.92rem">Notify me when my boat enters or exits a PWS district</strong>
+        <span style="display:block;font-size:0.78rem;color:var(--muted);margin-top:4px;line-height:1.55">
+          On native iOS/Android, fires a local notification when the boat crosses between an open and a closed district during an active ADF&amp;G opening. Migrating between two open districts is silent — same when no opening is active. Requires location permission; active only while the app is open (no background tracking yet).
+        </span>
+      </span>
+    </label>
+  </div>
+
   <!-- Notifications (Telegram) — web-only. Native shells use push notifications,
        managed in 2.4. -->
   <div class="card web-only">
@@ -415,6 +433,41 @@ async function loadAccount() {
   if (!window.akfiPlatform || !window.akfiPlatform.isNative) {
     refreshTelegramPanel(user);
   }
+
+  // Boundary alerts toggle — bind once.
+  hydrateBoundaryToggle(user);
+}
+
+function hydrateBoundaryToggle(user) {
+  const toggle = document.getElementById('ba-toggle');
+  const ok     = document.getElementById('ba-ok');
+  const err    = document.getElementById('ba-err');
+  if (!toggle || toggle.dataset.bound) return;
+  toggle.dataset.bound = '1';
+  toggle.checked = !!user.boundary_alerts_enabled;
+
+  toggle.addEventListener('change', async () => {
+    ok.style.display = err.style.display = 'none';
+    const want = toggle.checked;
+    toggle.disabled = true;
+    try {
+      const r = await fetch('/api/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boundary_alerts_enabled: want }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || 'Could not save preference.');
+      ok.textContent = want ? 'Boundary alerts enabled.' : 'Boundary alerts disabled.';
+      ok.style.display = 'block';
+    } catch (e) {
+      err.textContent = e.message || 'Save failed.';
+      err.style.display = 'block';
+      toggle.checked = !want;  // revert UI on failure
+    } finally {
+      toggle.disabled = false;
+    }
+  });
 }
 
 function refreshTelegramPanel(user) {

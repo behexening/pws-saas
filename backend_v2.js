@@ -860,7 +860,8 @@ app.get('/api/me', (req, res) => {
   const { id, email, name, tier, subscription_active, trial_ends_at,
           is_admin, email_verified, google_id, plan_slug, is_early_adopter,
           subscription_status, stripe_current_period_end, cancel_at_period_end,
-          stripe_customer_id, telegram_chat_id, telegram_username } = req.user;
+          stripe_customer_id, telegram_chat_id, telegram_username,
+          boundary_alerts_enabled } = req.user;
   const trialActive = trial_ends_at && new Date(trial_ends_at) > new Date();
   const trialDaysLeft = trialActive
     ? Math.ceil((new Date(trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24))
@@ -873,7 +874,37 @@ app.get('/api/me', (req, res) => {
                      has_billing: !!stripe_customer_id,
                      telegram_linked: !!telegram_chat_id,
                      telegram_username: telegram_username || null,
+                     boundary_alerts_enabled: !!boundary_alerts_enabled,
                      has_access: hasAccess(req.user) } });
+});
+
+// PATCH /api/preferences — small per-captain knobs. Currently:
+//   - boundary_alerts_enabled (bool): toggles the client-side district
+//     boundary-crossing notifier on /app.
+// Body: { boundary_alerts_enabled?: boolean }
+app.patch('/api/preferences', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in' });
+  const updates = {};
+  if (typeof req.body.boundary_alerts_enabled === 'boolean') {
+    updates.boundary_alerts_enabled = req.body.boundary_alerts_enabled;
+  }
+  const keys = Object.keys(updates);
+  if (keys.length === 0) {
+    return res.status(400).json({ error: 'No supported preference in body.' });
+  }
+  try {
+    const setSql = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+    const values = keys.map(k => updates[k]);
+    values.push(req.user.id);
+    await db.query(
+      `UPDATE captains SET ${setSql}, updated_at = NOW() WHERE id = $${values.length}`,
+      values
+    );
+    res.json({ ok: true, updated: updates });
+  } catch (err) {
+    console.error('PATCH /api/preferences error:', err);
+    res.status(500).json({ error: 'Could not save preferences.' });
+  }
 });
 
 // POST /api/billing/portal — open Stripe customer portal for self-serve billing
@@ -1922,6 +1953,10 @@ async function initDatabase() {
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS sms_opted_in BOOLEAN DEFAULT false;`);
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS sms_opted_in_at TIMESTAMPTZ;`);
+    // Boundary alerts: client-side feature that polls geolocation while
+    // the native app is open and fires a local notification when the
+    // boat crosses a PWS district boundary. Off by default.
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS boundary_alerts_enabled BOOLEAN DEFAULT false;`);
 
     // Plan / billing metadata — added for multi-tier pricing (biweekly | monthly | season)
     // and early-adopter seat locking. plan_slug lets us tell Season subscribers apart
