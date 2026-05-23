@@ -151,6 +151,70 @@ def extract_text_from_string(text):
 # CLAUDE PARSING
 # ============================================================
 
+def _normalize_hatchery_only_openings(districts, full_text):
+    """Defensive backstop for hatchery-only openings.
+
+    Catches the "<HATCHERY> Hatchery THA and SHA will open" pattern and
+    the "Anadromous stream closures within <X> will not be in effect"
+    pattern in case Claude's structured output missed them. Mutates the
+    district dicts in place, populating restrict_to_hatchery_areas and
+    anadromous_closures_suspended without overwriting values Claude
+    already set.
+
+    Conservative on purpose: only fires when the SAME hatchery prefix
+    (AFK / WNH / CCH / SGH / MBH) appears both in the "will open" clause
+    and is recognized in HATCHERY_ALIAS_TO_STAT_AREA — otherwise leaves
+    Claude's output untouched."""
+    import re
+    if not full_text or not districts:
+        return
+
+    HATCH_PREFIXES = ('AFK', 'WNH', 'CCH', 'SGH', 'MBH')
+
+    for d in districts:
+        if not isinstance(d, dict):
+            continue
+        d_name = d.get('district') or ''
+        if not d_name or d.get('status') != 'open':
+            continue
+        para = _slice_district_paragraph(full_text, d_name)
+        if not para:
+            continue
+
+        # Hatchery-only opening pattern.
+        if not d.get('restrict_to_hatchery_areas'):
+            # Match: "The <PREFIX> Hatchery THA [and SHA] will open"
+            #        "The <PREFIX> THA [and SHA] will open"
+            m = re.search(
+                rf"\bThe\s+({'|'.join(HATCH_PREFIXES)})\s+(?:Hatchery\s+)?"
+                r"(THA|SHA)(?:\s+and\s+(THA|SHA))?\s+will\s+open\b",
+                para, re.IGNORECASE,
+            )
+            if m:
+                prefix = m.group(1).upper()
+                tags = {m.group(2).upper()}
+                if m.group(3):
+                    tags.add(m.group(3).upper())
+                areas = [f"{prefix} {tag}" for tag in ('THA', 'SHA') if tag in tags]
+                # Only commit if every area resolves in our alias table.
+                if all(f"{a.lower()}" in HATCHERY_ALIAS_TO_STAT_AREA for a in areas):
+                    d['restrict_to_hatchery_areas'] = areas
+                    print(f"  [normalize] {d_name}: restrict_to_hatchery_areas = {areas}",
+                          file=sys.stderr)
+
+        # Anadromous suspension pattern. Set true only — never override
+        # an explicit Claude-set false (Claude reads more nuance than this
+        # regex).
+        if not d.get('anadromous_closures_suspended'):
+            if re.search(
+                r"(?:anadromous\s+)?stream\s+closures\s+within[^.]*?will\s+not\s+be\s+in\s+effect",
+                para, re.IGNORECASE,
+            ):
+                d['anadromous_closures_suspended'] = True
+                print(f"  [normalize] {d_name}: anadromous_closures_suspended = True",
+                      file=sys.stderr)
+
+
 def _normalize_agz_exclusions(districts):
     """Defensive post-pass for the Main Bay Hatchery AGZ.
 
@@ -252,6 +316,8 @@ For each district mentioned return one JSON object:
   ],
   "excluded_subdistricts": ["name1", "name2"],
   "excluded_hatchery_areas": ["AFK THA", "WNH SHA", ...],
+  "restrict_to_hatchery_areas": ["AFK THA", "AFK SHA"],  // only set when the opening is the hatchery area(s), NOT the wider district
+  "anadromous_closures_suspended": true,  // set true when the announcement lifts stream-buffer closures inside this opening
   "unscheduled_possible": true/false,
   "sonar_data": {
     "cumulative_actual": int or null,
@@ -278,6 +344,19 @@ CRITICAL rules for hatchery areas (THA/SHA/AGZ/THR):
 - When the text mentions that a THA/SHA/AGZ is EXCLUDED from an opening (e.g. "excluding the AFK THA and SHA", "excluding WNH SHA inside a line of buoys", or "excluding the MBH AGZ"), list each one by name in "excluded_hatchery_areas": ["AFK THA", "AFK SHA"], ["WNH SHA"], or ["MBH AGZ"]. Always split THA and SHA into separate entries even when the text joins them with "and" — e.g. "AFK THA and SHA" → ["AFK THA", "AFK SHA"]. Do NOT put hatchery areas in "closures".
 - AGZ (Alternating Gear Zone) is ONLY a sub-area inside the Main Bay Subdistrict. Phrases like "the AGZ", "MBH AGZ", "Main Bay AGZ", "Main Bay Alternating Gear Zone", and "waters of the AGZ" all refer to the SAME small hatchery zone and MUST be emitted as "MBH AGZ" in "excluded_hatchery_areas". NEVER emit "Main Bay Subdistrict" as a closure or excluded subdistrict just because the AGZ is being excluded — the rest of Main Bay stays open.
 - Do NOT invent hatchery exclusions. Only extract hatchery areas that are literally named in the text.
+
+CRITICAL rules for hatchery-only openings (restrict_to_hatchery_areas):
+- Some announcements open ONLY the hatchery THA/SHA inside a district, not the district as a whole. Pattern: "The AFK Hatchery THA and SHA will open" appearing under "SOUTHWESTERN DISTRICT:" with no other water mentioned. In this case the district field is still "Southwestern District" (the parent district name), but the opening is restricted to just the named hatchery areas — the rest of the district stays closed.
+- When this pattern appears, populate "restrict_to_hatchery_areas" with the list of hatchery areas being opened, e.g. ["AFK THA", "AFK SHA"], status="open". Do NOT populate "excluded_subdistricts" with every other subdistrict — that is the wrong shape; the geometry pipeline assembles the opening directly from this list.
+- Always split THA and SHA into separate entries even when the text joins them with "and" — e.g. "AFK THA and SHA" → ["AFK THA", "AFK SHA"]. Same conventions as "excluded_hatchery_areas".
+- Distinguish carefully:
+    "Coghill District, excluding the WNH SHA, will open..."  → excluded_hatchery_areas=["WNH SHA"], NOT restrict_to_hatchery_areas.
+    "The WNH SHA will open" (no district scope, hatchery is the opening) → restrict_to_hatchery_areas=["WNH SHA"].
+
+CRITICAL rules for anadromous stream-closure suspension:
+- ADF&G frequently announces that the standing anadromous stream-buffer closures (5 AAC 24.350) are lifted inside a particular opening. Phrasing examples: "Anadromous stream closures within the AFK Hatchery THA and SHA will not be in effect until further notice." or "Regulatory closed waters and anadromous stream closures within the Port Chalmers Subdistrict will not be in effect until further notice."
+- When this sentence appears for a district, set "anadromous_closures_suspended": true on that district. Default false / omit otherwise.
+- Note: the underlying regulatory closed-waters mask (5 AAC 24.330) is statute and is NEVER lifted by an announcement, regardless of what the text says about it. Set the flag based on the ANADROMOUS clause only; the geometry pipeline keeps regulatory closures in place.
 
 CRITICAL rules for advisory / industry-recommendation paragraphs:
 - Announcements sometimes include paragraphs from PWSAC, CDFU, or other industry groups making "recommends" or "requests" statements (e.g. "PWSAC recommends a 36-hour fishing period in the Main Bay Subdistrict, excluding waters of the AGZ" or "PWSAC requests that the WNH SHA remain closed..."). These paragraphs are advisory restatements / refinements of the official opening — they are NOT the official opening boundary and they do NOT add new closures.
@@ -666,7 +745,9 @@ HATCHERY_ALIAS_TO_STAT_AREA = {
 }
 
 _HATCHERY_GEOMS = None  # stat_area_id → shapely geom (lazy-loaded)
-_PERMANENT_CLOSURES = None  # unary_union of all polygons in data/closedwaters/DONECLOSURES.shp
+_PERMANENT_CLOSURES = None    # regulatory + anadromous (combined; kept for backward compat)
+_REGULATORY_CLOSURES = None   # DONECLOSURES.shp only — never lifted by announcements
+_ANADROMOUS_CLOSURES = None   # buffer_closures.geojson only — can be lifted per district
 _OPEN_AREA_OVERRIDES = None  # list of {district, corners, geom} dicts (lazy-loaded)
 
 
@@ -798,39 +879,30 @@ def _slice_district_paragraph(full_text, district_name):
     return full_text[start:end]
 
 
-def _load_permanent_closures():
-    """Lazy-load the permanent closed-waters mask.
+def _load_regulatory_closures():
+    """Lazy-load hand-traced statutory closures from DONECLOSURES.shp.
 
-    Combines two sources:
-      • DONECLOSURES.shp        — hand-traced statutory closures (NAD83/Alaska
-                                  Albers, reprojected on load).
-      • buffer_closures.geojson — auto-generated stream/shore buffers from
-                                  5 AAC 24.350 clauses too tedious to trace
-                                  by hand. Built by
-                                  scripts/build_buffer_closures.py.
-
-    Returns a single shapely geometry (unary union) or None if neither source
-    is readable."""
-    global _PERMANENT_CLOSURES
-    if _PERMANENT_CLOSURES is not None:
-        return _PERMANENT_CLOSURES
+    These are 5 AAC 24.330-style regulatory closed waters — acts of
+    Alaska state law. They NEVER get lifted by an in-season announcement.
+    Authored in NAD83 / Alaska Albers (EPSG:3338); reprojected to WGS84
+    so they line up with the rest of the geometry pipeline."""
+    global _REGULATORY_CLOSURES
+    if _REGULATORY_CLOSURES is not None:
+        return _REGULATORY_CLOSURES
     shp_path = DATA / "closedwaters" / "DONECLOSURES.shp"
     if not shp_path.exists():
-        print(f"WARNING: permanent closures shapefile not found at {shp_path}", file=sys.stderr)
-        _PERMANENT_CLOSURES = None
-        return _PERMANENT_CLOSURES
-    # DONECLOSURES.shp is authored in NAD83 / Alaska Albers (EPSG:3338, meters).
-    # Reproject to WGS84 (EPSG:4326) so it lines up with district / open-area geoms.
+        print(f"WARNING: regulatory closures shapefile not found at {shp_path}", file=sys.stderr)
+        _REGULATORY_CLOSURES = None
+        return _REGULATORY_CLOSURES
     try:
         from pyproj import Transformer
         from shapely.ops import transform as shp_transform
         to_wgs84 = Transformer.from_crs("EPSG:3338", "EPSG:4326", always_xy=True).transform
     except Exception as e:
-        print(f"WARNING: pyproj reprojection unavailable, skipping permanent closures: {e}",
+        print(f"WARNING: pyproj reprojection unavailable, skipping regulatory closures: {e}",
               file=sys.stderr)
-        _PERMANENT_CLOSURES = None
-        return _PERMANENT_CLOSURES
-
+        _REGULATORY_CLOSURES = None
+        return _REGULATORY_CLOSURES
     try:
         sf = shapefile.Reader(str(shp_path))
         geoms = []
@@ -844,39 +916,88 @@ def _load_permanent_closures():
                 if g is not None and not g.is_empty:
                     geoms.append(g)
             except Exception as e:
-                print(f"WARNING: skipped a permanent-closure polygon: {e}", file=sys.stderr)
-        # Add auto-generated buffer closures (WGS84 GeoJSON, no reprojection).
-        buf_path = DATA / "closedwaters" / "buffer_closures.geojson"
-        n_buffer = 0
-        if buf_path.exists():
-            try:
-                fc = json.loads(buf_path.read_text())
-                for feat in fc.get("features", []):
-                    try:
-                        g = shape(feat["geometry"])
-                        if not g.is_valid:
-                            g = make_valid(g)
-                            g = _polys_only(g) or g
-                        if g is not None and not g.is_empty:
-                            geoms.append(g)
-                            n_buffer += 1
-                    except Exception as e:
-                        print(f"WARNING: skipped buffer-closure feature: {e}", file=sys.stderr)
-            except Exception as e:
-                print(f"WARNING: failed to read buffer_closures.geojson: {e}", file=sys.stderr)
-
+                print(f"WARNING: skipped a regulatory-closure polygon: {e}", file=sys.stderr)
         if not geoms:
-            _PERMANENT_CLOSURES = None
-            return _PERMANENT_CLOSURES
+            _REGULATORY_CLOSURES = None
+            return _REGULATORY_CLOSURES
         merged = unary_union(geoms)
         if not merged.is_valid:
             merged = make_valid(merged)
-        _PERMANENT_CLOSURES = merged
-        print(f"Loaded {len(geoms) - n_buffer} hand-traced + {n_buffer} buffer permanent closure polygon(s)",
-              file=sys.stderr)
+        _REGULATORY_CLOSURES = merged
+        print(f"Loaded {len(geoms)} regulatory closed-water polygon(s)", file=sys.stderr)
     except Exception as e:
-        print(f"WARNING: failed to load permanent closures: {e}", file=sys.stderr)
+        print(f"WARNING: failed to load regulatory closures: {e}", file=sys.stderr)
+        _REGULATORY_CLOSURES = None
+    return _REGULATORY_CLOSURES
+
+
+def _load_anadromous_closures():
+    """Lazy-load anadromous stream buffers from buffer_closures.geojson.
+
+    These are auto-generated by scripts/build_buffer_closures.py from
+    the 5 AAC 24.350 clauses that are too tedious to hand-trace. Unlike
+    the regulatory mask, ADF&G frequently announces in-season that
+    "anadromous stream closures within X will not be in effect until
+    further notice." Those announcements suspend this layer for the
+    named district / hatchery area while the regulatory mask still
+    applies. Already in WGS84 — no reprojection needed."""
+    global _ANADROMOUS_CLOSURES
+    if _ANADROMOUS_CLOSURES is not None:
+        return _ANADROMOUS_CLOSURES
+    buf_path = DATA / "closedwaters" / "buffer_closures.geojson"
+    if not buf_path.exists():
+        _ANADROMOUS_CLOSURES = None
+        return _ANADROMOUS_CLOSURES
+    try:
+        fc = json.loads(buf_path.read_text())
+        geoms = []
+        for feat in fc.get("features", []):
+            try:
+                g = shape(feat["geometry"])
+                if not g.is_valid:
+                    g = make_valid(g)
+                    g = _polys_only(g) or g
+                if g is not None and not g.is_empty:
+                    geoms.append(g)
+            except Exception as e:
+                print(f"WARNING: skipped anadromous-buffer feature: {e}", file=sys.stderr)
+        if not geoms:
+            _ANADROMOUS_CLOSURES = None
+            return _ANADROMOUS_CLOSURES
+        merged = unary_union(geoms)
+        if not merged.is_valid:
+            merged = make_valid(merged)
+        _ANADROMOUS_CLOSURES = merged
+        print(f"Loaded {len(geoms)} anadromous stream-buffer polygon(s)", file=sys.stderr)
+    except Exception as e:
+        print(f"WARNING: failed to load anadromous closures: {e}", file=sys.stderr)
+        _ANADROMOUS_CLOSURES = None
+    return _ANADROMOUS_CLOSURES
+
+
+def _load_permanent_closures():
+    """Backward-compat union of regulatory + anadromous closures.
+
+    Most call sites just want "everything that\'s closed by default",
+    which is the union. extract_open_geom uses the split loaders when
+    a district has anadromous_closures_suspended set."""
+    global _PERMANENT_CLOSURES
+    if _PERMANENT_CLOSURES is not None:
+        return _PERMANENT_CLOSURES
+    reg = _load_regulatory_closures()
+    ana = _load_anadromous_closures()
+    if reg is None and ana is None:
         _PERMANENT_CLOSURES = None
+        return _PERMANENT_CLOSURES
+    if reg is None:
+        _PERMANENT_CLOSURES = ana
+    elif ana is None:
+        _PERMANENT_CLOSURES = reg
+    else:
+        merged = unary_union([reg, ana])
+        if not merged.is_valid:
+            merged = make_valid(merged)
+        _PERMANENT_CLOSURES = merged
     return _PERMANENT_CLOSURES
 
 
@@ -1388,11 +1509,16 @@ def get_closed_area(closed_side, coords, district_geom, bay_scope=False, synthes
     return _polys_only(closed_region)
 
 
-def extract_open_geom(district_geom, closures, excl_geoms):
+def extract_open_geom(district_geom, closures, excl_geoms, suspend_anadromous=False):
     """Subtract closed areas and directly-subtracted geometries from the district.
 
     closures : list of dicts {closed_side, coords, bay_scope, synthesized}
     excl_geoms : list of shapely polygons to directly subtract (named subdistricts)
+    suspend_anadromous : if True, the anadromous stream-buffer layer is
+        NOT subtracted from the open polygon. Regulatory closures (the
+        hand-traced 5 AAC 24.330 mask) are still subtracted — those are
+        statute and never lifted. Set this when an announcement says
+        "Anadromous stream closures within X will not be in effect".
     """
     g = district_geom
     if g is None:
@@ -1451,18 +1577,38 @@ def extract_open_geom(district_geom, closures, excl_geoms):
             print(f"WARNING: closure subtraction failed ({c.get('name')}): {e}",
                   file=sys.stderr)
 
-    # Permanent statutory closures (5 AAC 24.350). Applied last so they win
-    # over any announcement-derived geometry, and never inflate the open area.
-    permanent = _load_permanent_closures()
-    if permanent is not None and not permanent.is_empty:
+    # Standing closures applied last so they win over any announcement-derived
+    # geometry and never inflate the open area. Two layers, applied separately
+    # so the anadromous layer can be suspended per-district while the
+    # regulatory mask still applies:
+    #   - regulatory (5 AAC 24.330 mask): always subtracts; statute.
+    #   - anadromous (5 AAC 24.350 stream buffers): subtracts UNLESS the
+    #     announcement explicitly suspends it for this district.
+    reg = _load_regulatory_closures()
+    if reg is not None and not reg.is_empty:
         try:
-            g = g.difference(permanent)
+            g = g.difference(reg)
             if g.is_empty:
-                print("WARNING: district became empty after permanent-closure subtraction",
+                print("WARNING: district became empty after regulatory-closure subtraction",
                       file=sys.stderr)
                 return None
         except Exception as e:
-            print(f"WARNING: permanent-closure subtraction failed: {e}", file=sys.stderr)
+            print(f"WARNING: regulatory-closure subtraction failed: {e}", file=sys.stderr)
+
+    if not suspend_anadromous:
+        ana = _load_anadromous_closures()
+        if ana is not None and not ana.is_empty:
+            try:
+                g = g.difference(ana)
+                if g.is_empty:
+                    print("WARNING: district became empty after anadromous-closure subtraction",
+                          file=sys.stderr)
+                    return None
+            except Exception as e:
+                print(f"WARNING: anadromous-closure subtraction failed: {e}", file=sys.stderr)
+    else:
+        print("  Anadromous stream closures suspended for this opening",
+              file=sys.stderr)
 
     return _polys_only(g)
 
@@ -2006,7 +2152,34 @@ def build_html(all_results, geojson_data, pdf_texts):
                 closures = []
                 excl_geoms_list = []
 
-            open_geom = extract_open_geom(starting_geom, closures, excl_geoms_list)
+            # Hatchery-only opening: when the announcement opens just the
+            # AFK / WNH / etc. THA + SHA inside a district (not the whole
+            # district), assemble the starting geometry from the named
+            # hatchery polygons via the stat-areas shapefile. This bypasses
+            # the wider district polygon entirely.
+            restrict_hatch_names = d.get('restrict_to_hatchery_areas') or []
+            if restrict_hatch_names and override_geom is None:
+                hatch_geoms = []
+                for hname in restrict_hatch_names:
+                    hg = find_hatchery_geom(hname)
+                    if hg is not None and not hg.is_empty:
+                        hatch_geoms.append(hg)
+                    else:
+                        print(f"WARNING: restrict_to_hatchery_areas names '{hname}' "
+                              f"but no geometry was found", file=sys.stderr)
+                if hatch_geoms:
+                    starting_geom = unary_union(hatch_geoms) if len(hatch_geoms) > 1 else hatch_geoms[0]
+                    if not starting_geom.is_valid:
+                        starting_geom = make_valid(starting_geom)
+                        starting_geom = _polys_only(starting_geom) or starting_geom
+                    closures = []
+                    excl_geoms_list = []
+                    print(f"  Restricted Southwestern-style opening to: "
+                          f"{', '.join(restrict_hatch_names)}", file=sys.stderr)
+
+            suspend_anadromous = bool(d.get('anadromous_closures_suspended'))
+            open_geom = extract_open_geom(starting_geom, closures, excl_geoms_list,
+                                          suspend_anadromous=suspend_anadromous)
             if open_geom is None:
                 print(f"WARNING: open area is empty/invalid for '{d_name}', skipping", file=sys.stderr)
                 continue
@@ -2368,6 +2541,7 @@ def main():
         sys.exit(1)
 
     _normalize_agz_exclusions(districts)
+    _normalize_hatchery_only_openings(districts, text)
 
     print(f"Parsed {len(districts)} district(s)", file=sys.stderr)
     for d in districts:
@@ -2396,6 +2570,8 @@ def main():
             "duration_hours": d.get("duration_hours"),
             "excluded_subdistricts": d.get("excluded_subdistricts") or [],
             "excluded_hatchery_areas": d.get("excluded_hatchery_areas") or [],
+            "restrict_to_hatchery_areas": d.get("restrict_to_hatchery_areas") or [],
+            "anadromous_closures_suspended": bool(d.get("anadromous_closures_suspended")),
         }
         for d in districts if d.get("district")
     ]
