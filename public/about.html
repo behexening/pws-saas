@@ -31,6 +31,12 @@
       border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 100;
     }
+    /* Drop sticky on mobile — iOS WebView sometimes lets scroll content
+       paint through the sticky element. Static nav is fine here; pages
+       are short and users scroll back to top to navigate. */
+    @media (max-width: 767px) {
+      nav { position: static; }
+    }
     .wordmark-link { text-decoration: none; }
     .wordmark {
       font-family: 'Blackbird', sans-serif;
