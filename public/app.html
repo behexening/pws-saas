@@ -2381,8 +2381,44 @@ function initFeedbackWidget(user) {
 
   var watchId = null;
   var districts = null;          // loaded from /static/districts.geojson
-  var lastDistrict = null;       // string name of current district (or null)
+  var lastDistrict = null;       // district name from the previous fix (or null)
   var bootedDistrict = false;    // suppress notification on the very first fix
+  var openWindows = [];          // [{ open_ms, close_ms, districts: Set<string> }]
+  var openFetchedAt = 0;         // cache timestamp
+  var OPEN_TTL_MS = 5 * 60 * 1000;
+
+  // Set of district names that are CURRENTLY open (any active opening
+  // includes them in its districts[] list).
+  function openSetNow() {
+    var now = Date.now();
+    var set = new Set();
+    for (var i = 0; i < openWindows.length; i++) {
+      var w = openWindows[i];
+      if (w.open_ms <= now && now <= w.close_ms) {
+        w.districts.forEach(function (d) { set.add(d); });
+      }
+    }
+    return set;
+  }
+
+  function refreshOpenWindows() {
+    if (Date.now() - openFetchedAt < OPEN_TTL_MS) return Promise.resolve();
+    return fetch('/api/results/live')
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) {
+        openWindows = (rows || [])
+          .filter(function (r) { return r.earliest_opens_at && r.latest_closes_at; })
+          .map(function (r) {
+            return {
+              open_ms:  new Date(r.earliest_opens_at).getTime(),
+              close_ms: new Date(r.latest_closes_at).getTime(),
+              districts: new Set(r.districts || []),
+            };
+          });
+        openFetchedAt = Date.now();
+      })
+      .catch(function () { /* keep last known windows */ });
+  }
 
   // ── Point-in-polygon (ray casting). Polygon is an array of [lon, lat]
   //    rings; we test outer ring only (PWS districts have no holes). ──
@@ -2435,20 +2471,45 @@ function initFeedbackWidget(user) {
 
   function onFix(pos) {
     if (!pos || !pos.coords) return;
+    // Refresh the open-window cache in the background (5 min TTL).
+    refreshOpenWindows();
+
     var here = findDistrict(pos.coords.latitude, pos.coords.longitude);
     if (!bootedDistrict) {
       bootedDistrict = true;
       lastDistrict = here;
       return;
     }
-    if (here !== lastDistrict) {
+    // No district change → nothing to evaluate. Captain just moved within
+    // the same district.
+    if (here === lastDistrict) return;
+
+    // Only notify on STATUS changes:
+    //   was-open → not-open  (DANGER: entered a closed area)
+    //   not-open → is-open   (INFO:   can fish here now)
+    // Suppressed:
+    //   open → open          (migrating between two open districts — fine)
+    //   not-open → not-open  (e.g. heading home, or moving across closed water)
+    //   anything when no opening is currently active
+    var open = openSetNow();
+    var wasOpen = open.has(lastDistrict);
+    var isOpen  = open.has(here);
+
+    if (open.size > 0 && wasOpen !== isOpen) {
       var msg;
-      if (here && lastDistrict)  msg = 'Crossed from ' + lastDistrict + ' into ' + here + '.';
-      else if (here)             msg = 'Entered ' + here + '.';
-      else if (lastDistrict)     msg = 'Left ' + lastDistrict + ' — now outside any PWS district.';
+      if (!isOpen && lastDistrict && here) {
+        msg = 'Crossed from open ' + lastDistrict + ' into closed ' + here + '.';
+      } else if (!isOpen && lastDistrict) {
+        msg = 'Left open ' + lastDistrict + ' — now in closed water.';
+      } else if (isOpen && lastDistrict) {
+        msg = 'Entered open ' + here + ' (was in closed ' + lastDistrict + ').';
+      } else if (isOpen) {
+        msg = 'Entered open ' + here + '.';
+      }
       if (msg) notify('PWS boundary alert', msg);
-      lastDistrict = here;
     }
+
+    lastDistrict = here;
   }
 
   async function ensurePermissions() {
@@ -2477,6 +2538,9 @@ function initFeedbackWidget(user) {
       }
     }
     if (!(await ensurePermissions())) return;
+    // Seed the open-window cache before the first fix so the very first
+    // status comparison has accurate data.
+    await refreshOpenWindows();
     watchId = await Geo.watchPosition(
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
       function (pos, err) {
