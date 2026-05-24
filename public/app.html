@@ -168,65 +168,78 @@
       z-index: 10;
     }
 
-    /* Tides + weather card — slots inside the bottom sheet on mobile,
-       inside the .left-panel on desktop. Always at the top of the sheet
-       so it's visible at peek state. */
-    .conditions-card {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
-      background: var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .cond-section {
-      background: var(--bg);
-      padding: 10px 12px 12px;
-    }
-    .cond-head {
+        /* Tides + weather strip — thin horizontal overlay on the map,
+       just below the topbar. Single line, ellipsis on overflow,
+       horizontally scrollable if the content really doesn't fit. */
+    .conditions-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 250;
       display: flex;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .cond-label {
-      font-size: 0.5625rem;
-      font-weight: 800;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .cond-sub {
-      font-size: 0.625rem;
-      color: var(--muted);
-      opacity: 0.7;
-    }
-    .cond-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-height: 48px;
-    }
-    .cond-row {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 12px;
+      background: rgba(6, 10, 15, 0.84);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-dim);
       font-size: 0.75rem;
       color: var(--text);
+      white-space: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;  /* Firefox */
     }
-    .cond-row .cond-row-label {
-      flex: 0 0 auto;
-      font-size: 0.625rem;
-      color: var(--muted);
+    .conditions-strip::-webkit-scrollbar { display: none; }
+    .cs-group {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      flex: none;
+    }
+    .cs-label {
+      font-size: 0.6rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      min-width: 36px;
+      color: var(--muted);
     }
-    .cond-row .cond-row-value {
-      flex: 1 1 auto;
-      min-width: 0;
+    .cs-items {
+      display: inline-flex;
+      gap: 10px;
     }
-    .cond-tide-row .cond-row-label.high { color: var(--accent); }
-    .cond-tide-row .cond-row-label.low  { color: var(--muted); }
+    .cs-item {
+      display: inline-flex;
+      gap: 4px;
+      align-items: baseline;
+    }
+    .cs-item .cs-arrow {
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+    .cs-item.tide-high .cs-arrow { color: var(--accent); }
+    .cs-item.tide-low  .cs-arrow { color: var(--muted); }
+    .cs-item .cs-time {
+      color: var(--text);
+    }
+    .cs-item .cs-secondary {
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+    .cs-sep {
+      width: 1px;
+      align-self: stretch;
+      background: var(--border);
+      margin: 2px 0;
+      flex: none;
+    }
+    [data-theme="light"] .conditions-strip {
+      background: rgba(255, 255, 255, 0.86);
+      border-bottom-color: var(--border);
+    }
 
     /* Eyebrow: tiny uppercase masthead, thin underline */
     .panel-eyebrow {
@@ -1097,23 +1110,6 @@
 
     <!-- Left panel -->
     <div class="left-panel" id="left-panel">
-      <!-- Tides + weather. Hidden until /api/conditions resolves. -->
-      <div class="conditions-card" id="conditions-card" hidden>
-        <div class="cond-section cond-tides">
-          <div class="cond-head">
-            <span class="cond-label">Tides</span>
-            <span class="cond-sub" id="cond-tide-station">—</span>
-          </div>
-          <div class="cond-rows" id="cond-tide-rows"></div>
-        </div>
-        <div class="cond-section cond-weather">
-          <div class="cond-head">
-            <span class="cond-label">Weather</span>
-            <span class="cond-sub" id="cond-weather-loc">PWS</span>
-          </div>
-          <div class="cond-rows" id="cond-weather-rows"></div>
-        </div>
-      </div>
       <div class="ann-picker" id="ann-picker" style="display:none">
         <div class="date-scrubber" id="date-scrubber" style="display:none">
           <div class="scrubber-top">
@@ -1158,6 +1154,20 @@
     <!-- Map -->
     <div class="map-panel">
       <div id="map"></div>
+      <!-- Conditions strip: tides + weather as a thin overlay just below
+           the topbar. Single-row, horizontally scrollable on narrow phones.
+           Hidden until /api/conditions resolves. -->
+      <div class="conditions-strip" id="conditions-strip" hidden>
+        <div class="cs-group cs-tides">
+          <span class="cs-label">Tides</span>
+          <span class="cs-items" id="cs-tide-items"></span>
+        </div>
+        <div class="cs-sep"></div>
+        <div class="cs-group cs-weather">
+          <span class="cs-label">Wx</span>
+          <span class="cs-items" id="cs-weather-items"></span>
+        </div>
+      </div>
       <div class="map-legend">
         <h4>Map Legend</h4>
         <div class="legend-row"><span class="legend-swatch" style="background:rgba(39,174,96,0.4);border:2px solid #27ae60;height:10px;border-radius:0"></span> Open District</div>
@@ -2508,18 +2518,16 @@ function initFeedbackWidget(user) {
 })();
 </script>
 
-<!-- Tides + weather: pulls /api/conditions, renders into the conditions-card.
-     Refreshes every 15 min. Hidden gracefully if the API returns nothing. -->
+<!-- Tides + weather strip: pulls /api/conditions and renders into the
+     compact horizontal overlay below the topbar. Refreshes every 15 min. -->
 <script>
 (function () {
-  var card  = document.getElementById('conditions-card');
-  var tRows = document.getElementById('cond-tide-rows');
-  var tSta  = document.getElementById('cond-tide-station');
-  var wRows = document.getElementById('cond-weather-rows');
-  if (!card || !tRows || !wRows) return;
+  var strip = document.getElementById('conditions-strip');
+  var tEl   = document.getElementById('cs-tide-items');
+  var wEl   = document.getElementById('cs-weather-items');
+  if (!strip || !tEl || !wEl) return;
 
   function fmtTime(t) {
-    // NOAA tide API returns "YYYY-MM-DD HH:MM" in local-station time.
     if (!t) return '';
     var m = t.match(/\d{4}-\d{2}-\d{2}\s+(\d{2}):(\d{2})/);
     if (!m) return t;
@@ -2528,59 +2536,80 @@ function initFeedbackWidget(user) {
     var h12 = ((hh + 11) % 12) + 1;
     return h12 + ':' + mm + ampm;
   }
-
   function dayOf(t) {
     var m = t && t.match(/^(\d{4}-\d{2}-\d{2})/);
     return m ? m[1] : '';
   }
+  // NOAA period names like "This Afternoon" / "Tonight" / "Friday Night"
+  // are too long for a single-line strip. Shorten while staying readable.
+  function shortPeriod(name) {
+    if (!name) return '';
+    var n = name.replace(/\s+/g, ' ').trim();
+    var map = {
+      'This Morning':   'AM',
+      'This Afternoon': 'PM',
+      'This Evening':   'Eve',
+      'Tonight':        'Tonight',
+      'Overnight':      'Overnight',
+      'Tomorrow':       'Tmrw',
+      'Tomorrow Night': 'Tmrw Night',
+    };
+    if (map[n]) return map[n];
+    // Friday/Saturday/etc. → 3-letter
+    n = n.replace(/^(Mon|Tues?|Wedn?e?s?|Thurs?|Fri|Satur?|Sun)day\b/i,
+      function (m, d) {
+        d = d.toLowerCase();
+        return ({mon:'Mon', tue:'Tue', tues:'Tue', wed:'Wed', wedne:'Wed', wednes:'Wed',
+                 thu:'Thu', thur:'Thu', thurs:'Thu', fri:'Fri', sat:'Sat',
+                 satur:'Sat', sun:'Sun'}[d] || d);
+      });
+    return n;
+  }
 
   function render(data) {
-    if (!data) { card.hidden = true; return; }
+    if (!data) { strip.hidden = true; return; }
     var shown = false;
 
-    // ── Tides: show the next ~4 tide events. Group by day in the label. ──
     if (data.tides && data.tides.predictions && data.tides.predictions.length) {
       var now = new Date();
       var todayStr = now.toISOString().slice(0, 10);
       var upcoming = data.tides.predictions.filter(function (p) {
         var d = new Date(p.time.replace(' ', 'T'));
         return !isNaN(d) && d.getTime() > now.getTime() - 1.5 * 60 * 60 * 1000;
-      }).slice(0, 4);
-      tSta.textContent = data.tides.station_name || '';
-      tRows.innerHTML = upcoming.map(function (p) {
-        var dayLabel = dayOf(p.time) === todayStr ? '' :
-                       '<span style="font-size:0.5625rem;color:var(--muted);opacity:0.7;margin-left:4px">tmrw</span>';
-        return '<div class="cond-row cond-tide-row">' +
-               '<span class="cond-row-label ' + p.type + '">' +
-                 (p.type === 'high' ? 'HIGH' : 'LOW') + '</span>' +
-               '<span class="cond-row-value">' + fmtTime(p.time) +
-                 dayLabel + ' &middot; ' + p.height_ft.toFixed(1) + ' ft</span>' +
-               '</div>';
-      }).join('') || '<div class="cond-row" style="color:var(--muted)">—</div>';
-      shown = true;
-    } else {
-      tRows.innerHTML = '<div class="cond-row" style="color:var(--muted)">unavailable</div>';
-    }
-
-    // ── Weather: NOAA returns text periods. Show the next 2. ──
-    if (data.weather && data.weather.periods && data.weather.periods.length) {
-      wRows.innerHTML = data.weather.periods.slice(0, 2).map(function (p) {
-        var temp = p.temperature + '°' + (p.temperatureUnit || 'F');
-        var wind = (p.windSpeed || '') + ' ' + (p.windDirection || '');
-        return '<div class="cond-row">' +
-               '<span class="cond-row-label">' + (p.name || '').slice(0, 7) + '</span>' +
-               '<span class="cond-row-value" title="' + (p.shortForecast || '') + '">' +
-                 temp + ' &middot; ' + wind.trim() + ' &middot; ' +
-                 (p.shortForecast || '') +
-               '</span>' +
-               '</div>';
+      }).slice(0, 3);
+      tEl.innerHTML = upcoming.map(function (p) {
+        var arrow = p.type === 'high' ? '↑' : '↓';
+        var when  = fmtTime(p.time);
+        var day   = (dayOf(p.time) === todayStr) ? '' :
+                    ' <span class="cs-secondary">tmrw</span>';
+        return '<span class="cs-item tide-' + p.type + '">' +
+                 '<span class="cs-arrow">' + arrow + '</span>' +
+                 '<span class="cs-time">' + when + day + '</span>' +
+                 ' <span class="cs-secondary">' + p.height_ft.toFixed(1) + 'ft</span>' +
+               '</span>';
       }).join('');
       shown = true;
     } else {
-      wRows.innerHTML = '<div class="cond-row" style="color:var(--muted)">unavailable</div>';
+      tEl.innerHTML = '<span class="cs-secondary">—</span>';
     }
 
-    if (shown) card.hidden = false;
+    if (data.weather && data.weather.periods && data.weather.periods.length) {
+      wEl.innerHTML = data.weather.periods.slice(0, 2).map(function (p) {
+        var temp  = p.temperature + '°' + (p.temperatureUnit || 'F');
+        var wind  = (p.windSpeed || '').replace(/\s*mph$/i, '');
+        var dir   = p.windDirection || '';
+        return '<span class="cs-item">' +
+                 '<span class="cs-secondary">' + shortPeriod(p.name) + '</span> ' +
+                 '<span>' + temp + '</span>' +
+                 (wind ? ' <span class="cs-secondary">' + dir + ' ' + wind + '</span>' : '') +
+               '</span>';
+      }).join('');
+      shown = true;
+    } else {
+      wEl.innerHTML = '<span class="cs-secondary">—</span>';
+    }
+
+    if (shown) strip.hidden = false;
   }
 
   function load() {
