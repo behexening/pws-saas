@@ -272,6 +272,42 @@ def _normalize_hatchery_only_openings(districts, full_text):
                       file=sys.stderr)
 
 
+AKDT_OFFSET = "-08:00"  # Alaska Daylight Time is a fixed UTC-8 offset.
+
+
+def _normalize_timestamps_to_akdt(districts):
+    """Bolt the AKDT (-08:00) offset onto any naive opens_at / closes_at
+    timestamps Claude returned without one.
+
+    Naive ISO strings like "2026-05-26T07:00:00" get stored in
+    TIMESTAMPTZ columns as UTC, which silently shifts every opening
+    eight hours into the past and produces wrong dates on the
+    upcoming-opener card. ADF&G PWS announcements are always quoted
+    in AKDT, so a default offset is safe.
+
+    Idempotent: timestamps that already carry +HH:MM or -HH:MM or a
+    trailing 'Z' are left alone. Anything that doesn't look like an
+    ISO-ish datetime at all is also left alone so we don't paper over
+    real parser bugs."""
+    import re
+    has_offset = re.compile(r"(Z|[+-]\d{2}:?\d{2})$")
+    looks_iso = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$")
+    for d in districts or []:
+        if not isinstance(d, dict):
+            continue
+        for k in ('opens_at', 'closes_at'):
+            v = d.get(k)
+            if not isinstance(v, str) or not v:
+                continue
+            if has_offset.search(v):
+                continue
+            if not looks_iso.match(v):
+                continue
+            d[k] = v + AKDT_OFFSET
+            print(f"  [normalize] {d.get('district')}: stamped AKDT offset on {k} -> {d[k]}",
+                  file=sys.stderr)
+
+
 def _normalize_agz_exclusions(districts):
     """Defensive post-pass for the Main Bay Hatchery AGZ.
 
@@ -358,8 +394,8 @@ For each district mentioned return one JSON object:
   "district": "District Name",
   "status": "open" or "closed",
   "gear_types": ["drift_gillnet", "purse_seine", "set_gillnet"],
-  "opens_at": "ISO8601 datetime or null",
-  "closes_at": "ISO8601 datetime or null",
+  "opens_at": "ISO8601 datetime WITH the Alaska Daylight Time offset (-08:00), e.g. \"2026-05-26T07:00:00-08:00\", or null",
+  "closes_at": "ISO8601 datetime WITH the Alaska Daylight Time offset (-08:00), e.g. \"2026-05-26T19:00:00-08:00\", or null",
   "duration_hours": integer or null,
   "confidence": 0.0 to 1.0,
   "closures": [
@@ -423,6 +459,11 @@ CRITICAL rules for redundant restatements:
 - Sometimes an announcement restates a closure that is already implied by an earlier cut. Example: "Waters of the Eastern District, south of a latitude of 60° 55.10' N, will open... Waters of Valdez Arm will remain closed to minimize incidental harvest." Here "Waters of Valdez Arm will remain closed" is redundant because Valdez Arm already sits north of the 60° 55.10' N cut and is therefore already closed.
 - If a subsequent "remain closed" sentence is entirely enveloped by the main opening's boundary cuts, DO NOT emit it as a separate closure entry. Trust the first cut and move on.
 - Only emit such restatements as closures when they describe a NEW closed area that is NOT already covered by the main cut.
+
+CRITICAL rules for timestamps (opens_at / closes_at):
+- ADF&G announcements quote "Alaska Daylight Time" / AKDT, which is a fixed -08:00 offset (UTC-8).
+- ALWAYS include the "-08:00" offset on opens_at and closes_at. Example: "7:00 am on Tuesday, May 26" → "2026-05-26T07:00:00-08:00".
+- NEVER emit a naive timestamp like "2026-05-26T07:00:00". Naive timestamps are interpreted as UTC by downstream systems, shifting every opening by eight hours and producing wrong dates (the bug this rule exists to prevent).
 
 Return ONLY valid JSON array, no markdown, no preamble."""
 
@@ -2652,6 +2693,7 @@ def main():
         sys.exit(1)
 
     _normalize_agz_exclusions(districts)
+    _normalize_timestamps_to_akdt(districts)
     _normalize_hatchery_only_openings(districts, text)
 
     print(f"Parsed {len(districts)} district(s)", file=sys.stderr)
