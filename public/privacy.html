@@ -239,7 +239,11 @@
           </tr>
           <tr>
             <td>Phone number</td>
-            <td class="col-why">SMS alert delivery; trial eligibility verification</td>
+            <td class="col-why">Trial eligibility verification (one trial per number). Used for SMS alerts where applicable; the mobile app uses push notifications instead.</td>
+          </tr>
+          <tr>
+            <td>Telegram chat ID and username</td>
+            <td class="col-why">Optional. If you link a Telegram account on the web, we store your chat ID to deliver opening alerts via Telegram.</td>
           </tr>
           <tr>
             <td>Subscription / billing information</td>
@@ -248,9 +252,35 @@
         </tbody>
       </table>
 
+      <p><strong>Information collected when you use the mobile app:</strong></p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Why we collect it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Push notification token (device token)</td>
+            <td class="col-why">Required to deliver opening alerts to your device via Apple Push Notification service (iOS) or Firebase Cloud Messaging (Android). Tokens are deleted when you sign out or delete your account.</td>
+          </tr>
+          <tr>
+            <td>Apple user ID (Sign in with Apple)</td>
+            <td class="col-why">If you sign in with Apple, we store an opaque identifier (<code>sub</code> claim) that Apple provides. This is not your Apple ID. If you choose Hide My Email, we receive only Apple's private relay address.</td>
+          </tr>
+          <tr>
+            <td>Location (boundary alerts only)</td>
+            <td class="col-why">If you enable the optional boundary-crossing alert feature, the app reads your location <em>on-device only</em> to detect when you cross out of an active opening. Coordinates are never transmitted to our servers or any third party.</td>
+          </tr>
+          <tr>
+            <td>Crash and error diagnostics</td>
+            <td class="col-why">We send anonymized crash reports and error traces to Sentry to fix bugs. Personally identifying data is stripped from these reports (<code>sendDefaultPii: false</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+
       <p><strong>Information collected automatically:</strong></p>
-
-
       <p>
         Like most web services, our server infrastructure automatically collects certain
         technical information when you access the Service, which may include your IP address,
@@ -263,6 +293,15 @@
       <p>
         If you sign in using Google OAuth, we receive your name and email address from
         Google as part of the authentication flow. We do not receive your Google password.
+        If you use Sign in with Apple, we receive a stable opaque user ID from Apple and,
+        on first sign-in, your name and email (or Apple's private relay address if you
+        choose Hide My Email).
+      </p>
+      <p>
+        <strong>The mobile app does not use any third-party analytics, advertising SDKs,
+        or tracking frameworks.</strong> We do not read your IDFA. No App Tracking
+        Transparency prompt is shown because we do not track you across other apps
+        or websites.
       </p>
     </div>
   </div>
@@ -329,9 +368,30 @@
         <div class="processor-row">
           <div class="processor-name">Google</div>
           <div class="processor-detail">
-            OAuth sign-in. If you use "Sign in with Google," your name and email are
-            shared with Google as part of the authentication flow.<br>
+            OAuth sign-in (web) and Firebase Cloud Messaging push delivery (Android app).
+            If you use "Sign in with Google," your name and email are shared with Google as
+            part of the authentication flow. If you receive push notifications on Android,
+            Google routes the message text through FCM to your device.<br>
             <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Apple</div>
+          <div class="processor-detail">
+            Sign in with Apple (iOS app) and Apple Push Notification service (iOS push
+            delivery). On Sign in with Apple, Apple shares a stable opaque user ID and,
+            on first sign-in, your name and email or a private relay address.
+            APNs routes opening-alert messages from our server to your iPhone.<br>
+            <a href="https://www.apple.com/legal/privacy/en-ww/" target="_blank" rel="noopener">apple.com/legal/privacy</a>
+          </div>
+        </div>
+        <div class="processor-row">
+          <div class="processor-name">Sentry</div>
+          <div class="processor-detail">
+            Crash and error monitoring. We send anonymized error traces (stack frames,
+            error message, app version) so we can fix bugs. We do not attach your email,
+            name, or any account identifiers to these reports.<br>
+            <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">sentry.io/privacy</a>
           </div>
         </div>
         <div class="processor-row">
@@ -403,20 +463,28 @@
         phone number currently on file. You may update this information at any time.
       </p>
       <p>
-        <strong>Delete your account.</strong> To request deletion of your account and
-        associated personal data, email
-        <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a> with the subject
-        line "Delete my account." We will complete deletion within 30 days of a verified
-        request. Note that deletion will terminate your subscription and forfeit any
-        remaining paid period.
-        <!-- NOTE: Account deletion is currently handled manually via email.
-             An in-app deletion button is planned for a future update. -->
+        <strong>Delete your account.</strong> You can permanently delete your akFISHinfo
+        account at any time from your
+        <a href="/account">Account page</a> &rarr; <em>Delete Account</em>.
+        Deletion cancels any active subscription, removes your push notification tokens,
+        and anonymizes your record so that the email address you used is freed up for
+        future re-registration. If you cannot reach the in-app delete button for any
+        reason, email <a href="mailto:admin@akfishinfo.com">admin@akfishinfo.com</a>
+        with the subject "Delete my account" and we will complete deletion within 30 days.
       </p>
       <p>
-        <strong>Opt out of SMS.</strong> SMS alerts are only sent to active paid subscribers
-        or users in a free trial. Canceling your subscription stops all SMS delivery.
-        You may also text STOP to our Twilio number at any time to opt out.
-        STOP opt-out handling will be active before SMS alerts go live.
+        <strong>Opt out of push notifications.</strong> You can disable push notifications
+        for akFISHinfo at any time from your device's Settings app (iOS:
+        Settings &rarr; Notifications &rarr; akFISHinfo; Android: Settings &rarr; Apps
+        &rarr; akFISHinfo &rarr; Notifications). Disabling notifications does not affect
+        your subscription.
+      </p>
+      <p>
+        <strong>Opt out of SMS or Telegram.</strong> SMS alerts are only sent to active
+        paid subscribers or users in a free trial; canceling your subscription stops
+        all SMS delivery. You may also text STOP to our Twilio number at any time to opt out.
+        Telegram alerts can be disabled by unlinking your Telegram chat from the Account
+        page.
       </p>
       <p>
         <strong>California residents (CCPA).</strong> California residents have the right
