@@ -950,9 +950,9 @@ app.get('/api/early-adopter-spots', async (req, res) => {
       taken,
       early_adopter_active: spots_left > 0,
       prices: {
-        biweekly: { early_adopter: 30,  standard: 50  },
-        monthly:  { early_adopter: 50,  standard: 84  },
-        season:   { early_adopter: 240, standard: 400 },
+        biweekly: { early_adopter: 20,  standard: 30  },
+        monthly:  { early_adopter: 35,  standard: 50  },
+        season:   { early_adopter: 175, standard: 250 },
       },
     });
   } catch (err) {
