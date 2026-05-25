@@ -367,7 +367,7 @@
       <div class="plan-header">
         <div>
           <div class="plan-label">Biweekly</div>
-          <div class="plan-price"><span class="price-amount" data-price="biweekly">$30</span> <span class="price-unit">/ 2 weeks</span></div>
+          <div class="plan-price"><span class="price-amount" data-price="biweekly">$20</span> <span class="price-unit">/ 2 weeks</span></div>
           <div class="plan-effective" data-effective="biweekly">For short stints &mdash; cancel anytime</div>
         </div>
         <div class="plan-radio"></div>
@@ -379,8 +379,8 @@
       <div class="plan-header">
         <div>
           <div class="plan-label">Monthly</div>
-          <div class="plan-price"><span class="price-amount" data-price="monthly">$50</span> <span class="price-unit">/ month</span></div>
-          <div class="plan-effective" data-effective="monthly">~$25/wk &mdash; best for most captains</div>
+          <div class="plan-price"><span class="price-amount" data-price="monthly">$35</span> <span class="price-unit">/ month</span></div>
+          <div class="plan-effective" data-effective="monthly">~$8/wk &mdash; best for most captains</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <span class="plan-badge">Popular</span>
@@ -394,8 +394,8 @@
       <div class="plan-header">
         <div>
           <div class="plan-label">Season</div>
-          <div class="plan-price"><span class="price-amount" data-price="season">$240</span> <span class="price-unit">/ season</span></div>
-          <div class="plan-effective" data-effective="season">May&ndash;September &mdash; <strong>save $10/mo</strong> + up to 3 deckhand seats</div>
+          <div class="plan-price"><span class="price-amount" data-price="season">$175</span> <span class="price-unit">/ season</span></div>
+          <div class="plan-effective" data-effective="season">May&ndash;September &mdash; <strong>save $6/mo</strong> + up to 3 deckhand seats</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <span class="plan-badge">Best value</span>
@@ -439,7 +439,7 @@
   <a href="/" class="btn btn-ghost" style="margin-top:12px">Back to homepage</a>
 
   <div class="future-note" id="future-note">
-    <strong>Early adopter pricing:</strong> The first 30 captains who subscribe lock in these rates permanently. Once those seats are gone, regular pricing kicks in: <strong>$50 biweekly · $84 monthly · $400 season</strong>.
+    <strong>Early adopter pricing:</strong> The first 30 captains who subscribe lock in these rates permanently. Once those seats are gone, regular pricing kicks in: <strong>$30 biweekly · $50 monthly · $250 season</strong>.
   </div>
 </div>
 </main>
@@ -453,14 +453,14 @@
   // amounts won't change what Stripe actually charges.
   const PLAN_COPY = {
     'ea': {
-      biweekly: { amount: '$30',  unit: '/ 2 weeks', effective: 'For short stints &mdash; cancel anytime',                             label: '$30/2 weeks' },
-      monthly:  { amount: '$50',  unit: '/ month',   effective: '~$25/wk &mdash; best for most captains',                              label: '$50/month' },
-      season:   { amount: '$240', unit: '/ season',  effective: 'May&ndash;September &mdash; <strong>save $10/mo</strong> + up to 3 deckhand seats', label: '$240/season' },
+      biweekly: { amount: '$20',  unit: '/ 2 weeks', effective: 'For short stints &mdash; cancel anytime',                             label: '$20/2 weeks' },
+      monthly:  { amount: '$35',  unit: '/ month',   effective: '~$8/wk &mdash; best for most captains',                               label: '$35/month' },
+      season:   { amount: '$175', unit: '/ season',  effective: 'May&ndash;September &mdash; <strong>save $6/mo</strong> + up to 3 deckhand seats', label: '$175/season' },
     },
     'std': {
-      biweekly: { amount: '$50',  unit: '/ 2 weeks', effective: 'For short stints &mdash; cancel anytime',                             label: '$50/2 weeks' },
-      monthly:  { amount: '$84',  unit: '/ month',   effective: '~$21/wk &mdash; best for most captains',                              label: '$84/month' },
-      season:   { amount: '$400', unit: '/ season',  effective: 'May&ndash;September &mdash; <strong>save $16/mo</strong> + up to 3 deckhand seats', label: '$400/season' },
+      biweekly: { amount: '$30',  unit: '/ 2 weeks', effective: 'For short stints &mdash; cancel anytime',                             label: '$30/2 weeks' },
+      monthly:  { amount: '$50',  unit: '/ month',   effective: '~$12/wk &mdash; best for most captains',                              label: '$50/month' },
+      season:   { amount: '$250', unit: '/ season',  effective: 'May&ndash;September &mdash; <strong>save $8/mo</strong> + up to 3 deckhand seats', label: '$250/season' },
     },
   };
 
