@@ -739,23 +739,30 @@
     .disclaimer-bar strong { color: var(--warn); }
 
     /* leaflet.offline save/clear control — match our dark UI */
+    /* Save-tiles offline control. Lives at bottomright; styled as
+       compact ghost buttons so it reads as auxiliary, not primary. */
     .leaflet-control.savetiles {
-      background: var(--surface);
+      background: rgba(6,10,15,0.78);
       border: 1px solid var(--border);
       border-radius: 0;
       padding: 0;
       font-family: inherit;
+      opacity: 0.62;
+      transition: opacity 0.15s ease;
     }
+    .leaflet-control.savetiles:hover,
+    .leaflet-control.savetiles:focus-within { opacity: 1; }
     .leaflet-control.savetiles a,
     .leaflet-control.savetiles a:hover {
       display: block;
-      color: var(--text);
+      color: var(--muted);
       text-decoration: none;
-      padding: 6px 10px;
-      font-size: 0.6875rem;
+      padding: 4px 9px;
+      font-size: 0.625rem;
       font-weight: 600;
-      letter-spacing: 0.04em;
-      background: var(--surface);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: transparent;
       border: none;
       border-bottom: 1px solid var(--border);
       width: auto;
@@ -763,7 +770,7 @@
       line-height: 1.2;
     }
     .leaflet-control.savetiles a:last-child { border-bottom: none; }
-    .leaflet-control.savetiles a:hover { background: var(--surface2); }
+    .leaflet-control.savetiles a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
 
     /* ── Mobile layout ────────────────────────────────────────────────────── */
     @media (max-width: 767px) {
@@ -1382,13 +1389,15 @@ let tileLayer = buildTileLayer().addTo(map);
 let saveControl = null;
 if (offlineTilesAvailable) {
   saveControl = L.control.savetiles(tileLayer, {
-    position: 'topleft',
+    // Pushed to bottomright so it stops crowding the top-left zoom
+    // buttons. It's an auxiliary feature; doesn't need prime real estate.
+    position: 'bottomright',
     // Zooms 9–10 are "you're in PWS" overview — not useful for nav. Skip
     // them. 11–13 covers the level fishermen actually use (district
     // outline through individual cove detail). Cuts tile count ~5x.
     zoomlevels: [11, 12, 13],
-    saveText: '⇩ save area',
-    rmText:   '✕ clear cache',
+    saveText: 'Save area',
+    rmText:   'Clear cache',
     confirm: function (layer, save) {
       const n = (layer._tilesforSave || []).length;
       if (n === 0) return;
@@ -1678,6 +1687,28 @@ function fmtDate(r) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
+// Format the actual fishing window (in AKDT) — used on the old / upcoming
+// tabs so the row label reflects when the opening was/will be open rather
+// than when the announcement was published. Falls back to fmtDate() when
+// the parsed window is missing.
+function fmtOpenWindow(r) {
+  if (!r || !r.earliest_opens_at || !r.latest_closes_at) return fmtDate(r);
+  const start = new Date(r.earliest_opens_at);
+  const end   = new Date(r.latest_closes_at);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return fmtDate(r);
+  // A closing timestamp at the stroke of an AKDT midnight should label
+  // the prior day as the last fishing day, not bleed into the next.
+  const endLabel = new Date(end.getTime() - 1000);
+  const TZ = 'America/Anchorage';
+  const md = { month: 'short', day: 'numeric', timeZone: TZ };
+  const yr = { year: 'numeric', timeZone: TZ };
+  const startStr = start.toLocaleDateString('en-US', md);
+  const endStr   = endLabel.toLocaleDateString('en-US', md);
+  const yearStr  = end.toLocaleDateString('en-US', yr);
+  if (startStr === endStr) return `${startStr}, ${yearStr}`;
+  return `${startStr} – ${endStr}, ${yearStr}`;
+}
+
 // ── Load and render for a given tab ──
 async function loadTab(tab) {
   try {
@@ -1757,7 +1788,9 @@ function buildScrubberDates(results) {
 }
 
 function fmtScrubberDate(isoDate) {
+  if (!isoDate || typeof isoDate !== 'string') return '—';
   const d = new Date(isoDate + 'T12:00:00Z');
+  if (isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
@@ -1835,9 +1868,10 @@ function renderAnnList(results, activeResult) {
       ? '<span style="color:var(--open);font-weight:700">open</span>'
       : '<span style="color:var(--muted)">closed</span>';
     const statusWord = r.has_open_districts ? 'open' : 'closed';
-    const ariaLabel = `Announcement ${fmtDate(r)}, ${cnt} ${cnt === 1 ? 'district' : 'districts'}, ${statusWord}`;
+    const label = fmtOpenWindow(r);
+    const ariaLabel = `Opening ${label}, ${cnt} ${cnt === 1 ? 'district' : 'districts'}, ${statusWord}`;
     return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" data-result-id="${r.id}" aria-label="${ariaLabel}">
-      <span class="ann-date">${fmtDate(r)}</span>
+      <span class="ann-date">${label}</span>
       <span class="ann-meta" aria-hidden="true">${cnt} dist &middot; ${openLabel}</span>
     </div>`;
   }).join('');
@@ -1929,23 +1963,27 @@ function renderPanel(result) {
   if (result.earliest_opens_at) {
     const opensAt  = new Date(result.earliest_opens_at);
     const closesAt = result.latest_closes_at ? new Date(result.latest_closes_at) : null;
-    if (now < opensAt) {
+    const opensValid  = !isNaN(opensAt.getTime());
+    const closesValid = closesAt && !isNaN(closesAt.getTime());
+    if (opensValid && now < opensAt) {
       const opStr = opensAt.toLocaleString('en-US', {
         timeZone: 'America/Anchorage', month: 'short', day: 'numeric',
         hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
       });
       badgeEl.innerHTML = `<span class="status-badge upcoming">Opens ${opStr}</span>`;
-    } else if (!closesAt || now <= closesAt) {
+    } else if (opensValid && (!closesValid || now <= closesAt)) {
       badgeEl.innerHTML = `<span class="status-badge live-now">Live Now</span>`;
-    } else {
+    } else if (opensValid) {
       badgeEl.innerHTML = `<span class="status-badge ended">Period Ended</span>`;
+    } else {
+      badgeEl.innerHTML = '';
     }
   } else {
     badgeEl.innerHTML = '';
   }
 
   header.style.display = 'block';
-  meta.textContent = fmtDate(result);
+  meta.textContent = (currentTab === 'old' || currentTab === 'upcoming') ? fmtOpenWindow(result) : fmtDate(result);
 
   // Source PDF action link
   const pdfBtn = document.getElementById('panel-pdf-btn');
