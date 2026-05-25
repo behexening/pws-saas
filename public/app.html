@@ -1389,9 +1389,12 @@ let tileLayer = buildTileLayer().addTo(map);
 let saveControl = null;
 if (offlineTilesAvailable) {
   saveControl = L.control.savetiles(tileLayer, {
-    // Pushed to bottomright so it stops crowding the top-left zoom
-    // buttons. It's an auxiliary feature; doesn't need prime real estate.
-    position: 'bottomright',
+    // bottomleft so it doesn't crowd the +/- zoom (topleft), the
+    // theme/stream-closures controls (topright), or the floating
+    // Feedback button (fixed bottom-right). The Leaflet attribution
+    // already lives here as a single line of text and stacks fine
+    // with the two-button savetiles control.
+    position: 'bottomleft',
     // Zooms 9–10 are "you're in PWS" overview — not useful for nav. Skip
     // them. 11–13 covers the level fishermen actually use (district
     // outline through individual cove detail). Cuts tile count ~5x.
