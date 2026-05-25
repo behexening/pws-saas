@@ -716,6 +716,14 @@
     }
     .disclaimer-bar strong { color: var(--warn); }
 
+    /* Lift every Leaflet bottom-positioned control above the desktop
+       disclaimer footer. .disclaimer-bar is hidden on mobile (see the
+       max-width:767px block below), so the offset is desktop-only and
+       no override is needed there. Touch any control at bottomleft /
+       bottomright (savetiles, attribution, future ones) and it stays
+       clear of the footer automatically. */
+    .map-panel .leaflet-bottom { bottom: 28px; }
+
     /* leaflet.offline save/clear control — match our dark UI */
     /* Save-tiles offline control. Lives at bottomright; styled as
        compact ghost buttons so it reads as auxiliary, not primary. */
