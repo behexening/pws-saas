@@ -174,7 +174,12 @@ app.use(passport.session());
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
   try {
-    const result = await db.query('SELECT * FROM captains WHERE id = $1', [id]);
+    // deleted_at filter: a tombstoned account stops authenticating immediately
+    // even if the session cookie is still valid client-side (Apple 5.1.1(v)).
+    const result = await db.query(
+      'SELECT * FROM captains WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
     done(null, result.rows[0] || false);
   } catch (err) {
     done(err);
@@ -351,13 +356,20 @@ passport.use(new GoogleStrategy({
 
     const admin = isAdminEmail(email);
 
-    // 1. Look up by google_id (returning user)
-    let result = await db.query('SELECT * FROM captains WHERE google_id = $1', [googleId]);
+    // 1. Look up by google_id (returning user). deleted_at filter so a
+    // tombstoned account doesn't resurrect via OAuth.
+    let result = await db.query(
+      'SELECT * FROM captains WHERE google_id = $1 AND deleted_at IS NULL',
+      [googleId]
+    );
 
     if (result.rows.length === 0) {
       // 2. Existing account signed up manually — link it. Google has proven
       // they own the address, so flip email_verified too.
-      result = await db.query('SELECT * FROM captains WHERE email = $1', [email]);
+      result = await db.query(
+        'SELECT * FROM captains WHERE email = $1 AND deleted_at IS NULL',
+        [email]
+      );
       if (result.rows.length > 0) {
         await db.query(
           `UPDATE captains
@@ -794,14 +806,21 @@ app.post('/api/auth/apple/native', express.json(), async (req, res) => {
       : null;
     const admin = email ? isAdminEmail(email) : false;
 
-    // 1. Look up by apple_user_id (returning user)
-    let result = await db.query('SELECT * FROM captains WHERE apple_user_id = $1', [appleSub]);
+    // 1. Look up by apple_user_id (returning user). deleted_at filter so a
+    // tombstoned account doesn't resurrect via SIWA.
+    let result = await db.query(
+      'SELECT * FROM captains WHERE apple_user_id = $1 AND deleted_at IS NULL',
+      [appleSub]
+    );
 
     if (result.rows.length === 0 && email) {
       // 2. Existing account on the same email — link Apple ID to it.
       // Apple proved they own this address (email_verified claim is true unless
       // it's a relay address, which we treat the same since Apple controls it).
-      result = await db.query('SELECT * FROM captains WHERE email = $1', [email]);
+      result = await db.query(
+        'SELECT * FROM captains WHERE email = $1 AND deleted_at IS NULL',
+        [email]
+      );
       if (result.rows.length > 0) {
         await db.query(
           `UPDATE captains
@@ -1794,7 +1813,10 @@ app.post('/api/login', authLimiter, express.json(), async (req, res) => {
   }
 
   try {
-    const result = await db.query('SELECT * FROM captains WHERE email = $1', [email.toLowerCase()]);
+    const result = await db.query(
+      'SELECT * FROM captains WHERE email = $1 AND deleted_at IS NULL',
+      [email.toLowerCase()]
+    );
     const user = result.rows[0];
 
     if (!user || !user.password_hash) {
@@ -1997,6 +2019,11 @@ async function initDatabase() {
     // Beta access — admin-toggleable column, replaces the BETA_TESTERS env var.
     // The env var is still backfilled at startup below for migration.
     await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS beta_access BOOLEAN DEFAULT false;`);
+
+    // Account deletion tombstone — required by Apple 5.1.1(v). When a user
+    // deletes their account we anonymize PII in-place and set this. Every
+    // auth lookup filters deleted_at IS NULL so the row stops authenticating.
+    await db.query(`ALTER TABLE captains ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;`);
 
     // Anti-meta-gaming: one chat per captain. Same chat trying to link a second account is rejected.
     await db.query(`
@@ -3370,6 +3397,80 @@ app.post('/api/test-alert', express.json(), async (req, res) => {
     sent.push({ platform: row.platform, ok: r.ok, reason: r.reason || null });
   }
   res.json({ ok: true, sent });
+});
+
+/**
+ * DELETE /api/account — Apple 5.1.1(v) compliant account deletion.
+ *
+ * Anonymize-and-tombstone (not hard delete) so referential rows in
+ * sms_log / notification_log / push_log stay intact for ops audit.
+ * The deleted_at filter on every auth lookup makes the row stop
+ * authenticating immediately even if a session cookie is still cached.
+ *
+ * Best-effort side effects: cancel Stripe subscription, revoke Apple
+ * refresh token (when we start storing it), delete push tokens.
+ * Failures here are logged but do not block the deletion itself —
+ * Apple cares that the account stops working, not that downstream
+ * systems are perfectly clean.
+ */
+app.delete('/api/account', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
+  const user = req.user;
+  const id = user.id;
+
+  // 1. Cancel Stripe subscription (best-effort).
+  if (user.stripe_subscription_id && user.subscription_active) {
+    try {
+      await stripe.subscriptions.cancel(user.stripe_subscription_id);
+    } catch (err) {
+      console.error(`account-delete: stripe cancel failed for captain ${id}:`, err.message);
+    }
+  }
+
+  // 2. Apple refresh-token revoke — TODO once SIWA flow captures it
+  //    (Apple 5.1.1(v) doesn't require revoke if we don't hold a token).
+
+  // 3. Drop push tokens immediately so no further alerts can route to
+  //    this device under this captain (the column has ON DELETE CASCADE
+  //    already, but we want the rows gone *now* so push during the
+  //    anonymize step can't fire).
+  await db.query('DELETE FROM device_tokens WHERE captain_id = $1', [id]);
+
+  // 4. Anonymize PII in-place. email stays NOT NULL UNIQUE — rename to
+  //    a sentinel so the original address is freed up for re-registration.
+  await db.query(
+    `UPDATE captains
+       SET email                 = $1,
+           name                  = NULL,
+           phone_number          = NULL,
+           password_hash         = NULL,
+           google_id             = NULL,
+           apple_user_id         = NULL,
+           telegram_chat_id      = NULL,
+           telegram_username     = NULL,
+           telegram_link_code    = NULL,
+           stripe_customer_id    = NULL,
+           stripe_subscription_id = NULL,
+           stripe_price_id       = NULL,
+           subscription_active   = false,
+           tier                  = 'free',
+           deleted_at            = NOW(),
+           updated_at            = NOW()
+     WHERE id = $2`,
+    [`deleted-${id}@deleted.akfishinfo.com`, id]
+  );
+
+  console.log(`account-delete: anonymized captain ${id}`);
+
+  // 5. Logout + destroy session so the cookie can't replay against the
+  //    tombstoned row (deserializeUser would 401 anyway, but be explicit).
+  req.logout(err => {
+    if (err) console.error(`account-delete: logout error for captain ${id}:`, err);
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid');
+      res.json({ ok: true });
+    });
+  });
 });
 
 /**

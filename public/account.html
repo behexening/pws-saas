@@ -388,6 +388,23 @@
     </div>
   </div>
 
+  <!-- Delete Account — Apple 5.1.1(v) requires in-app deletion. Confirm in
+       two steps: an akfiConfirm warning, then a typed "DELETE" prompt.
+       Cancels Stripe sub + drops push tokens + anonymizes the user row. -->
+  <div class="card" id="delete-card">
+    <h2 class="card-title" style="color:var(--red)">Delete Account</h2>
+    <p style="font-size:0.8125rem;line-height:1.55;color:var(--muted);margin:6px 0 12px">
+      Permanently removes your akFISHinfo account, cancels any active
+      subscription, and stops all push notifications. Your email is freed
+      up for re-registration. This can't be undone.
+    </p>
+    <button type="button" id="delete-account-btn"
+            style="background:var(--red);color:#fff;border:0;padding:10px 16px;font-size:0.8125rem;font-weight:700;letter-spacing:-0.01em;cursor:pointer;min-height:44px">
+      Delete my account
+    </button>
+    <div id="delete-error" style="display:none;margin-top:10px;font-size:0.75rem;color:var(--red)"></div>
+  </div>
+
   <!-- Legal — App Store + Play reviewers need both reachable in 2 taps. -->
   <div style="display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:0.6875rem">
     <a href="/privacy" class="nav-link">Privacy Policy</a>
@@ -665,6 +682,46 @@ document.getElementById('test-alert-btn')?.addEventListener('click', async () =>
   } finally {
     btn.disabled = false;
     btn.textContent = 'Send test push';
+  }
+});
+
+// ── Delete account (Apple 5.1.1(v)) ─────────────────────────────────
+document.getElementById('delete-account-btn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('delete-account-btn');
+  const errEl = document.getElementById('delete-error');
+  errEl.style.display = 'none';
+
+  const ask = window.akfiConfirm || (async (m) => window.confirm(m));
+  const confirmed = await ask(
+    'This permanently deletes your akFISHinfo account and cancels any active subscription. ' +
+    'You’ll be signed out and your email freed up for re-registration. Continue?',
+    { ok: 'Continue', cancel: 'Keep my account', destructive: true }
+  );
+  if (!confirmed) return;
+
+  const typed = window.prompt('Type DELETE to confirm:');
+  if (typed !== 'DELETE') {
+    errEl.textContent = 'Cancelled — you must type DELETE exactly.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    const r = await fetch('/api/account', { method: 'DELETE' });
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      throw new Error(d.error || 'Delete failed.');
+    }
+    try { localStorage.removeItem('akfi.bearer'); } catch (_) {}
+    if (window.akfiNav) window.akfiNav('/login');
+    else window.location.href = '/login';
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Delete my account';
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
   }
 });
 </script>
