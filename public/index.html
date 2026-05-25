@@ -143,6 +143,12 @@
     .btn-ghost { border: 1px solid var(--border); color: var(--muted); }
     .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
     .beta-row { margin-bottom: 24px; margin-top: -10px; }
+    .native-blurb {
+      font-size: 0.875rem;
+      line-height: 1.55;
+      color: var(--muted);
+      margin: 4px 0 18px;
+    }
     .beta-link {
       font-size: 0.6875rem; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.06em;
@@ -316,7 +322,7 @@
       position: absolute; top: -40px; left: 8px;
       background: var(--accent); color: #000;
       padding: 6px 12px; border-radius: 0;
-      0.75rem; font-weight: 700; text-decoration: none;
+      font-size: 0.75rem; font-weight: 700; text-decoration: none;
       z-index: 9999; transition: top 0.15s;
     }
     .skip-link:focus { top: 0; }
@@ -355,7 +361,7 @@
   <nav>
     <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
     <div class="nav-right">
-      <a href="/about" class="nav-link" style="margin-right:12px">about</a>
+      <a href="/about" class="nav-link web-only" style="margin-right:12px">about</a>
       <a href="/login" class="nav-link" id="app-link">sign in</a>
       <a href="/login" class="btn-nav web-only">Get started</a>
     </div>
@@ -377,17 +383,21 @@
       <a href="/request-beta" class="beta-link">Request free beta access &rarr;</a>
     </div>
 
-    <div class="feed-header">
+    <p class="native-blurb native-only">
+      Sign in to see the live PWS commercial salmon map, district-by-district openings, and tide &amp; weather for your run.
+    </p>
+
+    <div class="feed-header web-only">
       <span class="feed-title">District feed &mdash; PWS Area</span>
     </div>
 
-    <div class="not-live-banner">
+    <div class="not-live-banner web-only">
       <span class="not-live-dot"></span>
       <span class="not-live-text">Not live data</span>
       <span class="not-live-sub">Sample announcement only</span>
     </div>
 
-    <div class="scroll-window" id="scrollWindow">
+    <div class="scroll-window web-only" id="scrollWindow">
       <div class="card-track" id="cardTrack"></div>
     </div>
   </div>
@@ -466,7 +476,7 @@
       },
     ];
 
-    // Build cards — two full copies for seamless infinite loop
+    // Build cards — two full copies for seamless infinite loop.
     const track = document.getElementById('cardTrack');
     const N = CARDS.length;
 
@@ -556,7 +566,16 @@
             layerByDistrict[f.properties.DISTRICT_N] = layer;
           },
         }).addTo(map);
-      });
+      })
+      .catch(err => console.warn('districts.geojson failed:', err));
+
+    // In the iOS WKWebView the map container size isn't settled when
+    // L.map() runs, so Leaflet computes empty bounds and never requests
+    // tiles — the map appears blank. Force a remeasure after layout,
+    // and again on viewport changes (rotation / split view).
+    setTimeout(() => map.invalidateSize(), 50);
+    setTimeout(() => map.invalidateSize(), 300);
+    window.addEventListener('resize', () => map.invalidateSize());
 
     function highlightDistrict(name) {
       if (name === activeDistrict) return;
@@ -675,6 +694,16 @@
       startMomentum();
     });
 
+    // iOS sometimes cancels a touch (system gesture, pull-to-refresh,
+    // scroll hijack) without firing touchend. Without this handler,
+    // `paused` would stay true forever and the auto-scroll would
+    // appear frozen.
+    scrollWindow.addEventListener('touchcancel', () => {
+      dragLastY = null;
+      dragVel = 0;
+      resumeAuto();
+    });
+
     // Mouse (desktop drag)
     scrollWindow.addEventListener('mousedown', e => {
       paused = true;
@@ -708,6 +737,25 @@
         detectActiveCard();
         requestAnimationFrame(tick);
       });
+    });
+
+    // setHeight is captured once after layout, but card heights change
+    // when the Blackbird web font finishes loading or the viewport
+    // resizes — both shift the wrap point and leave a visible gap on
+    // each loop. Recompute when those events fire.
+    function recomputeAndWrap() {
+      setHeight = computeSetHeight();
+      if (setHeight > 0) scrollPos = ((scrollPos % setHeight) + setHeight) % setHeight;
+    }
+    window.addEventListener('resize', recomputeAndWrap);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(recomputeAndWrap).catch(() => {});
+    }
+
+    // Returning from background (tab switch, app foregrounding) leaves
+    // the rAF loop suspended. Re-arm it defensively.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && !paused) { lastTs = null; requestAnimationFrame(tick); }
     });
 
     // ── Auth swap ───────────────────────────────────────────

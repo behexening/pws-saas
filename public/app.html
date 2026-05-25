@@ -962,10 +962,14 @@
       position: absolute; top: -40px; left: 8px;
       background: var(--accent); color: #000;
       padding: 6px 12px; border-radius: 0;
-      0.75rem; font-weight: 700; text-decoration: none;
+      font-size: 0.75rem; font-weight: 700; text-decoration: none;
       z-index: 9999; transition: top 0.15s;
     }
     .skip-link:focus { top: 0; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
     .district-card:focus-visible {
       outline: 2px solid var(--accent); outline-offset: 1px;
     }
@@ -1071,6 +1075,61 @@
       color: var(--text);
     }
     #feedback-footer button:hover { background: var(--hover, var(--border)); }
+
+    /* ── Onboarding overlay (first-launch tour) ── */
+    #onboarding-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.78);
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+      animation: ob-fade 0.18s ease;
+    }
+    @keyframes ob-fade { from { opacity: 0; } to { opacity: 1; } }
+    #onboarding-card {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border);
+      width: 100%; max-width: 360px;
+      padding: 28px 22px 18px;
+      display: flex; flex-direction: column; gap: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      max-height: 92vh; overflow: hidden;
+    }
+    .ob-art {
+      font-size: 56px; line-height: 1; text-align: center;
+      margin: 6px 0 2px;
+    }
+    .ob-title {
+      font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em;
+      text-align: center;
+    }
+    .ob-body {
+      font-size: 0.875rem; line-height: 1.55; color: var(--muted);
+      text-align: center; margin: 0;
+    }
+    .ob-dots {
+      display: flex; gap: 8px; justify-content: center; margin: 8px 0 4px;
+    }
+    .ob-dot {
+      width: 8px; height: 8px; background: var(--border-dim, var(--border));
+      border: 0; padding: 0; cursor: pointer;
+    }
+    .ob-dot[aria-current="true"] { background: var(--accent); }
+    .ob-actions {
+      display: flex; gap: 10px; align-items: center; justify-content: space-between;
+      margin-top: 6px;
+    }
+    .ob-skip {
+      background: none; border: 0; color: var(--muted);
+      font-size: 0.8125rem; cursor: pointer; padding: 8px 4px;
+    }
+    .ob-skip:hover { color: var(--text); }
+    .ob-next {
+      background: var(--accent); color: #000;
+      border: 0; padding: 10px 18px;
+      font-size: 0.875rem; font-weight: 700; letter-spacing: -0.01em;
+      cursor: pointer; min-height: 44px; min-width: 96px;
+    }
+    .ob-next:hover { filter: brightness(1.08); }
   </style>
 </head>
 <body>
@@ -1080,16 +1139,16 @@
   <!-- Topbar -->
   <div class="topbar" role="banner">
     <div class="topbar-left">
-      <a href="/" style="text-decoration:none"><div class="wordmark">akFISH<em>info.</em></div></a>
-      <span class="live-badge">live</span>
-      <div class="topbar-tabs">
-        <button class="tab-btn active" id="tab-btn-live">live</button>
-        <button class="tab-btn" id="tab-btn-upcoming">upcoming</button>
-        <button class="tab-btn" id="tab-btn-old">old</button>
+      <a href="/" style="text-decoration:none" aria-label="akFISHinfo home"><div class="wordmark" aria-hidden="true">akFISH<em>info.</em></div></a>
+      <span class="live-badge" aria-hidden="true">live</span>
+      <div class="topbar-tabs" role="tablist" aria-label="Announcement timeframe">
+        <button class="tab-btn active" id="tab-btn-live"     role="tab" aria-selected="true"  type="button">live</button>
+        <button class="tab-btn"        id="tab-btn-upcoming" role="tab" aria-selected="false" type="button">upcoming</button>
+        <button class="tab-btn"        id="tab-btn-old"      role="tab" aria-selected="false" type="button">old</button>
       </div>
     </div>
     <div class="topbar-right" id="topbar-right">
-      <span id="trial-badge" style="display:none; font-size:0.6875rem; font-weight:600; color:#f39c12; background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.3); padding:3px 8px; border-radius: 0; letter-spacing:-0.01em;"></span>
+      <span id="trial-badge" role="status" style="display:none; font-size:0.6875rem; font-weight:600; color:#f39c12; background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.3); padding:3px 8px; border-radius: 0; letter-spacing:-0.01em;"></span>
       <button type="button" class="nav-menu-btn" id="nav-menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
         <span aria-hidden="true">☰</span>
       </button>
@@ -1106,7 +1165,7 @@
   </div>
 
   <!-- Main -->
-  <main id="main" class="main-split">
+  <main id="main" class="main-split" tabindex="-1">
 
     <!-- Left panel -->
     <div class="left-panel" id="left-panel">
@@ -1116,11 +1175,11 @@
             <span class="scrubber-label">Timeline</span>
             <span class="scrubber-date-display" id="scrubber-date-display">—</span>
           </div>
-          <input type="range" id="date-slider" min="0" max="0" value="0" class="date-slider-input" />
+          <input type="range" id="date-slider" min="0" max="0" value="0" class="date-slider-input" aria-label="Browse announcements by date" />
           <div class="scrubber-nav">
-            <button class="scrubber-nav-btn" id="scrubber-prev">◀ prev</button>
-            <span class="scrubber-status" id="scrubber-status"></span>
-            <button class="scrubber-nav-btn" id="scrubber-next">next ▶</button>
+            <button class="scrubber-nav-btn" id="scrubber-prev" type="button" aria-label="Previous date"><span aria-hidden="true">◀</span> prev</button>
+            <span class="scrubber-status" id="scrubber-status" role="status" aria-live="polite"></span>
+            <button class="scrubber-nav-btn" id="scrubber-next" type="button" aria-label="Next date">next <span aria-hidden="true">▶</span></button>
           </div>
         </div>
         <div id="ann-list"></div>
@@ -1153,27 +1212,27 @@
 
     <!-- Map -->
     <div class="map-panel">
-      <div id="map"></div>
+      <div id="map" role="application" aria-label="Prince William Sound district map"></div>
       <!-- Conditions strip: tides + weather as a thin overlay just below
            the topbar. Single-row, horizontally scrollable on narrow phones.
            Hidden until /api/conditions resolves. -->
-      <div class="conditions-strip" id="conditions-strip" hidden>
+      <div class="conditions-strip" id="conditions-strip" role="region" aria-label="Local tides and weather" hidden>
         <div class="cs-group cs-tides">
-          <span class="cs-label">Tides</span>
-          <span class="cs-items" id="cs-tide-items"></span>
+          <span class="cs-label" aria-hidden="true">Tides</span>
+          <span class="cs-items" id="cs-tide-items" aria-label="Upcoming tides"></span>
         </div>
-        <div class="cs-sep"></div>
+        <div class="cs-sep" aria-hidden="true"></div>
         <div class="cs-group cs-weather">
-          <span class="cs-label">Wx</span>
-          <span class="cs-items" id="cs-weather-items"></span>
+          <span class="cs-label" aria-hidden="true">Wx</span>
+          <span class="cs-items" id="cs-weather-items" aria-label="Weather forecast"></span>
         </div>
       </div>
-      <div class="map-legend">
+      <div class="map-legend" role="region" aria-label="Map legend">
         <h4>Map Legend</h4>
-        <div class="legend-row"><span class="legend-swatch" style="background:rgba(39,174,96,0.4);border:2px solid #27ae60;height:10px;border-radius:0"></span> Open District</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#ff6b6b;height:2px"></span> Closure line (this period)</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:#ff3333;height:2px"></span> Closure line (permanent)</div>
-        <div class="legend-row"><span class="legend-swatch" style="background:rgba(231,76,60,0.4);border:1px dashed #e74c3c;height:10px;border-radius:0"></span> Excluded subdistrict</div>
+        <div class="legend-row"><span class="legend-swatch" aria-hidden="true" style="background:rgba(39,174,96,0.4);border:2px solid #27ae60;height:10px;border-radius:0"></span> Open District</div>
+        <div class="legend-row"><span class="legend-swatch" aria-hidden="true" style="background:#ff6b6b;height:2px"></span> Closure line (this period)</div>
+        <div class="legend-row"><span class="legend-swatch" aria-hidden="true" style="background:#ff3333;height:2px"></span> Closure line (permanent)</div>
+        <div class="legend-row"><span class="legend-swatch" aria-hidden="true" style="background:rgba(231,76,60,0.4);border:1px dashed #e74c3c;height:10px;border-radius:0"></span> Excluded subdistrict</div>
       </div>
       <div class="map-note">ADF&amp;G PWS Commercial Salmon</div>
       <div class="disclaimer-bar">
@@ -1203,10 +1262,17 @@ map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank
     const div = L.DomUtil.create('div', 'locate-toggle');
     div.id = 'locate-btn';
     div.innerHTML = 'Locate Me';
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('aria-label', 'Locate me on the map');
+    div.setAttribute('aria-pressed', 'false');
     div.style.cssText = 'background:rgba(6,10,15,0.9);color:#3498db;border:1px solid #3498db;' +
       'padding:5px 10px;border-radius: 0;font-size:0.6875rem;font-weight:700;cursor:pointer;user-select:none;' +
       'margin-top:6px;';
     L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.on(div, 'keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
     div.onclick = toggle;
     return div;
   };
@@ -1215,9 +1281,9 @@ map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank
   function setBtn(state) {
     const div = document.getElementById('locate-btn');
     if (!div) return;
-    if (state === 'on')      { div.innerHTML='Tracking: ON';   div.style.color='#3498db'; div.style.borderColor='#3498db'; }
-    else if (state === 'stale') { div.innerHTML='Tracking: stale'; div.style.color='#777';    div.style.borderColor='#777'; }
-    else                     { div.innerHTML='Locate Me';      div.style.color='#3498db'; div.style.borderColor='#3498db'; }
+    if (state === 'on')      { div.innerHTML='Tracking: ON';   div.style.color='#3498db'; div.style.borderColor='#3498db'; div.setAttribute('aria-pressed', 'true');  div.setAttribute('aria-label', 'Stop tracking my location'); }
+    else if (state === 'stale') { div.innerHTML='Tracking: stale'; div.style.color='#777';    div.style.borderColor='#777';    div.setAttribute('aria-pressed', 'true');  div.setAttribute('aria-label', 'Tracking paused, last fix is stale. Tap to stop.'); }
+    else                     { div.innerHTML='Locate Me';      div.style.color='#3498db'; div.style.borderColor='#3498db'; div.setAttribute('aria-pressed', 'false'); div.setAttribute('aria-label', 'Locate me on the map'); }
   }
 
   function setStaleStyle(stale) {
@@ -1552,8 +1618,12 @@ window.applySuspendedStreamZones = function(fc) {
 function setTab(tab, btn) {
   currentTab = tab;
   if (tab !== 'old') currentScrubberDate = null;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
   btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
   document.getElementById('ann-picker').style.display = tab === 'old' ? 'block' : 'none';
   document.getElementById('left-panel').scrollTop = 0;
   loadTab(tab);
@@ -1725,7 +1795,9 @@ function applyScrubberIndex(idx, autoLoad) {
   if (!entry) return;
 
   currentScrubberDate = entry.date;
-  document.getElementById('date-slider').value = idx;
+  const sliderEl = document.getElementById('date-slider');
+  sliderEl.value = idx;
+  sliderEl.setAttribute('aria-valuetext', fmtScrubberDate(entry.date));
   document.getElementById('scrubber-date-display').textContent = fmtScrubberDate(entry.date);
   document.getElementById('scrubber-status').textContent =
     `${idx + 1} / ${scrubberDates.length}`;
@@ -1762,9 +1834,11 @@ function renderAnnList(results, activeResult) {
     const openLabel = r.has_open_districts
       ? '<span style="color:var(--open);font-weight:700">open</span>'
       : '<span style="color:var(--muted)">closed</span>';
-    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" data-result-id="${r.id}">
+    const statusWord = r.has_open_districts ? 'open' : 'closed';
+    const ariaLabel = `Announcement ${fmtDate(r)}, ${cnt} ${cnt === 1 ? 'district' : 'districts'}, ${statusWord}`;
+    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" data-result-id="${r.id}" aria-label="${ariaLabel}">
       <span class="ann-date">${fmtDate(r)}</span>
-      <span class="ann-meta">${cnt} dist &middot; ${openLabel}</span>
+      <span class="ann-meta" aria-hidden="true">${cnt} dist &middot; ${openLabel}</span>
     </div>`;
   }).join('');
 
@@ -2349,9 +2423,13 @@ function initFeedbackWidget(user) {
   const cancelBtn = document.getElementById('feedback-cancel');
   if (!btn) return;
   btn.style.display = '';
-  btn.addEventListener('click', () => {
+  function openOverlay() {
     overlay.style.display = 'flex';
     textarea.focus();
+  }
+  btn.addEventListener('click', openOverlay);
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openOverlay(); }
   });
   cancelBtn.addEventListener('click', () => {
     overlay.style.display = 'none';
@@ -2392,16 +2470,17 @@ function initFeedbackWidget(user) {
 }
 </script>
 
-<div id="feedback-btn" style="display:none">Feedback</div>
-<div id="feedback-overlay" style="display:none">
+<div id="feedback-btn" role="button" tabindex="0" aria-label="Send feedback" aria-haspopup="dialog" style="display:none">Feedback</div>
+<div id="feedback-overlay" role="dialog" aria-modal="true" aria-labelledby="feedback-header" style="display:none">
   <div id="feedback-box">
     <div id="feedback-header">Send feedback</div>
+    <label for="feedback-body" class="sr-only">Your feedback</label>
     <textarea id="feedback-body" placeholder="Bug, suggestion, or anything on your mind..." maxlength="2000"></textarea>
     <div id="feedback-footer">
-      <span id="feedback-char">0 / 2000</span>
+      <span id="feedback-char" aria-live="polite">0 / 2000</span>
       <div>
-        <button id="feedback-cancel">Cancel</button>
-        <button id="feedback-submit">Send</button>
+        <button id="feedback-cancel" type="button">Cancel</button>
+        <button id="feedback-submit" type="button">Send</button>
       </div>
     </div>
   </div>
@@ -2580,12 +2659,15 @@ function initFeedbackWidget(user) {
       tEl.innerHTML = upcoming.map(function (p) {
         var arrow = p.type === 'high' ? '↑' : '↓';
         var when  = fmtTime(p.time);
-        var day   = (dayOf(p.time) === todayStr) ? '' :
-                    ' <span class="cs-secondary">tmrw</span>';
-        return '<span class="cs-item tide-' + p.type + '">' +
-                 '<span class="cs-arrow">' + arrow + '</span>' +
-                 '<span class="cs-time">' + when + day + '</span>' +
-                 ' <span class="cs-secondary">' + p.height_ft.toFixed(1) + 'ft</span>' +
+        var isTmrw = dayOf(p.time) !== todayStr;
+        var day   = isTmrw ? ' <span class="cs-secondary" aria-hidden="true">tmrw</span>' : '';
+        var label = (p.type === 'high' ? 'High' : 'Low') + ' tide ' +
+                    (isTmrw ? 'tomorrow ' : '') + 'at ' + when + ', ' +
+                    p.height_ft.toFixed(1) + ' feet';
+        return '<span class="cs-item tide-' + p.type + '" role="text" aria-label="' + label + '">' +
+                 '<span class="cs-arrow" aria-hidden="true">' + arrow + '</span>' +
+                 '<span class="cs-time" aria-hidden="true">' + when + day + '</span>' +
+                 ' <span class="cs-secondary" aria-hidden="true">' + p.height_ft.toFixed(1) + 'ft</span>' +
                '</span>';
       }).join('');
       shown = true;
@@ -2598,10 +2680,12 @@ function initFeedbackWidget(user) {
         var temp  = p.temperature + '°' + (p.temperatureUnit || 'F');
         var wind  = (p.windSpeed || '').replace(/\s*mph$/i, '');
         var dir   = p.windDirection || '';
-        return '<span class="cs-item">' +
-                 '<span class="cs-secondary">' + shortPeriod(p.name) + '</span> ' +
-                 '<span>' + temp + '</span>' +
-                 (wind ? ' <span class="cs-secondary">' + dir + ' ' + wind + '</span>' : '') +
+        var label = (p.name || 'Forecast') + ': ' + p.temperature + ' degrees ' + (p.temperatureUnit || 'F') +
+                    (wind ? ', wind from ' + (dir || '') + ' ' + wind + ' mph' : '');
+        return '<span class="cs-item" role="text" aria-label="' + label.replace(/"/g, '&quot;') + '">' +
+                 '<span class="cs-secondary" aria-hidden="true">' + shortPeriod(p.name) + '</span> ' +
+                 '<span aria-hidden="true">' + temp + '</span>' +
+                 (wind ? ' <span class="cs-secondary" aria-hidden="true">' + dir + ' ' + wind + '</span>' : '') +
                '</span>';
       }).join('');
       shown = true;
@@ -2833,6 +2917,141 @@ function initFeedbackWidget(user) {
     .catch(function () { /* offline — skip */ });
 
   window.akfiBoundary = { start: start, stop: stop };
+})();
+</script>
+
+<!-- First-launch onboarding tour -->
+<div id="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="ob-title" aria-describedby="ob-body">
+  <div id="onboarding-card">
+    <div class="ob-art" id="ob-art" aria-hidden="true">🎣</div>
+    <h2 class="ob-title" id="ob-title">Welcome to akFISHinfo</h2>
+    <p class="ob-body" id="ob-body">Real-time Prince William Sound commercial salmon openings, straight from ADF&amp;G.</p>
+    <div class="ob-dots" id="ob-dots" role="tablist" aria-label="Tour progress"></div>
+    <div class="ob-actions">
+      <button type="button" class="ob-skip" id="ob-skip">Skip</button>
+      <button type="button" class="ob-next" id="ob-next">Next</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var STORAGE_KEY = 'akfi.onboarded.v1';
+  // Skip if user already finished the tour.
+  try { if (localStorage.getItem(STORAGE_KEY)) return; } catch (e) { /* private mode → still show */ }
+
+  var slides = [
+    {
+      art: '🎣',
+      title: 'Welcome to akFISHinfo',
+      body: 'Real-time Prince William Sound commercial salmon openings, straight from ADF&G.'
+    },
+    {
+      art: '🗺️',
+      title: 'See openings on the map',
+      body: 'Green polygons are open districts for the current period. Tap a district card to focus its area.'
+    },
+    {
+      art: '🔔',
+      title: 'Optional boundary alerts',
+      body: 'Turn on boundary alerts in Account to get notified when you cross out of an active opening.'
+    }
+  ];
+
+  var overlay = document.getElementById('onboarding-overlay');
+  var artEl   = document.getElementById('ob-art');
+  var titleEl = document.getElementById('ob-title');
+  var bodyEl  = document.getElementById('ob-body');
+  var dotsEl  = document.getElementById('ob-dots');
+  var nextBtn = document.getElementById('ob-next');
+  var skipBtn = document.getElementById('ob-skip');
+
+  if (!overlay) return;
+
+  var idx = 0;
+  var lastFocus = null;
+
+  // Build dots.
+  dotsEl.innerHTML = slides.map(function (_, i) {
+    return '<button class="ob-dot" type="button" role="tab" aria-label="Slide ' + (i + 1) + ' of ' + slides.length + '" data-i="' + i + '"></button>';
+  }).join('');
+
+  function render() {
+    var s = slides[idx];
+    artEl.textContent = s.art;
+    titleEl.textContent = s.title;
+    bodyEl.innerHTML = s.body;
+    dotsEl.querySelectorAll('.ob-dot').forEach(function (d, i) {
+      d.setAttribute('aria-current', i === idx ? 'true' : 'false');
+    });
+    nextBtn.textContent = (idx === slides.length - 1) ? 'Got it' : 'Next';
+    nextBtn.setAttribute('aria-label', nextBtn.textContent);
+    skipBtn.style.visibility = (idx === slides.length - 1) ? 'hidden' : '';
+  }
+
+  function open() {
+    lastFocus = document.activeElement;
+    overlay.style.display = 'flex';
+    render();
+    setTimeout(function () { nextBtn.focus(); }, 0);
+  }
+
+  function close() {
+    overlay.style.display = 'none';
+    try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+    if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+  }
+
+  function advance() {
+    if (idx >= slides.length - 1) { close(); return; }
+    idx += 1;
+    render();
+  }
+
+  nextBtn.addEventListener('click', advance);
+  skipBtn.addEventListener('click', close);
+  dotsEl.addEventListener('click', function (e) {
+    var t = e.target.closest('.ob-dot');
+    if (!t) return;
+    idx = Number(t.dataset.i) || 0;
+    render();
+  });
+
+  // Keyboard nav + focus trap (Tab cycles between Skip and Next).
+  overlay.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); advance(); }
+    else if (e.key === 'ArrowLeft')  { e.preventDefault(); if (idx > 0) { idx -= 1; render(); } }
+    else if (e.key === 'Tab') {
+      var focusables = [skipBtn, nextBtn].filter(function (n) { return n && n.offsetParent !== null; });
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  // Touch swipe (left = next, right = back).
+  var touchStartX = null;
+  overlay.addEventListener('touchstart', function (e) {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  overlay.addEventListener('touchend', function (e) {
+    if (touchStartX == null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) advance();
+    else if (idx > 0) { idx -= 1; render(); }
+  }, { passive: true });
+
+  // Defer until /api/me resolves so we only show for logged-in users
+  // (avoids flashing onboarding before redirects).
+  if (window.fetch) {
+    fetch('/api/me', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.user) open(); })
+      .catch(function () { /* offline → skip */ });
+  }
 })();
 </script>
 </body>
