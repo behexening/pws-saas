@@ -364,6 +364,21 @@
     </div>
   </div>
 
+  <!-- Reviewer tools — only rendered when /api/me reports is_reviewer: true.
+       Required by App Store Review Guideline 4.5 (demo account must be able
+       to exercise every paid + push surface). Hidden for normal users. -->
+  <div class="card" id="reviewer-card" style="display:none">
+    <h2 class="card-title">Reviewer Tools</h2>
+    <p style="font-size:0.8125rem;line-height:1.55;color:var(--muted);margin:6px 0 12px">
+      Send a test push notification to this device. Use this to verify push
+      delivery without waiting for an ADF&amp;G announcement.
+    </p>
+    <button type="button" id="test-alert-btn" class="btn btn-primary" style="min-height:44px">
+      Send test push
+    </button>
+    <div id="test-alert-status" style="margin-top:10px;font-size:0.75rem;color:var(--muted)"></div>
+  </div>
+
   <!-- Session -->
   <div class="card">
     <h2 class="card-title">Session</h2>
@@ -395,6 +410,10 @@ async function loadAccount() {
 
   if (!user.email_verified && !user.has_google) {
     document.getElementById('verify-nudge').style.display = 'flex';
+  }
+
+  if (user.is_reviewer) {
+    document.getElementById('reviewer-card').style.display = '';
   }
 
   // Subscription display
@@ -614,6 +633,38 @@ document.getElementById('billing-portal-btn')?.addEventListener('click', async (
   } catch (err) {
     btn.disabled = false; btn.textContent = 'Manage billing';
     alert(err.message);
+  }
+});
+
+// ── Reviewer-only test push (App Store Review Guideline 4.5) ────────
+document.getElementById('test-alert-btn')?.addEventListener('click', async () => {
+  const btn    = document.getElementById('test-alert-btn');
+  const status = document.getElementById('test-alert-status');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  status.textContent = '';
+  status.style.color = 'var(--muted)';
+  try {
+    const r = await fetch('/api/test-alert', { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Test push failed.');
+    const okCount  = (d.sent || []).filter(s => s.ok).length;
+    const failures = (d.sent || []).filter(s => !s.ok);
+    if (okCount > 0 && failures.length === 0) {
+      status.textContent = `Sent to ${okCount} device(s). Check your notification tray.`;
+      status.style.color = 'var(--open)';
+    } else if (okCount > 0) {
+      status.textContent = `Partial: ${okCount} sent, ${failures.length} failed (${failures.map(f => f.reason).join(', ')}).`;
+      status.style.color = 'var(--warn)';
+    } else {
+      throw new Error(failures.map(f => f.reason).join(', ') || 'All sends failed.');
+    }
+  } catch (err) {
+    status.textContent = err.message;
+    status.style.color = 'var(--red)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send test push';
   }
 });
 </script>

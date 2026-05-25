@@ -640,6 +640,19 @@ function isAlaskaGov(email) {
   return !!(email && email.toLowerCase().endsWith('@alaska.gov'));
 }
 
+// Reviewer accounts (Apple / Google app review). REVIEWER_EMAILS env is
+// a comma-separated allowlist; falls back to the standard apple-review /
+// google-review addresses so a brand-new env still works for submission.
+// Reviewers get full access without trial/payment AND skip the Telegram /
+// phone gate at /setup. They also see a 'Send Test Push' button in
+// account.html so reviewers can verify push delivery end-to-end.
+function isReviewerEmail(email) {
+  const reviewers = (process.env.REVIEWER_EMAILS ||
+                     'apple-review@akfishinfo.com,google-review@akfishinfo.com')
+    .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  return !!(email && reviewers.includes(email.toLowerCase()));
+}
+
 // True when the request is coming from the Capacitor-wrapped iOS/Android
 // shell. Two signals because we receive both fetch and full-page
 // navigations from the WebView:
@@ -667,6 +680,7 @@ function requireAdmin(req, res, next) {
 function hasAccess(user) {
   if (!user) return false;
   if (user.is_admin) return true;
+  if (isReviewerEmail(user.email)) return true;
   if (isBetaTester(user)) return true;
   if (isAlaskaGov(user.email)) return true;
   if (user.tier === 'pro' && user.subscription_active) return true;
@@ -715,7 +729,7 @@ app.get('/auth/google/callback',
     req.session.cookie.maxAge = THIRTY_DAYS;
     // alaska.gov and admins skip the link/trial setup entirely.
     // Everyone else lands on /setup if they haven't linked Telegram yet.
-    if (!req.user.telegram_chat_id && !isAlaskaGov(req.user.email) && !req.user.is_admin) {
+    if (!req.user.telegram_chat_id && !isAlaskaGov(req.user.email) && !req.user.is_admin && !isReviewerEmail(req.user.email)) {
       return res.redirect('/setup');
     }
     if (hasAccess(req.user)) return res.redirect('/app');
@@ -846,7 +860,7 @@ app.post('/api/auth/apple/native', express.json(), async (req, res) => {
         return res.json({ redirect: '/setup', user, bearer });
       }
       // Web path (Service ID flow) — same conditions as Google callback.
-      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin) {
+      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin && !isReviewerEmail(user.email)) {
         return res.json({ redirect: '/setup', user, bearer });
       }
       if (hasAccess(user)) return res.json({ redirect: '/app', user, bearer });
@@ -879,6 +893,7 @@ app.get('/api/me', (req, res) => {
                      telegram_linked: !!telegram_chat_id,
                      telegram_username: telegram_username || null,
                      boundary_alerts_enabled: !!boundary_alerts_enabled,
+                     is_reviewer: isReviewerEmail(email),
                      has_access: hasAccess(req.user) } });
 });
 
@@ -1794,7 +1809,7 @@ app.post('/api/login', authLimiter, express.json(), async (req, res) => {
     req.login(user, err => {
       if (err) return res.status(500).json({ error: 'Session error.' });
       if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
-      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin) {
+      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin && !isReviewerEmail(user.email)) {
         return res.json({ redirect: '/setup' });
       }
       if (hasAccess(user)) return res.json({ redirect: '/app' });
@@ -3308,6 +3323,53 @@ app.patch('/api/account', express.json(), async (req, res) => {
     vals
   );
   res.json({ ok: true });
+});
+
+/**
+ * POST /api/test-alert — reviewer-only push delivery probe.
+ *
+ * Exists so App Store / Play Store reviewers can verify that push
+ * notifications are wired end-to-end without waiting for ADF&G to
+ * actually announce an opening. The button is rendered in account.html
+ * only when /api/me reports is_reviewer: true. 403 for everyone else
+ * so it isn't usable as an abuse vector.
+ *
+ * Fires to every device_token registered to this captain (typically
+ * the reviewer's test device). Honors the same per-platform error
+ * handling as notifyCaptains() — dead tokens get auto-pruned.
+ */
+app.post('/api/test-alert', express.json(), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Not logged in.' });
+  if (!isReviewerEmail(req.user.email)) {
+    return res.status(403).json({ error: 'Forbidden — reviewer accounts only.' });
+  }
+
+  const tokensRes = await db.query(
+    `SELECT platform, token FROM device_tokens WHERE captain_id = $1`,
+    [req.user.id]
+  );
+  if (!tokensRes.rows.length) {
+    return res.status(404).json({
+      error: 'No registered devices. Allow push notifications on this device first, then try again.',
+    });
+  }
+
+  const title = 'akFISHinfo test alert';
+  const body  = 'This is a reviewer test push. Real opening alerts look just like this.';
+  const sent  = [];
+
+  for (const row of tokensRes.rows) {
+    let r;
+    if (row.platform === 'ios') {
+      r = await sendApnsToToken({ captainId: req.user.id, token: row.token, title, body });
+    } else if (row.platform === 'android') {
+      r = await sendFcmToToken({ captainId: req.user.id, token: row.token, title, body });
+    } else {
+      r = { ok: false, reason: 'unknown-platform' };
+    }
+    sent.push({ platform: row.platform, ok: r.ok, reason: r.reason || null });
+  }
+  res.json({ ok: true, sent });
 });
 
 /**
