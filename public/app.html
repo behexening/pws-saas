@@ -1560,6 +1560,9 @@ let mapDistrictLayers = {};  // district_key → Leaflet layer (for card↔map s
 let openAreaLayers   = {};   // district_key → pre-clipped open area layer
 let currentDistrictsGJ = null;  // kept for PIP click handler
 let currentHighlighted = {};    // district name → {key, color, open}
+let lastFittedResultId = null;  // last announcement id we ran fitBounds for —
+                                // prevents the 60s background refresh from
+                                // resetting the user's zoom level.
 let currentTab = 'live';
 let allResults = [];
 
@@ -2504,7 +2507,15 @@ async function renderMap(result) {
       }
     }).addTo(map);
     activeLayers.push(geoLayer);
-    map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
+    // Only fitBounds when the rendered announcement actually changes.
+    // The 60s background refresh re-renders the same result and would
+    // otherwise reset the user's zoom every minute. selectAnnouncement /
+    // tab switch / scrubber both produce a new id so they still snap
+    // to the correct extent.
+    if (result && result.id != null && result.id !== lastFittedResultId) {
+      map.fitBounds(geoLayer.getBounds(), { padding: [20, 20] });
+      lastFittedResultId = result.id;
+    }
   }
 
   // ── Stream-closure suspension zones (per-announcement) ──
