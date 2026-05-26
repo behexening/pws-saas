@@ -169,77 +169,102 @@
       z-index: 10;
     }
 
-        /* Tides + weather strip — thin horizontal overlay on the map,
-       just below the topbar. Single line, ellipsis on overflow,
-       horizontally scrollable if the content really doesn't fit. */
-    .conditions-strip {
+    /* Tides + weather pill — compact glance summary at top-right of
+       the map. Sits left of the ⓘ attribution button. Tap to open the
+       full conditions modal below. */
+    #conditions-pill {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 250;
+      top: 8px;
+      right: 42px;            /* leaves 22px for ⓘ + 10px gap */
+      z-index: 260;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      min-height: 22px;
+      background: rgba(6, 10, 15, 0.85);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: -0.005em;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #conditions-pill:hover { border-color: var(--muted); }
+    #conditions-pill .cp-sep { color: var(--border); }
+    #conditions-pill .cp-tide { color: var(--accent); }
+    #conditions-pill .cp-temp { color: var(--text); }
+    [data-theme="light"] #conditions-pill {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Tides + weather modal — full detail when the pill is tapped. */
+    #conditions-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 7px 12px;
-      background: rgba(6, 10, 15, 0.84);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-dim);
-      font-size: 0.75rem;
+      justify-content: center;
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+      background: rgba(0,0,0,0.7);
+    }
+    #conditions-modal[hidden] { display: none; }
+    #conditions-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 360px;
+      padding: 22px 22px 16px;
       color: var(--text);
-      white-space: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;  /* Firefox */
+      font-size: 0.8125rem;
+      line-height: 1.55;
+      max-height: 80dvh;
+      overflow-y: auto;
     }
-    .conditions-strip::-webkit-scrollbar { display: none; }
-    .cs-group {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 8px;
-      flex: none;
+    #conditions-card h2 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 0 0 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
     }
-    .cs-label {
-      font-size: 0.6rem;
+    #conditions-card h3 {
+      font-size: 0.625rem;
       font-weight: 800;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--muted);
+      margin: 14px 0 6px;
     }
-    .cs-items {
-      display: inline-flex;
-      gap: 10px;
-    }
-    .cs-item {
-      display: inline-flex;
-      gap: 4px;
+    #conditions-card h3:first-of-type { margin-top: 0; }
+    .cm-row {
+      display: flex;
+      justify-content: space-between;
       align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-dim, var(--border));
+      font-size: 0.8125rem;
     }
-    .cs-item .cs-arrow {
-      font-size: 0.7rem;
-      line-height: 1;
-    }
-    .cs-item.tide-high .cs-arrow { color: var(--accent); }
-    .cs-item.tide-low  .cs-arrow { color: var(--muted); }
-    .cs-item .cs-time {
-      color: var(--text);
-    }
-    .cs-item .cs-secondary {
-      color: var(--muted);
-      font-size: 0.7rem;
-    }
-    .cs-sep {
-      width: 1px;
-      align-self: stretch;
-      background: var(--border);
-      margin: 2px 0;
-      flex: none;
-    }
-    [data-theme="light"] .conditions-strip {
-      background: rgba(255, 255, 255, 0.86);
-      border-bottom-color: var(--border);
+    .cm-row:last-child { border-bottom: none; }
+    .cm-row .cm-name { color: var(--muted); }
+    .cm-row .cm-val  { color: var(--text); font-weight: 600; }
+    .cm-row.tide-high .cm-arrow { color: var(--accent); margin-right: 4px; }
+    .cm-row.tide-low  .cm-arrow { color: var(--muted); margin-right: 4px; }
+    #conditions-close {
+      margin-top: 14px;
+      background: var(--accent);
+      color: #000;
+      border: 0;
+      padding: 9px 18px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      min-height: 44px;
     }
 
     /* Eyebrow: tiny uppercase masthead, thin underline */
@@ -1282,15 +1307,23 @@
       <!-- Conditions strip: tides + weather as a thin overlay just below
            the topbar. Single-row, horizontally scrollable on narrow phones.
            Hidden until /api/conditions resolves. -->
-      <div class="conditions-strip" id="conditions-strip" role="region" aria-label="Local tides and weather" hidden>
-        <div class="cs-group cs-tides">
-          <span class="cs-label" aria-hidden="true">Tides</span>
-          <span class="cs-items" id="cs-tide-items" aria-label="Upcoming tides"></span>
-        </div>
-        <div class="cs-sep" aria-hidden="true"></div>
-        <div class="cs-group cs-weather">
-          <span class="cs-label" aria-hidden="true">Wx</span>
-          <span class="cs-items" id="cs-weather-items" aria-label="Weather forecast"></span>
+      <!-- Tides + weather glance pill. Compact summary at top-right of
+           the map (next tide + current temp). Tap opens the full modal
+           below with all forecast data. Hidden until /api/conditions
+           resolves. -->
+      <button type="button" id="conditions-pill" aria-haspopup="dialog" aria-label="Tides and weather details" hidden>
+        <span class="cp-tide" id="cp-tide">—</span>
+        <span class="cp-sep" aria-hidden="true">·</span>
+        <span class="cp-temp" id="cp-temp">—</span>
+      </button>
+      <div id="conditions-modal" role="dialog" aria-modal="true" aria-labelledby="conditions-title" hidden>
+        <div id="conditions-card">
+          <h2 id="conditions-title">Tides &amp; Weather</h2>
+          <h3>Tides</h3>
+          <div id="cm-tide-rows"></div>
+          <h3>Weather</h3>
+          <div id="cm-weather-rows"></div>
+          <button type="button" id="conditions-close" autofocus>Close</button>
         </div>
       </div>
       <div class="map-note">ADF&amp;G PWS Commercial Salmon</div>
@@ -2909,14 +2942,33 @@ function initFeedbackWidget(user) {
 })();
 </script>
 
-<!-- Tides + weather strip: pulls /api/conditions and renders into the
-     compact horizontal overlay below the topbar. Refreshes every 15 min. -->
+<!-- Tides + weather: pulls /api/conditions and drives two surfaces —
+     a compact pill at top-right (next tide + current temp) and a
+     detail modal opened by tapping the pill. Refreshes every 15 min. -->
 <script>
 (function () {
-  var strip = document.getElementById('conditions-strip');
-  var tEl   = document.getElementById('cs-tide-items');
-  var wEl   = document.getElementById('cs-weather-items');
-  if (!strip || !tEl || !wEl) return;
+  var pill    = document.getElementById('conditions-pill');
+  var pTide   = document.getElementById('cp-tide');
+  var pTemp   = document.getElementById('cp-temp');
+  var modal   = document.getElementById('conditions-modal');
+  var tRows   = document.getElementById('cm-tide-rows');
+  var wRows   = document.getElementById('cm-weather-rows');
+  var closeBtn = document.getElementById('conditions-close');
+  if (!pill || !modal || !tRows || !wRows) return;
+
+  pill.addEventListener('click', function () {
+    modal.hidden = false;
+    setTimeout(function () { closeBtn && closeBtn.focus(); }, 0);
+  });
+  closeBtn && closeBtn.addEventListener('click', function () {
+    modal.hidden = true; pill.focus();
+  });
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) { modal.hidden = true; pill.focus(); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!modal.hidden && e.key === 'Escape') { e.preventDefault(); modal.hidden = true; pill.focus(); }
+  });
 
   function fmtTime(t) {
     if (!t) return '';
@@ -2957,55 +3009,87 @@ function initFeedbackWidget(user) {
     return n;
   }
 
-  function render(data) {
-    if (!data) { strip.hidden = true; return; }
-    var shown = false;
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
 
+  function render(data) {
+    if (!data) { pill.hidden = true; return; }
+    var anyContent = false;
+    var now = new Date();
+    var todayStr = now.toISOString().slice(0, 10);
+
+    // ── Pill summary ──────────────────────────────────────────────
+    // Next upcoming tide + first weather period temp.
+    var nextTide = null;
+    var upcoming = [];
     if (data.tides && data.tides.predictions && data.tides.predictions.length) {
-      var now = new Date();
-      var todayStr = now.toISOString().slice(0, 10);
-      var upcoming = data.tides.predictions.filter(function (p) {
+      upcoming = data.tides.predictions.filter(function (p) {
         var d = new Date(p.time.replace(' ', 'T'));
         return !isNaN(d) && d.getTime() > now.getTime() - 1.5 * 60 * 60 * 1000;
-      }).slice(0, 3);
-      tEl.innerHTML = upcoming.map(function (p) {
+      });
+      nextTide = upcoming[0] || null;
+    }
+    if (nextTide) {
+      pTide.textContent = (nextTide.type === 'high' ? '↑ ' : '↓ ') + fmtTime(nextTide.time);
+      anyContent = true;
+    } else {
+      pTide.textContent = '—';
+    }
+
+    var firstPeriod = data.weather && data.weather.periods && data.weather.periods[0];
+    if (firstPeriod) {
+      pTemp.textContent = firstPeriod.temperature + '°';
+      anyContent = true;
+    } else {
+      pTemp.textContent = '—';
+    }
+
+    // Update accessible label so VoiceOver reads the full summary.
+    var aria = [];
+    if (nextTide) {
+      aria.push((nextTide.type === 'high' ? 'High' : 'Low') + ' tide at ' +
+                fmtTime(nextTide.time) + ', ' + nextTide.height_ft.toFixed(1) + ' feet');
+    }
+    if (firstPeriod) {
+      aria.push(firstPeriod.temperature + ' degrees ' + (firstPeriod.temperatureUnit || 'F'));
+    }
+    pill.setAttribute('aria-label', aria.length ? aria.join(', ') + '. Tap for details.' : 'Tides and weather details');
+
+    // ── Modal detail rows ────────────────────────────────────────
+    if (upcoming.length) {
+      tRows.innerHTML = upcoming.slice(0, 5).map(function (p) {
         var arrow = p.type === 'high' ? '↑' : '↓';
         var when  = fmtTime(p.time);
         var isTmrw = dayOf(p.time) !== todayStr;
-        var day   = isTmrw ? ' <span class="cs-secondary" aria-hidden="true">tmrw</span>' : '';
-        var label = (p.type === 'high' ? 'High' : 'Low') + ' tide ' +
-                    (isTmrw ? 'tomorrow ' : '') + 'at ' + when + ', ' +
-                    p.height_ft.toFixed(1) + ' feet';
-        return '<span class="cs-item tide-' + p.type + '" role="text" aria-label="' + label + '">' +
-                 '<span class="cs-arrow" aria-hidden="true">' + arrow + '</span>' +
-                 '<span class="cs-time" aria-hidden="true">' + when + day + '</span>' +
-                 ' <span class="cs-secondary" aria-hidden="true">' + p.height_ft.toFixed(1) + 'ft</span>' +
-               '</span>';
+        var name  = (p.type === 'high' ? 'High' : 'Low') + (isTmrw ? ' (tmrw)' : '');
+        return '<div class="cm-row tide-' + esc(p.type) + '">' +
+                 '<span class="cm-name"><span class="cm-arrow">' + arrow + '</span>' + esc(name) + '</span>' +
+                 '<span class="cm-val">' + esc(when) + ' &middot; ' + p.height_ft.toFixed(1) + ' ft</span>' +
+               '</div>';
       }).join('');
-      shown = true;
     } else {
-      tEl.innerHTML = '<span class="cs-secondary">—</span>';
+      tRows.innerHTML = '<div class="cm-row"><span class="cm-name">No data</span></div>';
     }
 
     if (data.weather && data.weather.periods && data.weather.periods.length) {
-      wEl.innerHTML = data.weather.periods.slice(0, 2).map(function (p) {
+      wRows.innerHTML = data.weather.periods.slice(0, 4).map(function (p) {
         var temp  = p.temperature + '°' + (p.temperatureUnit || 'F');
         var wind  = (p.windSpeed || '').replace(/\s*mph$/i, '');
         var dir   = p.windDirection || '';
-        var label = (p.name || 'Forecast') + ': ' + p.temperature + ' degrees ' + (p.temperatureUnit || 'F') +
-                    (wind ? ', wind from ' + (dir || '') + ' ' + wind + ' mph' : '');
-        return '<span class="cs-item" role="text" aria-label="' + label.replace(/"/g, '&quot;') + '">' +
-                 '<span class="cs-secondary" aria-hidden="true">' + shortPeriod(p.name) + '</span> ' +
-                 '<span aria-hidden="true">' + temp + '</span>' +
-                 (wind ? ' <span class="cs-secondary" aria-hidden="true">' + dir + ' ' + wind + '</span>' : '') +
-               '</span>';
+        var detail = temp + (wind ? ' &middot; ' + esc(dir) + ' ' + esc(wind) + ' mph' : '');
+        return '<div class="cm-row">' +
+                 '<span class="cm-name">' + esc(shortPeriod(p.name)) + '</span>' +
+                 '<span class="cm-val">' + detail + '</span>' +
+               '</div>';
       }).join('');
-      shown = true;
     } else {
-      wEl.innerHTML = '<span class="cs-secondary">—</span>';
+      wRows.innerHTML = '<div class="cm-row"><span class="cm-name">No data</span></div>';
     }
 
-    if (shown) strip.hidden = false;
+    if (anyContent) pill.hidden = false;
   }
 
   function load() {
