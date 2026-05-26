@@ -2492,31 +2492,34 @@ document.getElementById('panel-share-btn')?.addEventListener('click', async () =
   let dragging = false;
   let refreshing = false;
 
-  // Indicator lives above the container; transform follows the drag.
+  // Indicator floats on document.body with position:fixed so we never
+  // touch the sheet's positioning. An earlier version set
+  // host.style.position='relative' on .left-panel, which knocked the
+  // mobile sheet out of position:fixed and dumped it at the top of the
+  // document. Lesson: don't mutate parent layout.
+  const BASE_TOP = 56; // px below safe-area-inset-top, under the topbar
   const ind = document.createElement('div');
   ind.id = 'ptr-indicator';
   ind.setAttribute('aria-hidden', 'true');
   ind.style.cssText =
-    'position:absolute;left:50%;transform:translate(-50%,-100%);' +
-    'top:0;z-index:5;background:var(--surface);border:1px solid var(--border);' +
+    'position:fixed;left:50%;transform:translate(-50%, -40px);' +
+    'top:calc(env(safe-area-inset-top) + ' + BASE_TOP + 'px);' +
+    'z-index:5000;background:var(--surface);border:1px solid var(--border);' +
     'color:var(--muted);font-size:0.6875rem;font-weight:700;' +
     'letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;' +
     'pointer-events:none;transition:opacity 0.15s;opacity:0';
   ind.textContent = 'Pull to refresh';
-  // The container's parent (left-panel) is position-relative-friendly.
-  const host = container.parentElement || container;
-  host.style.position = host.style.position || 'relative';
-  host.appendChild(ind);
+  document.body.appendChild(ind);
 
   function setIndicator(dy) {
     if (dy <= 0) {
       ind.style.opacity = '0';
-      ind.style.transform = 'translate(-50%,-100%)';
+      ind.style.transform = 'translate(-50%, -40px)';
       return;
     }
     const visible = Math.min(dy, THRESHOLD + 40);
     ind.style.opacity = String(Math.min(1, dy / 30));
-    ind.style.transform = `translate(-50%, ${Math.max(-100 + visible, -10)}px)`;
+    ind.style.transform = `translate(-50%, ${Math.max(-40 + visible * 0.5, 0)}px)`;
     ind.textContent = dy >= THRESHOLD ? 'Release to refresh' : 'Pull to refresh';
   }
 
