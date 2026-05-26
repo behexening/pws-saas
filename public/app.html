@@ -532,6 +532,20 @@
       border-radius: 0;
     }
     .sonar-label { font-weight: 700; color: var(--text); }
+    .sonar-block.live-sonar { border-left: 2px solid var(--accent); }
+    .sonar-block.live-sonar strong { color: var(--text); font-weight: 800; }
+    .sonar-age { color: var(--muted); }
+    .sonar-stale {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      font-size: 0.5rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--warn);
+      border: 1px solid var(--warn);
+    }
 
     .streams-active { font-size: 0.5625rem; color: var(--warn); font-weight: 700; letter-spacing: 0.01em; }
 
@@ -2435,6 +2449,58 @@ function renderPanel(result) {
       .join('');
     statcodesEl.style.display = visibleDistrictCodes.length ? 'flex' : 'none';
   }
+
+  // Live sonar pill on the Copper River card. The number is fetched at
+  // render time (not baked into the parsed HTML) so it always reflects
+  // ADF&G's current Miles Lake reading, never a stale value from when
+  // the announcement was issued. See the DATE MODEL block + the
+  // /api/sonar/copper backend route for the full pipeline.
+  injectCopperSonar(container);
+}
+
+// Find the Copper River card (any name matching /copper.*river/i) and
+// inject the latest /api/sonar/copper reading. Idempotent — multiple
+// render passes just overwrite the same .live-sonar block.
+function injectCopperSonar(container) {
+  const copperCard = Array.from(container.querySelectorAll('.district-card'))
+    .find(c => /copper[\s_-]?river/i.test(c.dataset.district || ''));
+  if (!copperCard) return;
+  const body = copperCard.querySelector('.card-body') || copperCard;
+  let slot = body.querySelector('.live-sonar');
+  if (!slot) {
+    slot = document.createElement('div');
+    slot.className = 'sonar-block live-sonar';
+    slot.setAttribute('aria-label', 'Loading live sonar count');
+    slot.textContent = 'Loading sonar…';
+    // Slot just under the time-block so it reads as part of the
+    // opening summary, above closures + confidence.
+    const firstClosures = body.querySelector('.closure-block');
+    if (firstClosures) body.insertBefore(slot, firstClosures);
+    else body.appendChild(slot);
+  }
+  fetch('/api/sonar/copper')
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (!d || d.cumulative == null) {
+        slot.remove();
+        return;
+      }
+      const fetchedMs = Date.parse(d.fetched_at);
+      const ageMin = isFinite(fetchedMs) ? Math.max(0, Math.round((Date.now() - fetchedMs) / 60000)) : null;
+      const ageStr = ageMin == null ? '' :
+        ageMin < 60 ? `${ageMin}m ago` :
+        ageMin < 60 * 24 ? `${Math.round(ageMin / 60)}h ago` :
+        `${Math.round(ageMin / (60 * 24))}d ago`;
+      const dailyStr = d.daily != null ? ` · today ${d.daily.toLocaleString()}` : '';
+      const staleTag = d.stale ? ' <span class="sonar-stale">stale</span>' : '';
+      slot.innerHTML =
+        '<span class="sonar-label">Miles Lake sonar:</span> ' +
+        `<strong>${d.cumulative.toLocaleString()}</strong> cumulative${dailyStr} ` +
+        `<span class="sonar-age">(${ageStr})</span>${staleTag}`;
+      slot.setAttribute('aria-label',
+        `Miles Lake sonar ${d.cumulative.toLocaleString()} sockeye cumulative, as of ${ageStr}`);
+    })
+    .catch(() => { if (slot) slot.remove(); });
 }
 
 // Reformat one .time-block: parse ISO Opens/Closes, render in AKDT plain English

@@ -2151,6 +2151,26 @@ async function initDatabase() {
     `);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_qr_scans_created ON qr_scans(created_at);`);
 
+    // Live sonar counts. Scraped from ADF&G's daily fish-counts page on
+    // demand and cached here. UNIQUE(source, observation_date) so repeated
+    // refreshes upsert the latest row instead of accumulating dupes.
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS sonar_counts (
+        id               SERIAL PRIMARY KEY,
+        source           TEXT NOT NULL,
+        observation_date DATE,
+        cumulative_count INT,
+        daily_count      INT,
+        raw_html         TEXT,
+        fetched_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (source, observation_date)
+      );
+    `);
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_sonar_counts_source_fetched
+        ON sonar_counts(source, fetched_at DESC);
+    `);
+
     // Migration: backfill beta_access from the legacy BETA_TESTERS env var.
     // Idempotent — only flips false → true; never unsets.
     if (BETA_TESTERS.length > 0) {
@@ -3051,6 +3071,184 @@ app.get('/api/conditions', async (req, res) => {
   } catch (err) {
     console.error('/api/conditions error:', err.message);
     res.status(503).json({ error: 'Conditions unavailable.' });
+  }
+});
+
+// ────────────────────────────────────────────────────────────────────
+// COPPER RIVER (Miles Lake) SONAR — live fetch from ADF&G
+// ────────────────────────────────────────────────────────────────────
+// ADF&G publishes daily sockeye sonar counts on a public CF page. We
+// scrape the most recent row, cache the result in sonar_counts, and
+// expose it via GET /api/sonar/copper. The card on the frontend renders
+// the latest reading with an "as of Xh ago" stamp so freshness is
+// visible — explicitly replacing the misleading parser-baked-in value
+// that used to live in parsed_results.html_content.
+//
+// Refresh policy: lazy. A request inspects the latest cached row; if
+// fetched_at is older than MILES_LAKE_REFRESH_MS, fire a background
+// refresh and return what we already have. The /admin route can also
+// trigger a forced refresh if needed.
+
+const MILES_LAKE_SOURCE     = 'miles_lake_copper';
+const MILES_LAKE_REFRESH_MS = 60 * 60 * 1000;  // 1 hour
+const MILES_LAKE_URL        = process.env.ADFG_COPPER_SONAR_URL ||
+  'https://www.adfg.alaska.gov/sf/FishCounts/index.cfm?ADFG=main.coppertally';
+
+let _milesLakeRefreshInFlight = null;
+
+function fetchUrlText(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'akFISHinfo/1.0 (+https://akfishinfo.com)' } }, (r) => {
+      if (r.statusCode && r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+        // One redirect hop is enough for ADF&G's HTTPS→HTTPS canonicalization.
+        fetchUrlText(r.headers.location).then(resolve, reject);
+        r.resume();
+        return;
+      }
+      if (r.statusCode !== 200) {
+        reject(new Error(`HTTP ${r.statusCode} from ${url}`));
+        r.resume();
+        return;
+      }
+      const chunks = [];
+      r.on('data', (c) => chunks.push(c));
+      r.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+      r.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
+// Parse ADF&G's table into { date, daily, cumulative }. The page format
+// has shifted over the years; we walk all table rows and pick the most
+// recent one with a date + at least one numeric column, treating the
+// largest numeric value as cumulative and the smaller as daily (daily
+// is always <= cumulative).
+function parseMilesLakeHtml(html) {
+  if (!html) return null;
+  const rowRe   = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+  const cellRe  = /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi;
+  const stripRe = /<[^>]+>/g;
+  const dateRe  = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/;
+  const numRe   = /^[\d,]+$/;
+
+  let best = null;
+  let m;
+  while ((m = rowRe.exec(html)) !== null) {
+    const rowHtml = m[1];
+    const cells = [];
+    let c;
+    cellRe.lastIndex = 0;
+    while ((c = cellRe.exec(rowHtml)) !== null) {
+      cells.push(c[1].replace(stripRe, '').replace(/&nbsp;/g, ' ').trim());
+    }
+    if (cells.length < 2) continue;
+    let dateStr = null;
+    const nums = [];
+    for (const cell of cells) {
+      if (!dateStr && dateRe.test(cell)) { dateStr = cell.match(dateRe)[0]; continue; }
+      if (numRe.test(cell)) nums.push(parseInt(cell.replace(/,/g, ''), 10));
+    }
+    if (!dateStr || nums.length === 0) continue;
+    const dParts = dateStr.match(dateRe);
+    const yy = dParts[3].length === 2 ? 2000 + parseInt(dParts[3], 10) : parseInt(dParts[3], 10);
+    const iso = `${yy}-${String(+dParts[1]).padStart(2,'0')}-${String(+dParts[2]).padStart(2,'0')}`;
+    const cumulative = Math.max(...nums);
+    const daily      = nums.length > 1 ? Math.min(...nums) : null;
+    if (!best || iso > best.observation_date) {
+      best = { observation_date: iso, cumulative_count: cumulative, daily_count: daily };
+    }
+  }
+  return best;
+}
+
+async function refreshMilesLakeSonar() {
+  if (_milesLakeRefreshInFlight) return _milesLakeRefreshInFlight;
+  _milesLakeRefreshInFlight = (async () => {
+    try {
+      const html = await fetchUrlText(MILES_LAKE_URL);
+      const parsed = parseMilesLakeHtml(html);
+      if (!parsed) {
+        console.error('miles-lake-sonar: parse returned null — saving raw for inspection');
+        await db.query(
+          `INSERT INTO sonar_counts (source, observation_date, raw_html, fetched_at)
+             VALUES ($1, NULL, $2, NOW())`,
+          [MILES_LAKE_SOURCE, html.slice(0, 50000)]
+        );
+        return null;
+      }
+      await db.query(
+        `INSERT INTO sonar_counts (source, observation_date, cumulative_count, daily_count, fetched_at)
+             VALUES ($1, $2, $3, $4, NOW())
+         ON CONFLICT (source, observation_date) DO UPDATE
+            SET cumulative_count = EXCLUDED.cumulative_count,
+                daily_count      = EXCLUDED.daily_count,
+                fetched_at       = NOW()`,
+        [MILES_LAKE_SOURCE, parsed.observation_date, parsed.cumulative_count, parsed.daily_count]
+      );
+      console.log(`miles-lake-sonar: ${parsed.observation_date} → cumulative ${parsed.cumulative_count}, daily ${parsed.daily_count}`);
+      return parsed;
+    } catch (err) {
+      console.error('miles-lake-sonar refresh failed:', err.message);
+      return null;
+    } finally {
+      _milesLakeRefreshInFlight = null;
+    }
+  })();
+  return _milesLakeRefreshInFlight;
+}
+
+app.get('/api/sonar/copper', async (_req, res) => {
+  try {
+    const latest = await db.query(
+      `SELECT observation_date, cumulative_count, daily_count, fetched_at
+         FROM sonar_counts
+        WHERE source = $1
+          AND cumulative_count IS NOT NULL
+        ORDER BY observation_date DESC NULLS LAST, fetched_at DESC
+        LIMIT 1`,
+      [MILES_LAKE_SOURCE]
+    );
+    const row = latest.rows[0];
+    const ageMs = row ? Date.now() - new Date(row.fetched_at).getTime() : Infinity;
+    if (ageMs > MILES_LAKE_REFRESH_MS) {
+      if (row) {
+        // Stale but usable — kick off refresh in the background, return cache.
+        refreshMilesLakeSonar().catch(() => {});
+      } else {
+        // No cache at all — wait for the fetch so the user sees something useful.
+        await refreshMilesLakeSonar();
+        const fresh = await db.query(
+          `SELECT observation_date, cumulative_count, daily_count, fetched_at
+             FROM sonar_counts
+            WHERE source = $1
+              AND cumulative_count IS NOT NULL
+            ORDER BY observation_date DESC NULLS LAST, fetched_at DESC
+            LIMIT 1`,
+          [MILES_LAKE_SOURCE]
+        );
+        if (!fresh.rows[0]) return res.status(503).json({ error: 'Sonar feed unreachable.' });
+        const f = fresh.rows[0];
+        return res.json({
+          source: MILES_LAKE_SOURCE,
+          observation_date: f.observation_date,
+          cumulative: f.cumulative_count,
+          daily: f.daily_count,
+          fetched_at: f.fetched_at,
+          stale: false,
+        });
+      }
+    }
+    res.json({
+      source: MILES_LAKE_SOURCE,
+      observation_date: row.observation_date,
+      cumulative: row.cumulative_count,
+      daily: row.daily_count,
+      fetched_at: row.fetched_at,
+      stale: ageMs > (24 * 60 * 60 * 1000),
+    });
+  } catch (err) {
+    console.error('/api/sonar/copper error:', err.message);
+    res.status(503).json({ error: 'Sonar unavailable.' });
   }
 });
 

@@ -411,13 +411,13 @@ For each district mentioned return one JSON object:
   "excluded_hatchery_areas": ["AFK THA", "WNH SHA", ...],
   "restrict_to_hatchery_areas": ["AFK THA", "AFK SHA"],  // only set when the opening is the hatchery area(s), NOT the wider district
   "anadromous_closures_suspended": true,  // set true when the announcement lifts stream-buffer closures inside this opening
-  "unscheduled_possible": true/false,
-  "sonar_data": {
-    "cumulative_actual": int or null,
-    "cumulative_expected": int or null,
-    "daily_count": int or null
-  }
+  "unscheduled_possible": true/false
 }
+// NOTE: sonar_data is intentionally NOT requested any more. ADF&G publishes
+// live Miles Lake counts daily; baking a stale count into the announcement
+// HTML and showing it forever was misleading. The card now pulls live counts
+// from /api/sonar/copper at render time. Do not re-add a sonar_data field
+// to the schema unless you also remove the live pipeline.
 
 CRITICAL rules for closures:
 - closed_side MUST always be set: use "north"/"south"/"east"/"west" based on the direction word in the text (e.g. "north of a line" → "north", "east of longitude" → "east"). Never return null for closed_side.
@@ -2483,17 +2483,10 @@ def build_html(all_results, geojson_data, pdf_texts):
                     tags += f'<span class="excl-tag hatchery">{h}{missing_flag}</span>'
                 excl_html = f'<div class="excl-section"><div class="excl-label">Excluded from this opening:</div><div class="excl-list">{tags}</div></div>'
 
-            # Sonar
-            sonar = d.get('sonar_data') or {}
+            # Sonar number is no longer baked in — see schema note above.
+            # The frontend pulls live counts from /api/sonar/copper at render
+            # time and injects them into the Copper River card itself.
             sonar_html = ""
-            if sonar.get('cumulative_actual') is not None:
-                act = sonar.get('cumulative_actual', 0)
-                exp = sonar.get('cumulative_expected')
-                if exp and exp > 0:
-                    pct = round(act / exp * 100)
-                    sonar_html = f'<div class="sonar-block"><span class="sonar-label">Sonar:</span> {act:,} cumulative ({pct}% of expected)</div>'
-                else:
-                    sonar_html = f'<div class="sonar-block"><span class="sonar-label">Sonar:</span> {act:,} cumulative</div>'
 
             # Confidence bar
             conf = d.get('confidence', 0)
