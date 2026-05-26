@@ -3588,6 +3588,40 @@ app.get('/health', (req, res) => {
 });
 
 /**
+ * GET /api/version/min-supported — force-update gate (Phase 6.5).
+ *
+ * The native shells fetch this on launch and compare against their
+ * own CFBundleShortVersionString / versionName. If currentVersion <
+ * min, the client blocks with a "Please update" screen. If
+ * currentVersion < recommended (but >= min), a soft banner is shown.
+ *
+ * Versions are configured via env so we can flip the gate without
+ * redeploying — bump IOS_MIN_VERSION the moment we discover a v1.0
+ * bug that affects new users, and old installs get pushed to update.
+ * Defaults to '0.0.0' (no gate) so a brand-new env Just Works.
+ *
+ * Store URLs are configured via env too — placeholder defaults work
+ * locally; production should set IOS_STORE_URL / ANDROID_STORE_URL
+ * after the apps are listed.
+ */
+app.get('/api/version/min-supported', (_req, res) => {
+  res.json({
+    ios: {
+      min:         process.env.IOS_MIN_VERSION         || '0.0.0',
+      recommended: process.env.IOS_RECOMMENDED_VERSION || '0.0.0',
+      store_url:   process.env.IOS_STORE_URL ||
+                   'https://apps.apple.com/app/akfishinfo/id0',
+    },
+    android: {
+      min:         process.env.ANDROID_MIN_VERSION         || '0.0.0',
+      recommended: process.env.ANDROID_RECOMMENDED_VERSION || '0.0.0',
+      store_url:   process.env.ANDROID_STORE_URL ||
+                   'https://play.google.com/store/apps/details?id=info.akfish.app',
+    },
+  });
+});
+
+/**
  * Apple Universal Links — apple-app-site-association
  *
  * Apple fetches this file periodically when our app declares
