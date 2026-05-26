@@ -1191,6 +1191,7 @@
         <div class="panel-statcodes" id="panel-statcodes"></div>
         <div class="panel-actions" id="panel-actions">
           <a class="action-btn" id="panel-pdf-btn" target="_blank" rel="noopener" href="#" aria-disabled="true">Source PDF</a>
+          <button type="button" class="action-btn" id="panel-share-btn" aria-disabled="true" aria-label="Share this announcement">Share</button>
         </div>
         <div class="panel-telemetry" id="panel-telemetry"></div>
       </div>
@@ -2016,6 +2017,15 @@ function renderPanel(result) {
     pdfBtn.removeAttribute('href');
   }
 
+  // Share button (Phase 5.5) — wakes when an announcement is loaded.
+  // The handler reads result.id at click time so re-rendering the
+  // panel for a different announcement doesn't require rebinding.
+  const shareBtn = document.getElementById('panel-share-btn');
+  if (shareBtn) {
+    if (result.id != null) shareBtn.removeAttribute('aria-disabled');
+    else shareBtn.setAttribute('aria-disabled', 'true');
+  }
+
   // District statcodes — industrial part-number chips
   const statcodesEl = document.getElementById('panel-statcodes');
   if (statcodesEl) {
@@ -2426,6 +2436,126 @@ document.getElementById('tab-btn-old').addEventListener('click', function(){ set
 document.getElementById('date-slider').addEventListener('input', function(){ onSliderInput(this.value); });
 document.getElementById('scrubber-prev').addEventListener('click', () => stepSlider(-1));
 document.getElementById('scrubber-next').addEventListener('click', () => stepSlider(1));
+
+// ── Share button (Phase 5.5) ─────────────────────────────────────
+// Native shells call Capacitor's Share plugin (system share sheet).
+// Web users with a browser-level Web Share API get that; everyone else
+// falls back to copy-to-clipboard so the action still does something.
+document.getElementById('panel-share-btn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('panel-share-btn');
+  if (!btn || btn.getAttribute('aria-disabled') === 'true') return;
+  if (!currentResult || currentResult.id == null) return;
+  const url = `https://akfishinfo.com/app?ann=${currentResult.id}`;
+  const title = 'akFISHinfo — PWS opening';
+  const dateStr = (function () {
+    try { return fmtDate(currentResult); } catch (_) { return ''; }
+  })();
+  const districts = Array.isArray(currentResult.districts) ? currentResult.districts.join(', ') : '';
+  const text = [dateStr, districts].filter(Boolean).join(' — ');
+  const Cap = window.Capacitor;
+  const ShareNative = Cap && Cap.Plugins && Cap.Plugins.Share;
+  try {
+    if (ShareNative && Cap.isNativePlatform && Cap.isNativePlatform()) {
+      await ShareNative.share({ title, text, url, dialogTitle: 'Share opening' });
+    } else if (navigator.share) {
+      await navigator.share({ title, text, url });
+    } else {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = 'Copied link';
+      setTimeout(() => { btn.textContent = 'Share'; }, 1400);
+    }
+  } catch (err) {
+    // User cancel throws on iOS — silent.
+    if (!/cancel|abort/i.test(String(err && err.message))) {
+      console.error('share failed', err);
+    }
+  }
+});
+
+// ── Pull-to-refresh (Phase 5.2) ──────────────────────────────────
+// Native-feeling refresh on the announcement list. Engages only when
+// the container is scrolled to top so we don't fight normal scrolling,
+// and only on touch devices so desktop F5 still rules. The drag adds
+// resistance after the threshold so it never looks runaway.
+(function () {
+  const container = document.getElementById('cards-container');
+  if (!container) return;
+  // Skip on plain mouse-only browsers (web desktop). Native shells
+  // and any phone/tablet pass the touchstart check at runtime.
+  if (!('ontouchstart' in window) && !navigator.maxTouchPoints) return;
+
+  const THRESHOLD = 72;        // px to commit a refresh
+  const RESIST    = 0.45;      // post-threshold drag resistance
+  let startY = null;
+  let curY   = 0;
+  let dragging = false;
+  let refreshing = false;
+
+  // Indicator lives above the container; transform follows the drag.
+  const ind = document.createElement('div');
+  ind.id = 'ptr-indicator';
+  ind.setAttribute('aria-hidden', 'true');
+  ind.style.cssText =
+    'position:absolute;left:50%;transform:translate(-50%,-100%);' +
+    'top:0;z-index:5;background:var(--surface);border:1px solid var(--border);' +
+    'color:var(--muted);font-size:0.6875rem;font-weight:700;' +
+    'letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;' +
+    'pointer-events:none;transition:opacity 0.15s;opacity:0';
+  ind.textContent = 'Pull to refresh';
+  // The container's parent (left-panel) is position-relative-friendly.
+  const host = container.parentElement || container;
+  host.style.position = host.style.position || 'relative';
+  host.appendChild(ind);
+
+  function setIndicator(dy) {
+    if (dy <= 0) {
+      ind.style.opacity = '0';
+      ind.style.transform = 'translate(-50%,-100%)';
+      return;
+    }
+    const visible = Math.min(dy, THRESHOLD + 40);
+    ind.style.opacity = String(Math.min(1, dy / 30));
+    ind.style.transform = `translate(-50%, ${Math.max(-100 + visible, -10)}px)`;
+    ind.textContent = dy >= THRESHOLD ? 'Release to refresh' : 'Pull to refresh';
+  }
+
+  container.addEventListener('touchstart', (e) => {
+    if (refreshing) return;
+    if (container.scrollTop > 0) { startY = null; return; }
+    startY = e.touches[0].clientY;
+    curY = 0;
+    dragging = true;
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    if (!dragging || startY == null) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy <= 0) { curY = 0; setIndicator(0); return; }
+    curY = dy < THRESHOLD ? dy : THRESHOLD + (dy - THRESHOLD) * RESIST;
+    setIndicator(curY);
+  }, { passive: true });
+
+  container.addEventListener('touchend', async () => {
+    if (!dragging) return;
+    dragging = false;
+    const commit = curY >= THRESHOLD;
+    if (!commit) { setIndicator(0); return; }
+    refreshing = true;
+    ind.textContent = 'Refreshing…';
+    ind.style.opacity = '1';
+    try { await loadTab(currentTab); }
+    catch (e) { console.error('PTR loadTab failed', e); }
+    finally {
+      refreshing = false;
+      curY = 0;
+      setTimeout(() => setIndicator(0), 220);
+    }
+  });
+
+  container.addEventListener('touchcancel', () => {
+    dragging = false; curY = 0; setIndicator(0);
+  });
+})();
 
 loadTab('live');
 setInterval(() => { if (currentTab === 'live' || currentTab === 'upcoming') loadTab(currentTab); }, 60000);
