@@ -4,6 +4,23 @@
 
 Priority order is roughly top-to-bottom.
 
+## Status as of v1 submission
+
+| # | Item | Status |
+|---|---|---|
+| 5.1 | Offline cache | ✅ Shipped — leaflet.offline + IndexedDB tile cache |
+| 5.2 | Pull-to-refresh | ✅ Shipped — PR #76 |
+| 5.3 | Deep links + AASA / assetlinks | ✅ Shipped — PR #75 |
+| 5.4 | Background fetch | ⏭ **Deferred post-launch.** Apple background fetch is best-effort; foreground 60s timer + tap routing covers freshness. Revisit if users report stale data on app open. |
+| 5.5 | Share sheet | ✅ Shipped — PR #76 |
+| 5.6 | Biometric unlock | ⏭ **Deferred to v1.1.** SIWA + 30-day session cookies already give fast re-entry. Threat model (device theft) isn't this product's primary concern. |
+| 5.7 | Map perf audit | ⏭ Deferred — needs slow Android device in hand. Bookmark for after TestFlight feedback. |
+| 5.8 | Onboarding | ✅ Shipped (Phase 3.9 / commit ba84cb8) |
+| 5.9 | IAP paywall | ⏭ **N/A** — Path B (no IAP). Web pricing CTA already hidden on native via `isNativeRequest`. |
+| 5.10 | Accessibility / VoiceOver | ✅ Shipped (Phase 3.10 / commit ba84cb8) |
+| 5.11 | First-paint budget | ⏭ Deferred — needs profiling on real device. Vanilla JS + no build step suggests acceptable; verify post-TestFlight. |
+| 5.12 | Liquid Glass / Material You | ⏭ **N/A** — brand-locked to sharp corners per `feedback_sharp_corners` memory. |
+
 ## 5.1 Offline cache (HIGH priority)
 
 AK users have spotty LTE. A native app that white-screens offline feels broken.

@@ -2,6 +2,22 @@
 
 The stuff that's not glamorous but will block submission or burn time mid-flight.
 
+## Status as of v1 submission
+
+| # | Item | Status |
+|---|---|---|
+| 6.1 | Developer accounts | ✅ Apple Dev (Team ID 4YAFWMK9MZ) purchased + approved. Google Play Console — confirm before submit. |
+| 6.2 | TestFlight beta program | ⏳ ASC config — no code; do during Phase 7. |
+| 6.3 | Build automation (Fastlane) | ⏭ Defer — manual Xcode archive is fine for first ship. Add Fastlane only if iteration speed becomes a blocker. |
+| 6.4 | App Store assets | ⏳ Graphic designer producing real icon; screenshots captured during Phase 7.2 test matrix. |
+| 6.5 | Force-update mechanism | ✅ Shipped — PR #77. `/api/version/min-supported` + client check. |
+| 6.6 | RevenueCat webhooks | ⏭ **N/A** — Path B, no IAP. |
+| 6.7 | Region considerations | ✅ Already shipped (AKDT pinning, offline tiles, push-first). |
+| 6.8 | Review timeline buffer | ⏳ Planning — budget 3-4 weeks from first submission to live. |
+| 6.9 | Marketing site updates | ⏳ Blocked on actual store URLs — fill in after first ASC approval. |
+| 6.10 | Customer support readiness | ⏳ Process / docs work — punch list before launch week. |
+| 6.11 | IAP auto-renewal disclosure | ⏭ **N/A** — Path B, no IAP. |
+
 ## 6.1 Developer accounts (do this FIRST)
 
 - **Apple Developer Program** — $99/yr. Enrollment can take days for individual approval, longer for an LLC. Start before Phase 2.
