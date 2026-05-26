@@ -50,6 +50,44 @@
     console.error('push-bootstrap: APNs/FCM registration error', err);
   });
 
+  // ── Deep-link routing (Phase 5.3) ────────────────────────────────
+  // Server sends payload.url (APNs) / data.url (FCM) pointing at an
+  // absolute https://akfishinfo.com/... URL or a relative /app[?ann=…]
+  // path. When the user taps the notification, route the WebView to
+  // that URL — relative paths route through akfiNav() so extensionless
+  // /app gets .html appended for the bundled WebView; absolute
+  // akfishinfo URLs get their path extracted and routed the same way
+  // (the Universal Link from the OS already opened our app — we just
+  // need to land on the right screen).
+  function routeToDeepLink(url) {
+    if (!url) return;
+    var path = url;
+    var m = /^https?:\/\/[^/]+(\/.*)?$/.exec(url);
+    if (m) path = m[1] || '/';
+    if (window.akfiNav) window.akfiNav(path);
+    else window.location.href = path;
+  }
+
+  PN.addListener('pushNotificationActionPerformed', function (action) {
+    try {
+      var data = (action && action.notification && action.notification.data) || {};
+      routeToDeepLink(data.url);
+    } catch (e) {
+      console.error('push-bootstrap: tap handler threw', e);
+    }
+  });
+
+  // Universal Links opened from outside the app (Safari, Messages, etc.)
+  // fire App.addListener('appUrlOpen', ...). Route the same way so a
+  // cold-start link and a notification tap end up on the same screen.
+  var App = Cap.Plugins && Cap.Plugins.App;
+  if (App && typeof App.addListener === 'function') {
+    App.addListener('appUrlOpen', function (event) {
+      try { routeToDeepLink(event && event.url); }
+      catch (e) { console.error('push-bootstrap: appUrlOpen handler threw', e); }
+    });
+  }
+
   (async function go() {
     try {
       const perm = await PN.checkPermissions();

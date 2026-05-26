@@ -1712,9 +1712,48 @@ async function loadTab(tab) {
         renderMap(null);
       }
     }
+    // Deep-link focus (Phase 5.3): if the URL has ?ann=<id>, focus that
+    // announcement once it's in allResults. If the id isn't in this tab,
+    // fall through to 'old' which has the full history.
+    try { focusPendingAnn(tab); } catch (e) { console.error(e); }
   } catch(err) {
     document.getElementById('cards-container').innerHTML =
       '<div class="no-data"><strong>Connection error</strong>Could not load announcement data.</div>';
+  }
+}
+
+// Read ?ann=<id> from the URL once at boot, then on every loadTab try to
+// focus it. If it's not in the live tab, switch to 'old'. Cleared after
+// first successful focus so subsequent tab switches don't keep snapping.
+let pendingAnnId = (function () {
+  try {
+    var m = /[?&]ann=(\d+)/.exec(window.location.search || '');
+    return m ? Number(m[1]) : null;
+  } catch (_) { return null; }
+})();
+function focusPendingAnn(tab) {
+  if (!pendingAnnId) return;
+  var match = allResults.find(r => r.id === pendingAnnId);
+  if (match) {
+    loadAndRender(match);
+    // Visually highlight the matching ann-row when it renders.
+    setTimeout(() => {
+      var row = document.querySelector('.ann-row[data-result-id="' + pendingAnnId + '"]');
+      if (row) {
+        document.querySelectorAll('.ann-row').forEach(r => r.classList.remove('ann-active'));
+        row.classList.add('ann-active');
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    }, 50);
+    pendingAnnId = null;
+    return;
+  }
+  // Not in this tab — try 'old' (which carries the full history) once.
+  if (tab !== 'old') {
+    var oldBtn = document.getElementById('tab-btn-old');
+    if (oldBtn) setTab('old', oldBtn);
+  } else {
+    pendingAnnId = null; // give up silently
   }
 }
 
