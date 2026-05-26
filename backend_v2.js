@@ -2679,7 +2679,11 @@ async function notifyCaptains(districts, district_details = [], opts = {}) {
           token: dev.token,
           title: pushTitle,
           body: pushBody,
-          url: 'https://akfishinfo.com/app',
+          // Deep link (Phase 5.3): when caller passes opts.resultId, the
+          // tap lands on that specific announcement; otherwise just /app.
+          url: opts && opts.resultId
+            ? `https://akfishinfo.com/app?ann=${opts.resultId}`
+            : 'https://akfishinfo.com/app',
         });
         await db.query(
           `INSERT INTO push_log (captain_id, platform, token, status, error_message)
@@ -3283,7 +3287,7 @@ app.post('/api/result/:id/reparse', requireAdmin, express.json(), async (req, re
               } catch (e) { console.error('reparse DB update failed:', e); }
               if (freshDistricts.length && notify) {
                 try {
-                  await notifyCaptains(freshDistricts, freshDetails, { kind: 'correction' });
+                  await notifyCaptains(freshDistricts, freshDetails, { kind: 'correction', resultId: Number(req.params.id) });
                 } catch (e) { console.error('reparse correction alert failed:', e); }
               } else if (freshDistricts.length) {
                 console.log(`[silent] Reparse for result #${req.params.id} — skipping correction alert`);
@@ -3581,6 +3585,61 @@ app.get('/terms', (_req, res) => {
  */
 app.get('/health', (req, res) => {
   res.json({ ok: true });
+});
+
+/**
+ * Apple Universal Links — apple-app-site-association
+ *
+ * Apple fetches this file periodically when our app declares
+ * `applinks:akfishinfo.com` in its associated-domains entitlement.
+ * Must be served at exactly this path, over HTTPS, with
+ * Content-Type: application/json (not application/pkcs7-mime — that's
+ * only required for legacy iOS 8 signed AASA).
+ *
+ * Components: tap any https://akfishinfo.com/app[?...] link → open in
+ * the iOS app instead of Safari. Excluding /privacy, /terms, /login
+ * etc. so marketing pages stay in the browser.
+ */
+app.get('/.well-known/apple-app-site-association', (_req, res) => {
+  res.type('application/json').json({
+    applinks: {
+      details: [
+        {
+          appIDs: ['4YAFWMK9MZ.info.akfish.app'],
+          components: [
+            { '/': '/app' },
+            { '/': '/app*' },
+          ],
+        },
+      ],
+    },
+  });
+});
+
+/**
+ * Android App Links — assetlinks.json
+ *
+ * Google's verifier fetches this when the app declares the
+ * autoVerify=true intent filter for akfishinfo.com. SHA-256 fingerprints
+ * come from the upload + release signing keystores; populate them via
+ * the ANDROID_APP_LINKS_SHA256 env (comma-separated) once the keystore
+ * is generated. Empty array is harmless — App Links just don't verify
+ * yet, but the rest of deep-link routing still works through the
+ * custom scheme + Universal Links on iOS.
+ */
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  const fingerprints = (process.env.ANDROID_APP_LINKS_SHA256 || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  res.type('application/json').json([
+    {
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: 'info.akfish.app',
+        sha256_cert_fingerprints: fingerprints,
+      },
+    },
+  ]);
 });
 
 // ============================================================
