@@ -2097,6 +2097,102 @@ async function reparseResult(id) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// DATE MODEL — READ BEFORE EDITING ANY DATE/TIME LOGIC
+// ─────────────────────────────────────────────────────────────────────
+// Times in parsed_results are stored as AKDT/AKST WALL-CLOCK ISO
+// strings with no timezone suffix — e.g. "2025-05-26T07:00:00" means
+// "7am Alaska time on 26 May 2025". To compare against Date.now()
+// (UTC ms since epoch), shift by +8h (AKDT = UTC-8 during DST).
+// _akdtIsoToMs() does this exactly once; do NOT reinvent the parse
+// inline anywhere else.
+//
+// Each parsed_results ROW carries TWO levels of timing:
+//
+//   1. earliest_opens_at / latest_closes_at on the row are a WRAPPER
+//      window spanning every opening in the announcement. They are
+//      what /api/results/live filters on at the SQL layer, but they
+//      are NOT useful for deciding whether a *specific* district is
+//      currently open — an announcement that opens Copper Flats on
+//      May 26 and Montague on June 1 has its wrapper span from
+//      May 26 to whenever Montague closes, even though only Copper
+//      Flats is live for the first six days.
+//
+//   2. Per-district per-period .time-block elements in the HTML
+//      blob carry the actual opens/closes for one specific opening.
+//      These are the source of truth for "is THIS thing live now?".
+//
+// The live/upcoming/old tabs MUST filter at the .time-block level.
+// The old bug — Montague + SW showing in 'live' for six days before
+// they opened — was filtering at level (1) and assuming the wrapper
+// reflected per-district status. It doesn't.
+// ─────────────────────────────────────────────────────────────────────
+
+function _akdtIsoToMs(s) {
+  // AKDT wall-clock ISO ("YYYY-MM-DDTHH:MM..." no tz) → UTC ms.
+  // AKDT is UTC-8 (DST). Date.UTC builds a UTC instant from the
+  // components; adding 8h to the hour shifts the AKDT clock onto UTC.
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(s || '').trim());
+  if (!m) return NaN;
+  return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4] + 8, +m[5]);
+}
+
+function _blockTimes(block) {
+  // prettifyTimeBlock stashes raw ISO into dataset.opens/closes on
+  // the rendered card. The unrendered source doc inside renderMap()
+  // doesn't have dataset set yet — fall back to .time-val text there.
+  let opens  = block.dataset.opens;
+  let closes = block.dataset.closes;
+  if (!opens || !closes) {
+    const vals = block.querySelectorAll('.time-val');
+    if (vals.length >= 2) {
+      opens  = vals[0].textContent.trim();
+      closes = vals[1].textContent.trim();
+    }
+  }
+  return { opensMs: _akdtIsoToMs(opens), closesMs: _akdtIsoToMs(closes) };
+}
+
+function _blockMatchesTab(block, tab, nowMs) {
+  const { opensMs, closesMs } = _blockTimes(block);
+  if (isNaN(opensMs) || isNaN(closesMs)) return false;
+  if (tab === 'live')     return opensMs <= nowMs && nowMs < closesMs;
+  if (tab === 'upcoming') return nowMs < opensMs;
+  return true; // 'old' uses the scrubber-day filter, not this
+}
+
+// Filter + reorder cards based on per-block timing. Live = blocks
+// where opens<=now<closes. Upcoming = blocks where now<opens. Cards
+// with no surviving blocks are hidden. Visible cards are reordered
+// by soonest-to-close (live) or soonest-to-open (upcoming) so the
+// most urgent rows surface first.
+function filterAndSortCardsByTab(container, tab) {
+  if (tab !== 'live' && tab !== 'upcoming') return;
+  const now = Date.now();
+  const grid = container.querySelector('.cards-grid') || container;
+  const cards = Array.from(grid.querySelectorAll('.district-card'));
+  cards.forEach(card => {
+    const blocks = card.querySelectorAll('.time-block');
+    if (!blocks.length) { card.style.display = 'none'; return; }
+    let anyMatch = false;
+    let sortKeyMs = Infinity;
+    blocks.forEach(block => {
+      const matches = _blockMatchesTab(block, tab, now);
+      if (!matches) { block.style.display = 'none'; return; }
+      anyMatch = true;
+      const { opensMs, closesMs } = _blockTimes(block);
+      const candidate = tab === 'live' ? closesMs : opensMs;
+      if (!isNaN(candidate) && candidate < sortKeyMs) sortKeyMs = candidate;
+    });
+    if (!anyMatch) { card.style.display = 'none'; return; }
+    card.dataset.sortMs = String(sortKeyMs);
+  });
+  Array.from(grid.querySelectorAll('.district-card'))
+    .filter(c => c.style.display !== 'none')
+    .sort((a, b) => Number(a.dataset.sortMs || 0) - Number(b.dataset.sortMs || 0))
+    .forEach(c => grid.appendChild(c));
+}
+
 // ── Render district cards ──
 function renderPanel(result) {
   const container = document.getElementById('cards-container');
@@ -2289,9 +2385,52 @@ function renderPanel(result) {
   // Prettify Opens/Closes ISO timestamps → "August 26 2025, 8am–8pm" (AKDT)
   container.querySelectorAll('.time-block').forEach(prettifyTimeBlock);
 
-  // On old tab, hide districts/periods that aren't active on the scrubber date
-  if (currentTab === 'old' && currentScrubberDate) {
+  // Per-tab filtering. See DATE MODEL block above renderPanel for why
+  // this has to operate on .time-block, not on the row's wrapper window.
+  if (currentTab === 'live' || currentTab === 'upcoming') {
+    filterAndSortCardsByTab(container, currentTab);
+  } else if (currentTab === 'old' && currentScrubberDate) {
     filterCardsByScrubberDate(container, currentScrubberDate);
+  }
+
+  // Stats pill + district-code chips must reflect what the user *sees*
+  // after filtering, not the raw source doc. The panel was lying when
+  // an announcement contained future-only districts on the live tab —
+  // it would claim "12 Open" while only 1 card was visible. Recount
+  // from the rendered DOM here.
+  const visibleCards = Array.from(container.querySelectorAll('.district-card'))
+    .filter(c => c.style.display !== 'none');
+
+  // If every card was filtered out, show a tab-appropriate empty state
+  // so the user knows the system filtered (vs. a load failure).
+  if ((currentTab === 'live' || currentTab === 'upcoming') && visibleCards.length === 0) {
+    const grid = container.querySelector('.cards-grid');
+    if (grid) {
+      const msg = currentTab === 'live'
+        ? '<strong>Nothing live right now</strong>This announcement has openings scheduled for later — check the upcoming tab.'
+        : '<strong>Nothing upcoming in this announcement</strong>All of its openings have already started or ended.';
+      grid.outerHTML = '<div class="no-data">' + msg + '</div>';
+    }
+  }
+  let liveOpen = 0, liveClosed = 0;
+  const visibleDistrictCodes = [];
+  visibleCards.forEach(c => {
+    if (c.querySelector('.status-open')) liveOpen++; else liveClosed++;
+    const code = c.dataset.district;
+    if (code) visibleDistrictCodes.push(code);
+  });
+  const reparseBtnEl = stats.querySelector('button[data-reparse-id]');
+  const reparseHtml = reparseBtnEl ? reparseBtnEl.outerHTML : '';
+  stats.innerHTML =
+    `<span class="stat-pill open-pill">${liveOpen} Open</span>` +
+    (liveClosed ? `<span class="stat-pill closed-pill">${liveClosed} Closed</span>` : '') +
+    reparseHtml;
+  const statcodesEl = document.getElementById('panel-statcodes');
+  if (statcodesEl) {
+    statcodesEl.innerHTML = visibleDistrictCodes
+      .map(c => `<span class="statcode">${String(c).replace(/[<>&"']/g, '')}</span>`)
+      .join('');
+    statcodesEl.style.display = visibleDistrictCodes.length ? 'flex' : 'none';
   }
 }
 
@@ -2438,16 +2577,22 @@ async function renderMap(result) {
   doc.querySelectorAll('script').forEach(s => { scriptText += s.textContent; });
 
   // ── Build HIGHLIGHTED from card DOM ──────────────────────────────────────
-  // On old tab with a scrubber date, only highlight districts whose card has
-  // a time-block covering that date. Keeps the map in sync with the filtered
-  // card list.
+  // Keep the map in sync with whatever the cards panel is showing.
+  // Three tab modes:
+  //   live      — only districts with a block where opens<=now<closes
+  //   upcoming  — only districts with a block where now<opens
+  //   old       — only districts active on the scrubber date (if set)
+  // See the DATE MODEL block above renderPanel for the why.
   const parseDay = s => {
     const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
     return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : NaN;
   };
   const scrubDay = (currentTab === 'old' && currentScrubberDate)
     ? parseDay(currentScrubberDate) : NaN;
-  const activeKeysForDate = isNaN(scrubDay) ? null : new Set();
+  const nowMs = Date.now();
+  const useTabFilter = (currentTab === 'live' || currentTab === 'upcoming');
+  const useScrubFilter = !isNaN(scrubDay);
+  const activeKeysForDate = (useTabFilter || useScrubFilter) ? new Set() : null;
 
   doc.querySelectorAll('.district-card').forEach(card => {
     const key = card.dataset.district;
@@ -2458,6 +2603,11 @@ async function renderMap(result) {
     if (activeKeysForDate) {
       let matches = false;
       card.querySelectorAll('.time-block').forEach(block => {
+        if (useTabFilter) {
+          if (_blockMatchesTab(block, currentTab, nowMs)) matches = true;
+          return;
+        }
+        // Scrubber-day filter (old tab).
         const vals = block.querySelectorAll('.time-val');
         if (vals.length < 2) return;
         const openDay  = parseDay(vals[0].textContent.trim());
@@ -2465,7 +2615,7 @@ async function renderMap(result) {
         if (!isNaN(openDay) && !isNaN(closeDay) &&
             scrubDay >= openDay && scrubDay <= closeDay) matches = true;
       });
-      if (!matches) return; // not active on scrubber date — skip highlight
+      if (!matches) return; // not active for this tab/date — skip highlight
       activeKeysForDate.add(key);
     }
 
