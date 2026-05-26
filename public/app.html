@@ -171,32 +171,35 @@
 
     /* Tides + weather pill — compact glance summary at top-right of
        the map. Sits left of the ⓘ attribution button. Tap to open the
-       full conditions modal below. */
+       full conditions modal below.
+       z-index 1100: Leaflet panes go up to 700 (popupPane), controls
+       to ~800. Anything under that and the pill gets buried at rest. */
     #conditions-pill {
       position: absolute;
       top: 8px;
-      right: 42px;            /* leaves 22px for ⓘ + 10px gap */
-      z-index: 260;
+      right: 44px;            /* leaves 24px for ⓘ + 10px gap */
+      z-index: 1100;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
-      min-height: 22px;
-      background: rgba(6, 10, 15, 0.85);
-      border: 1px solid var(--border);
+      padding: 6px 11px;
+      min-height: 26px;
+      background: var(--surface);
+      border: 1px solid var(--accent);
       color: var(--text);
       font-size: 0.6875rem;
       font-weight: 700;
       letter-spacing: -0.005em;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
       transition: border-color 0.15s, color 0.15s;
     }
-    #conditions-pill:hover { border-color: var(--muted); }
+    #conditions-pill:hover { filter: brightness(1.08); }
     #conditions-pill .cp-sep { color: var(--border); }
     #conditions-pill .cp-tide { color: var(--accent); }
     #conditions-pill .cp-temp { color: var(--text); }
     [data-theme="light"] #conditions-pill {
-      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 8px rgba(15, 26, 38, 0.12);
     }
 
     /* Tides + weather modal — full detail when the pill is tapped. */
@@ -735,9 +738,9 @@
       position: absolute;
       top: 8px;
       right: 10px;
-      z-index: 260;
-      width: 22px;
-      height: 22px;
+      z-index: 1100;
+      width: 24px;
+      height: 26px;
       padding: 0;
       border: 1px solid var(--border);
       background: rgba(6,10,15,0.85);
