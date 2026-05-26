@@ -383,21 +383,17 @@
       <a href="/request-beta" class="beta-link">Request free beta access &rarr;</a>
     </div>
 
-    <p class="native-blurb native-only">
-      Sign in to see the live PWS commercial salmon map, district-by-district openings, and tide &amp; weather for your run.
-    </p>
-
-    <div class="feed-header web-only">
+    <div class="feed-header">
       <span class="feed-title">District feed &mdash; PWS Area</span>
     </div>
 
-    <div class="not-live-banner web-only">
+    <div class="not-live-banner">
       <span class="not-live-dot"></span>
       <span class="not-live-text">Not live data</span>
       <span class="not-live-sub">Sample announcement only</span>
     </div>
 
-    <div class="scroll-window web-only" id="scrollWindow">
+    <div class="scroll-window" id="scrollWindow">
       <div class="card-track" id="cardTrack"></div>
     </div>
   </div>
@@ -752,11 +748,12 @@
       document.fonts.ready.then(recomputeAndWrap).catch(() => {});
     }
 
-    // Returning from background (tab switch, app foregrounding) leaves
-    // the rAF loop suspended. Re-arm it defensively.
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && !paused) { lastTs = null; requestAnimationFrame(tick); }
-    });
+    // (Earlier this block re-armed tick() on visibilitychange "defensively".
+    //  That was a bug: the browser already resumes the paused rAF callback
+    //  automatically on un-hide, and our extra requestAnimationFrame(tick)
+    //  started a second concurrent loop on every foreground — each loop
+    //  adding to scrollPos, so cards visibly stuttered / sped up after
+    //  any tab switch or app foreground. Removed.)
 
     // ── Auth swap ───────────────────────────────────────────
     // On web: signed-in users with access go to /app, otherwise /pricing.
