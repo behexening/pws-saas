@@ -2425,7 +2425,10 @@ function renderPanel(result) {
     `<span class="stat-pill open-pill">${liveOpen} Open</span>` +
     (liveClosed ? `<span class="stat-pill closed-pill">${liveClosed} Closed</span>` : '') +
     reparseHtml;
-  const statcodesEl = document.getElementById('panel-statcodes');
+  // statcodesEl was already declared earlier in this function — reuse the
+  // reference instead of redeclaring (const-redeclare = SyntaxError that
+  // takes down the whole script). Overrides the pre-filter chip list
+  // with the actually-visible district codes.
   if (statcodesEl) {
     statcodesEl.innerHTML = visibleDistrictCodes
       .map(c => `<span class="statcode">${String(c).replace(/[<>&"']/g, '')}</span>`)
