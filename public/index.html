@@ -771,10 +771,21 @@
       if (!user) return;
       const link = document.getElementById('app-link');
       const isNative = !!(window.akfiPlatform && window.akfiPlatform.isNative);
+
+      // Native cold-start: a signed-in user landing on the marketing
+      // splash is friction. Skip straight to /app (or /setup if they
+      // haven't completed onboarding). On web we leave them on the
+      // splash so they can still browse marketing copy if they want.
+      if (isNative) {
+        if (window.akfiNav) window.akfiNav(user.has_access ? '/app' : '/setup');
+        else window.location.href = user.has_access ? '/app.html' : '/setup.html';
+        return;
+      }
+
       if (user.has_access) {
         link.href = '/app';
       } else {
-        link.href = isNative ? '/setup' : '/pricing';
+        link.href = '/pricing';
       }
       link.textContent = 'open app';
       link.style.display = '';   // reveal only for signed-in users
