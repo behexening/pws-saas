@@ -821,6 +821,11 @@
        bottomright (savetiles, attribution, future ones) and it stays
        clear of the footer automatically. */
     .map-panel .leaflet-bottom { bottom: 28px; }
+    /* Leaflet topright controls (Locate Me, stream-closures toggle) sit
+       at top:0 right:0 by default, which collides with our floating
+       #conditions-pill (top:8 right:42) and #map-attrib-btn (top:8 right:10).
+       Push the whole topright stack down so it starts under those. */
+    .map-panel .leaflet-top.leaflet-right { top: 42px; }
 
     /* leaflet.offline save/clear control — match our dark UI */
     /* Save-tiles offline control. Lives at bottomright; styled as
