@@ -3091,8 +3091,16 @@ app.get('/api/conditions', async (req, res) => {
 
 const MILES_LAKE_SOURCE     = 'miles_lake_copper';
 const MILES_LAKE_REFRESH_MS = 60 * 60 * 1000;  // 1 hour
-const MILES_LAKE_URL        = process.env.ADFG_COPPER_SONAR_URL ||
-  'https://www.adfg.alaska.gov/sf/FishCounts/index.cfm?ADFG=main.coppertally';
+// ADF&G publishes a per-day JSON export keyed by COUNTLOCATIONID + SpeciesID.
+// 39 = Miles Lake (Copper River), 420 = Sockeye. The URL embeds the year(s)
+// we want; we ask for the current year only. ADFG_COPPER_SONAR_URL env can
+// override the whole URL (advance the year-list manually each season, or
+// point at a sibling location like COUNTLOCATIONID=7 for Coghill).
+function milesLakeUrl() {
+  if (process.env.ADFG_COPPER_SONAR_URL) return process.env.ADFG_COPPER_SONAR_URL;
+  const year = new Date().getUTCFullYear();
+  return `https://www.adfg.alaska.gov/sf/FishCounts/index.cfm?ADFG=export.JSON&countLocationID=39&year=${year}&speciesID=420`;
+}
 
 let _milesLakeRefreshInFlight = null;
 
@@ -3118,61 +3126,62 @@ function fetchUrlText(url) {
   });
 }
 
-// Parse ADF&G's table into { date, daily, cumulative }. The page format
-// has shifted over the years; we walk all table rows and pick the most
-// recent one with a date + at least one numeric column, treating the
-// largest numeric value as cumulative and the smaller as daily (daily
-// is always <= cumulative).
-function parseMilesLakeHtml(html) {
-  if (!html) return null;
-  const rowRe   = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-  const cellRe  = /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi;
-  const stripRe = /<[^>]+>/g;
-  const dateRe  = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/;
-  const numRe   = /^[\d,]+$/;
+// ADF&G publishes a column-oriented JSON export:
+//   { COLUMNS: ["YEAR","COUNTDATE","FISHCOUNT", ...],
+//     DATA:    [[2026,"May, 26 2026 00:00:00",316, ...], ...] }
+// FISHCOUNT is the *daily* count, not cumulative. We sum across all rows
+// in the current year to derive cumulative; the latest row's count is daily.
+function parseMilesLakeJson(text) {
+  if (!text) return null;
+  let payload;
+  try { payload = JSON.parse(text); }
+  catch (_) { return null; }
+  if (!payload || !Array.isArray(payload.COLUMNS) || !Array.isArray(payload.DATA)) return null;
+  const colIdx = name => payload.COLUMNS.indexOf(name);
+  const di = colIdx('COUNTDATE');
+  const ci = colIdx('FISHCOUNT');
+  if (di < 0 || ci < 0) return null;
 
-  let best = null;
-  let m;
-  while ((m = rowRe.exec(html)) !== null) {
-    const rowHtml = m[1];
-    const cells = [];
-    let c;
-    cellRe.lastIndex = 0;
-    while ((c = cellRe.exec(rowHtml)) !== null) {
-      cells.push(c[1].replace(stripRe, '').replace(/&nbsp;/g, ' ').trim());
-    }
-    if (cells.length < 2) continue;
-    let dateStr = null;
-    const nums = [];
-    for (const cell of cells) {
-      if (!dateStr && dateRe.test(cell)) { dateStr = cell.match(dateRe)[0]; continue; }
-      if (numRe.test(cell)) nums.push(parseInt(cell.replace(/,/g, ''), 10));
-    }
-    if (!dateStr || nums.length === 0) continue;
-    const dParts = dateStr.match(dateRe);
-    const yy = dParts[3].length === 2 ? 2000 + parseInt(dParts[3], 10) : parseInt(dParts[3], 10);
-    const iso = `${yy}-${String(+dParts[1]).padStart(2,'0')}-${String(+dParts[2]).padStart(2,'0')}`;
-    const cumulative = Math.max(...nums);
-    const daily      = nums.length > 1 ? Math.min(...nums) : null;
-    if (!best || iso > best.observation_date) {
-      best = { observation_date: iso, cumulative_count: cumulative, daily_count: daily };
+  const months = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+  function rowDateIso(s) {
+    // "May, 26 2026 00:00:00" → "2026-05-26"
+    const m = /^([A-Za-z]+),\s*(\d{1,2})\s+(\d{4})/.exec(String(s || '').trim());
+    if (!m) return null;
+    const mo = months[m[1].slice(0, 3).toLowerCase()];
+    if (!mo) return null;
+    return `${m[3]}-${String(mo).padStart(2,'0')}-${String(+m[2]).padStart(2,'0')}`;
+  }
+
+  let latestIso = null;
+  let latestDaily = null;
+  let cumulative = 0;
+  for (const row of payload.DATA) {
+    const iso = rowDateIso(row[di]);
+    const cnt = Number(row[ci]);
+    if (!iso || !Number.isFinite(cnt)) continue;
+    cumulative += cnt;
+    if (!latestIso || iso > latestIso) {
+      latestIso = iso;
+      latestDaily = cnt;
     }
   }
-  return best;
+  if (!latestIso) return null;
+  return { observation_date: latestIso, cumulative_count: cumulative, daily_count: latestDaily };
 }
 
 async function refreshMilesLakeSonar() {
   if (_milesLakeRefreshInFlight) return _milesLakeRefreshInFlight;
   _milesLakeRefreshInFlight = (async () => {
+    const url = milesLakeUrl();
     try {
-      const html = await fetchUrlText(MILES_LAKE_URL);
-      const parsed = parseMilesLakeHtml(html);
+      const text = await fetchUrlText(url);
+      const parsed = parseMilesLakeJson(text);
       if (!parsed) {
         console.error('miles-lake-sonar: parse returned null — saving raw for inspection');
         await db.query(
           `INSERT INTO sonar_counts (source, observation_date, raw_html, fetched_at)
              VALUES ($1, NULL, $2, NOW())`,
-          [MILES_LAKE_SOURCE, html.slice(0, 50000)]
+          [MILES_LAKE_SOURCE, text.slice(0, 50000)]
         );
         return null;
       }
