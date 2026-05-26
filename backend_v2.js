@@ -3319,8 +3319,15 @@ app.get('/api/results/upcoming', async (req, res) => {
 });
 
 /**
- * GET /api/results/all
- * All results sorted by announcement_date DESC (for old tab)
+ * GET /api/results/all (old tab)
+ *
+ * Historical announcements only — every block has closed. An
+ * announcement opening Copper Flats on May 26 and Montague on June 1
+ * is NOT historical until June 3 closes; it lives on live/upcoming
+ * until then. The previous filter (`earliest_opens_at <= NOW`) let
+ * partial-future rows bleed into the old tab and made the scrubber
+ * propose future dates, which is exactly what shouldn't happen on a
+ * tab named "old".
  */
 app.get('/api/results/all', async (req, res) => {
   try {
@@ -3328,8 +3335,9 @@ app.get('/api/results/all', async (req, res) => {
       `SELECT id, announcement_id, html_url, districts, parsed_at,
               announcement_date, has_open_districts, earliest_opens_at, latest_closes_at
        FROM parsed_results
-       WHERE earliest_opens_at IS NULL OR earliest_opens_at <= NOW()
-       ORDER BY announcement_date DESC NULLS LAST, parsed_at DESC`
+       WHERE latest_closes_at IS NOT NULL
+         AND latest_closes_at < NOW()
+       ORDER BY latest_closes_at DESC, parsed_at DESC`
     );
     res.json({ results: result.rows });
   } catch (err) {

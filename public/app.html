@@ -2261,7 +2261,10 @@ function renderPanel(result) {
   }
 
   header.style.display = 'block';
-  meta.textContent = (currentTab === 'old' || currentTab === 'upcoming') ? fmtOpenWindow(result) : fmtDate(result);
+  // Header text is recomputed from VISIBLE blocks after the per-tab
+  // filter runs (see end of renderPanel). The announcement_date /
+  // wrapper window is irrelevant to what the user is actually seeing.
+  meta.textContent = '';
 
   // Source PDF action link
   const pdfBtn = document.getElementById('panel-pdf-btn');
@@ -2456,6 +2459,100 @@ function renderPanel(result) {
   // the announcement was issued. See the DATE MODEL block + the
   // /api/sonar/copper backend route for the full pipeline.
   injectCopperSonar(container);
+
+  // ── Header date text — computed from VISIBLE blocks only ────────────
+  // The wrapper window (result.earliest_opens_at..latest_closes_at) is
+  // useless to the user once the per-tab filter has trimmed cards: on
+  // the live tab they need to see the closing time of what's actually
+  // open NOW, not the announcement-publication date. On upcoming, they
+  // need the range of the still-future blocks, not the wrapper. See
+  // the DATE MODEL block above for the why.
+  updateHeaderFromVisibleBlocks(container, result);
+}
+
+// Walk the visible .time-block elements in the container, return the
+// soonest-opens and latest-closes UTC ms across them. Each value can
+// be null if no usable block was found.
+function _visibleBlockWindow(container) {
+  let minOpens = Infinity;
+  let maxCloses = -Infinity;
+  let count = 0;
+  container.querySelectorAll('.district-card').forEach(card => {
+    if (card.style.display === 'none') return;
+    card.querySelectorAll('.time-block').forEach(block => {
+      if (block.style.display === 'none') return;
+      const { opensMs, closesMs } = _blockTimes(block);
+      if (isNaN(opensMs) || isNaN(closesMs)) return;
+      if (opensMs  < minOpens)  minOpens  = opensMs;
+      if (closesMs > maxCloses) maxCloses = closesMs;
+      count++;
+    });
+  });
+  return {
+    opensMs:  isFinite(minOpens)  ? minOpens  : null,
+    closesMs: isFinite(maxCloses) ? maxCloses : null,
+    count,
+  };
+}
+
+// AKDT-formatted "May 26" / "May 26, 8pm" — uses Date.prototype with
+// the Anchorage time zone so DST changes don't shift the displayed day.
+function _fmtAKDate(ms)     { return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Anchorage' }); }
+function _fmtAKDateTime(ms) {
+  return new Date(ms).toLocaleString('en-US', {
+    month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit',
+    timeZone: 'America/Anchorage',
+  });
+}
+
+function updateHeaderFromVisibleBlocks(container, result) {
+  const meta = document.getElementById('panel-meta');
+  if (!meta) return;
+  const { opensMs, closesMs, count } = _visibleBlockWindow(container);
+
+  // Fallback for tabs that don't filter (or when no blocks parsed) —
+  // use the wrapper window so the header isn't blank.
+  if (!count) {
+    meta.textContent = (currentTab === 'old' || currentTab === 'upcoming')
+      ? fmtOpenWindow(result) : fmtDate(result);
+    return;
+  }
+
+  if (currentTab === 'live') {
+    // What the user wants on live: the closing time of what's open now.
+    // If multiple blocks are live and close at different times, show the
+    // soonest-to-close (most urgent).
+    let soonestCloseMs = Infinity;
+    container.querySelectorAll('.district-card').forEach(card => {
+      if (card.style.display === 'none') return;
+      card.querySelectorAll('.time-block').forEach(block => {
+        if (block.style.display === 'none') return;
+        const { closesMs: c } = _blockTimes(block);
+        if (!isNaN(c) && c < soonestCloseMs) soonestCloseMs = c;
+      });
+    });
+    if (!isFinite(soonestCloseMs)) { meta.textContent = ''; return; }
+    meta.textContent = `Open through ${_fmtAKDateTime(soonestCloseMs)}`;
+    return;
+  }
+
+  if (currentTab === 'upcoming') {
+    // Range of the visible (future) blocks. Same-day → single date with
+    // open time; multi-day → date range.
+    const openDay  = _fmtAKDate(opensMs);
+    const closeDay = _fmtAKDate(closesMs);
+    if (openDay === closeDay) {
+      meta.textContent = `Opens ${_fmtAKDateTime(opensMs)}`;
+    } else {
+      meta.textContent = `${openDay} – ${closeDay}`;
+    }
+    return;
+  }
+
+  // old tab: wrapper window is fine because the SQL now enforces
+  // latest_closes_at < NOW(), so the whole announcement is past.
+  meta.textContent = fmtOpenWindow(result);
 }
 
 // Find the Copper River card (any name matching /copper.*river/i) and
