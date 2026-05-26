@@ -3084,8 +3084,23 @@ app.get('/api/results/live', async (req, res) => {
 
 /**
  * GET /api/results/upcoming
- * Announcements that have been published but whose opening hasn't started yet
- * (earliest_opens_at > NOW()). Sorted nearest-first.
+ *
+ * Returns every announcement that STILL CONTAINS at least one future block.
+ * The previous filter (`earliest_opens_at > NOW()`) checked the row's
+ * wrapper window — so an announcement opening Copper Flats on May 26 and
+ * Montague/SW on June 1 dropped off the upcoming tab on May 26 even
+ * though its June 1 block was still future. That's the per-row-wrapper
+ * vs per-block-truth bug documented in DATE MODEL (public/app.html).
+ *
+ * Now: include any row whose latest_closes_at is in the future. The
+ * frontend's filterAndSortCardsByTab() then hides blocks that have
+ * already started, so the user only sees the genuinely upcoming
+ * districts even on partial-future announcements.
+ *
+ * Side effect: a partial-future announcement appears in BOTH /live
+ * (filtered to live blocks) and /upcoming (filtered to upcoming blocks).
+ * That is the correct dual-citizenship behavior — they're two views of
+ * the same row.
  */
 app.get('/api/results/upcoming', async (req, res) => {
   try {
@@ -3093,9 +3108,9 @@ app.get('/api/results/upcoming', async (req, res) => {
       `SELECT id, announcement_id, html_url, districts, parsed_at,
               announcement_date, has_open_districts, earliest_opens_at, latest_closes_at
        FROM parsed_results
-       WHERE earliest_opens_at IS NOT NULL
-       AND earliest_opens_at > NOW()
-       ORDER BY earliest_opens_at ASC
+       WHERE latest_closes_at IS NOT NULL
+         AND latest_closes_at > NOW()
+       ORDER BY COALESCE(earliest_opens_at, parsed_at) ASC
        LIMIT 20`
     );
     res.json({ results: result.rows });
