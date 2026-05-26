@@ -25,6 +25,7 @@
     "@capacitor/ios": "^7.6.5",
     "@capacitor/local-notifications": "^7.0.6",
     "@capacitor/push-notifications": "^7.0.6",
+    "@capacitor/share": "^7.0.4",
     "@parse/node-apn": "^8.1.0",
     "@sentry/node": "^10.53.1",
     "compression": "^1.8.1",

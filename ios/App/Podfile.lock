@@ -1,8 +1,6 @@
 PODS:
   - Capacitor (7.6.5):
     - CapacitorCordova
-  - CapacitorApp (7.1.2):
-    - Capacitor
   - CapacitorCommunityAppleSignIn (7.1.0):
     - Capacitor
   - CapacitorCordova (7.6.5)
@@ -15,17 +13,19 @@ PODS:
     - Capacitor
   - CapacitorPushNotifications (7.0.6):
     - Capacitor
+  - CapacitorShare (7.0.4):
+    - Capacitor
   - IONGeolocationLib (1.0.1)
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
-  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCommunityAppleSignIn (from `../../node_modules/@capacitor-community/apple-sign-in`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorLocalNotifications (from `../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
+  - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
 
 SPEC REPOS:
   trunk:
@@ -34,8 +34,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
-  CapacitorApp:
-    :path: "../../node_modules/@capacitor/app"
   CapacitorCommunityAppleSignIn:
     :path: "../../node_modules/@capacitor-community/apple-sign-in"
   CapacitorCordova:
@@ -48,18 +46,20 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/local-notifications"
   CapacitorPushNotifications:
     :path: "../../node_modules/@capacitor/push-notifications"
+  CapacitorShare:
+    :path: "../../node_modules/@capacitor/share"
 
 SPEC CHECKSUMS:
   Capacitor: fa6393e8023cd0f4740c9a22bc73720c049fffa2
-  CapacitorApp: 6b89831465d6bc99bc89779b1b7f5327e33011ce
   CapacitorCommunityAppleSignIn: 59bc8ade5677e6ea60a14bdca8d3f4bdc91069e2
   CapacitorCordova: 2b36392a7292c3c451dcae154185ee8804d7b6b3
   CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
   CapacitorHaptics: ec024a10130c230743219149c76a02da5cff6aed
   CapacitorLocalNotifications: ae0b5008877d68731d693156fe21d786d30a4feb
   CapacitorPushNotifications: c6158ba6f3777f281a675aa43e4011e9723e822b
+  CapacitorShare: 14b5d7f0a2c6de86dcad8995da80fb707ee32f62
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
 
-PODFILE CHECKSUM: 0507d8583d4d8020cbb888d26459dccdcaf5133b
+PODFILE CHECKSUM: 851eb3c68cc2011b5458ad8768714ad938cad406
 
 COCOAPODS: 1.16.2
