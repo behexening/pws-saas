@@ -702,6 +702,78 @@
       letter-spacing: -0.01em;
     }
 
+    /* Map attribution ⓘ — top-right of the map. Sits in the same
+       horizontal band as the conditions strip (z-index 260 > 250) so it
+       remains visible on mobile, where the bottom-right corner is
+       covered by the bottom sheet. */
+    #map-attrib-btn {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      z-index: 260;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid var(--border);
+      background: rgba(6,10,15,0.85);
+      color: var(--muted);
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-style: italic;
+      line-height: 1;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #map-attrib-btn:hover { color: var(--text); border-color: var(--muted); }
+    #map-attrib-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+      background: rgba(0,0,0,0.7);
+    }
+    #map-attrib-modal[hidden] { display: none; }
+    #map-attrib-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      max-width: 360px;
+      width: 100%;
+      padding: 22px 22px 16px;
+      color: var(--text);
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+    #map-attrib-card h2 {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin: 0 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    #map-attrib-card p { margin: 0 0 10px; }
+    #map-attrib-card a { color: var(--accent); text-decoration: none; }
+    #map-attrib-card a:hover { text-decoration: underline; }
+    #map-attrib-close {
+      margin-top: 6px;
+      background: var(--accent);
+      color: #000;
+      border: 0;
+      padding: 9px 18px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
     .disclaimer-bar {
       position: absolute;
       bottom: 0;
@@ -1222,6 +1294,31 @@
         </div>
       </div>
       <div class="map-note">ADF&amp;G PWS Commercial Salmon</div>
+
+      <!-- Map attribution (Phase 5.3 polish). OSM ODbL + CARTO TOS both
+           require attribution, but neither requires it to be inline.
+           This ⓘ button + modal pattern is what Apple Maps and Mapbox
+           use. Modal opens via JS at the bottom of the script block. -->
+      <button type="button" id="map-attrib-btn" aria-label="Map data sources" aria-haspopup="dialog">i</button>
+      <div id="map-attrib-modal" role="dialog" aria-modal="true" aria-labelledby="map-attrib-title" hidden>
+        <div id="map-attrib-card">
+          <h2 id="map-attrib-title">Map data</h2>
+          <p>
+            Map tiles by <a href="https://carto.com/attribution" target="_blank" rel="noopener">CARTO</a>,
+            under <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>.
+          </p>
+          <p>
+            Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+            contributors, under <a href="https://opendatacommons.org/licenses/odbl/" target="_blank" rel="noopener">ODbL</a>.
+          </p>
+          <p>
+            District polygons from
+            <a href="https://www.adfg.alaska.gov/" target="_blank" rel="noopener">Alaska Department of Fish &amp; Game</a>.
+          </p>
+          <button type="button" id="map-attrib-close" autofocus>Close</button>
+        </div>
+      </div>
+
       <div class="disclaimer-bar">
         <strong>Notice:</strong> Not legal advice. Always verify openings with ADF&amp;G at (907) 424-3212 or adfg.alaska.gov before fishing.
       </div>
@@ -1232,8 +1329,12 @@
 
 <script>
 // ── Map init ──
-const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true });
-map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
+// attributionControl: false — we replace the inline OSM/CARTO strip with
+// an ⓘ button + modal (see #map-attrib-btn below) so the credits are
+// preserved (OSM ODbL + CARTO TOS require attribution) without burning
+// pixels on the map. Apple Maps / Mapbox use the same pattern.
+const map = L.map('map', { center: [60.5, -147.5], zoom: 8, zoomControl: true, attributionControl: false });
+// Leaflet attribution control is disabled; credits live in the ⓘ modal.
 
 // ── Live geolocation toggle ──
 (function initLocate() {
@@ -1354,7 +1455,8 @@ function tileUrlForTheme() {
 const offlineTilesAvailable = !!(L.tileLayer.offline && L.control.savetiles);
 function buildTileLayer() {
   const opts = {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    // attribution is rendered in #map-attrib-modal instead of inline.
+    attribution: '',
     subdomains: 'abcd', maxZoom: 17,
   };
   return offlineTilesAvailable
@@ -2563,6 +2665,24 @@ document.getElementById('panel-share-btn')?.addEventListener('click', async () =
 
 loadTab('live');
 setInterval(() => { if (currentTab === 'live' || currentTab === 'upcoming') loadTab(currentTab); }, 60000);
+
+// ── Map attribution modal ────────────────────────────────────────
+// Keeps OSM ODbL + CARTO TOS credits available without burning pixels
+// on every map view.
+(function () {
+  const btn   = document.getElementById('map-attrib-btn');
+  const modal = document.getElementById('map-attrib-modal');
+  const close = document.getElementById('map-attrib-close');
+  if (!btn || !modal || !close) return;
+  function open()  { modal.hidden = false; setTimeout(() => close.focus(), 0); }
+  function shut()  { modal.hidden = true;  btn.focus(); }
+  btn.addEventListener('click', open);
+  close.addEventListener('click', shut);
+  modal.addEventListener('click', (e) => { if (e.target === modal) shut(); });
+  document.addEventListener('keydown', (e) => {
+    if (!modal.hidden && e.key === 'Escape') { e.preventDefault(); shut(); }
+  });
+})();
 
 // Leaflet needs to know the real container size after layout settles.
 // On mobile the grid reflows after DOMContentLoaded, so we wait a tick.
