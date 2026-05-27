@@ -1867,7 +1867,18 @@ async function loadTab(tab) {
       // initDateScrubber handles the initial render; nothing more to do
       if (!allResults.length) { renderPanel(null); renderMap(null); }
     } else {
-      if (allResults.length) {
+      // Walk allResults until we find one with blocks that actually
+      // match this tab's filter. Without this, a row like ann #14 —
+      // whose only live block was Flats and which has since closed —
+      // would still render with the wrapper window or fall through to
+      // announcement_date in the header. Caller wants what's actually
+      // happening; if no row qualifies, the empty-state message inside
+      // renderPanel handles it.
+      const chosen = await _firstRowWithVisibleBlocks(allResults, tab);
+      if (chosen) {
+        await loadAndRender(chosen);
+      } else if (allResults.length) {
+        // Show the first row's empty-state messaging.
         await loadAndRender(allResults[0]);
       } else {
         renderPanel(null);
@@ -2179,6 +2190,29 @@ function _blockMatchesTab(block, tab, nowMs) {
   if (tab === 'live')     return opensMs <= nowMs && nowMs < closesMs;
   if (tab === 'upcoming') return nowMs < opensMs;
   return true; // 'old' uses the scrubber-day filter, not this
+}
+
+// Peek at a result's HTML to decide whether any of its blocks belong
+// on this tab. Loads _html on demand (cached on the result object so
+// the subsequent loadAndRender doesn't refetch). Returns the first
+// result with at least one qualifying block, or null.
+async function _firstRowWithVisibleBlocks(results, tab) {
+  if (tab !== 'live' && tab !== 'upcoming') return results[0] || null;
+  const nowMs = Date.now();
+  for (const r of results) {
+    if (!r._html) {
+      try {
+        const resp = await fetch(`/api/result/${r.id}/html`);
+        if (resp.ok) r._html = await resp.text();
+      } catch (_) { continue; }
+    }
+    if (!r._html) continue;
+    const doc = new DOMParser().parseFromString(r._html, 'text/html');
+    const anyMatch = Array.from(doc.querySelectorAll('.time-block'))
+      .some(b => _blockMatchesTab(b, tab, nowMs));
+    if (anyMatch) return r;
+  }
+  return null;
 }
 
 // Filter + reorder cards based on per-block timing. Live = blocks
@@ -2517,18 +2551,16 @@ function updateHeaderFromVisibleBlocks(container, result) {
   if (!meta) return;
   const { opensMs, closesMs, count } = _visibleBlockWindow(container);
 
-  // Fallback for tabs that don't filter (or when no blocks parsed) —
-  // use the wrapper window so the header isn't blank.
-  if (!count) {
-    meta.textContent = (currentTab === 'old' || currentTab === 'upcoming')
-      ? fmtOpenWindow(result) : fmtDate(result);
-    return;
-  }
+  // Zero visible blocks → header has nothing meaningful to display.
+  // The announcement_date / wrapper window are DELIBERATELY never used
+  // — they describe the PDF, not the opener. The "row with no visible
+  // blocks" case is handled by the next-result auto-advance below; if
+  // we still got here with zero blocks, just leave the header blank.
+  if (!count) { meta.textContent = ''; return; }
 
   if (currentTab === 'live') {
-    // What the user wants on live: the closing time of what's open now.
-    // If multiple blocks are live and close at different times, show the
-    // soonest-to-close (most urgent).
+    // Closing time of what's open now. Soonest-to-close among visible
+    // blocks (most urgent).
     let soonestCloseMs = Infinity;
     container.querySelectorAll('.district-card').forEach(card => {
       if (card.style.display === 'none') return;
@@ -2544,21 +2576,25 @@ function updateHeaderFromVisibleBlocks(container, result) {
   }
 
   if (currentTab === 'upcoming') {
-    // Range of the visible (future) blocks. Same-day → single date with
-    // open time; multi-day → date range.
     const openDay  = _fmtAKDate(opensMs);
     const closeDay = _fmtAKDate(closesMs);
-    if (openDay === closeDay) {
-      meta.textContent = `Opens ${_fmtAKDateTime(opensMs)}`;
-    } else {
-      meta.textContent = `${openDay} – ${closeDay}`;
-    }
+    meta.textContent = (openDay === closeDay)
+      ? `Opens ${_fmtAKDateTime(opensMs)}`
+      : `${openDay} – ${closeDay}`;
     return;
   }
 
-  // old tab: wrapper window is fine because the SQL now enforces
-  // latest_closes_at < NOW(), so the whole announcement is past.
-  meta.textContent = fmtOpenWindow(result);
+  // old tab. ALWAYS from visible blocks — the scrubber has already
+  // narrowed to one date, so this collapses to that opener's actual
+  // window. NEVER use fmtOpenWindow(result) here — that would read
+  // the row's wrapper and bleed in unrelated future openers from the
+  // same announcement (e.g. 'May 26 – June 3' on the May 26 scrubber
+  // position).
+  const openDay  = _fmtAKDate(opensMs);
+  const closeDay = _fmtAKDate(closesMs);
+  meta.textContent = (openDay === closeDay)
+    ? `${_fmtAKDateTime(opensMs)} – ${_fmtAKDateTime(closesMs).split(', ').slice(-1)[0]}`
+    : `${openDay} – ${closeDay}`;
 }
 
 // Find the Copper River card (any name matching /copper.*river/i) and
