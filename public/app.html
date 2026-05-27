@@ -1938,24 +1938,30 @@ let scrubberIdx = 0;
 let currentScrubberDate = null; // YYYY-MM-DD AKDT — set while on 'old' tab
 
 function buildScrubberDates(results) {
-  // Map each result to every AKDT date within its opening window.
-  // Fall back to announcement_date if timestamps are absent.
-  const dateMap = {}; // 'YYYY-MM-DD' → Set of result ids
+  // Map each result to every AKDT date within its opening window, but
+  // CAP at today (AKDT) — old tab is historical, the scrubber must
+  // never propose a future date. Without this cap, an announcement
+  // spanning May 26→June 3 surfaces June 1-3 on the scrubber even
+  // though those days are still future.
+  const todayAKDT = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' });
+  const dateMap = {}; // 'YYYY-MM-DD' → list of result objects
 
   for (const r of results) {
     let dates = [];
 
     if (r.earliest_opens_at && r.latest_closes_at) {
-      // Walk day by day from open → close (in AKDT)
+      // Walk day by day from open → close (in AKDT), capping at today.
       const start = new Date(r.earliest_opens_at);
       const end   = new Date(r.latest_closes_at);
       let cur = new Date(start);
       while (cur <= end) {
-        dates.push(cur.toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' })); // YYYY-MM-DD
+        const iso = cur.toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' });
+        if (iso <= todayAKDT) dates.push(iso);
         cur = new Date(cur.getTime() + 86400000);
       }
     } else if (r.announcement_date) {
-      dates.push(String(r.announcement_date).substring(0, 10));
+      const iso = String(r.announcement_date).substring(0, 10);
+      if (iso <= todayAKDT) dates.push(iso);
     }
 
     for (const d of dates) {
