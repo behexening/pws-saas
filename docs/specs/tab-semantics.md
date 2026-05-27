@@ -87,44 +87,67 @@ The strings "May 23", "May 26 – Jun 3", "ANN #14", etc., must NEVER appear in 
 3. **If no opener qualifies for the current tab, render the empty state.** Do not pick an arbitrary announcement just to have something on screen.
 4. **Status badge ("Live Now" / "Opens X" / "Period Ended") is computed from visible openers.** If zero openers are visible, no badge.
 
-## Open Questions To Confirm Before Any More Code Changes
+## Locked Decisions
 
-These are points where I (Claude) am unsure how you want it. I will not
-assume. Please tick the one you want for each.
+### Q1 — Scrubber is per DAY, not per opener
+The Old tab scrubber walks **calendar days** (AKDT). An opener
+running `May 26 7am → May 28 8pm` registers May 26, May 27, AND
+May 28 on the scrubber. Days where NO opener was active are skipped
+(if nothing happened May 23-25, those ticks do not exist; the
+scrubber jumps from May 22 → May 26). Capped at today — no future
+days on the Old tab.
 
-### Q1: Multi-day openers on the Old tab scrubber
+### Q2 — Picker is per OPENER, not per announcement
+The Old tab's left-side picker shows one row per opener. If ann #14
+contains Flats / Montague / SW, those are three separate picker
+rows. The announcement is just attribution metadata on the row;
+the user is selecting an opener, not a PDF.
 
-An opener that ran `May 26 7am → May 28 8pm` is a single opener spanning
-three days. On the Old tab scrubber, does it:
+Row label format: `District · Mon D, Xam–Ypm`
+Example: `Copper River Flats · May 26, 7am–8pm`
 
-- **(a)** Surface as one entry "May 26–28" — user picks one position to see the opener
-- **(b)** Surface as three entries May 26 / May 27 / May 28 — each day is its own scrubber stop, and the same opener card is visible at all three positions
-- **(c)** Surface as one entry on its OPEN date (May 26) only
+Sort order in the picker: by `opens_at` ascending (soonest-to-open
+first, regardless of source announcement).
 
-### Q2: Multiple openers in one announcement on the ann-list picker
+### Q3 — Multiple openers on the same scrubber day all render together
+If Flats AND Coghill were both active on May 26, scrubbing to May 26
+on the Old tab shows BOTH cards together. If Flats closed that night
+but Coghill kept running into May 27, scrubbing to May 27 shows
+Coghill alone. Cards are sorted by their `opens_at` time of day
+(earliest first).
 
-Today the Old tab has an "announcement picker" (the `.ann-list` rows on
-the left). Each row currently represents one announcement (= one PDF).
-If ann #14 has three openers (Flats, Montague, SW), do you want:
+### Picker scope
+Only the Old tab has the per-opener picker. Live and Upcoming render
+a single panel showing whichever opener(s) are currently relevant
+(per the tab's filter rule). No picker on those two.
 
-- **(a)** One picker row per announcement, as today, and the scrubber + per-block filter handles which openers are visible.
-- **(b)** One picker row per opener (Flats / Montague / SW each get their own row, all attributed to ann #14).
-
-### Q3: Old tab when scrubbed to a multi-opener day
-
-If two separate openers both happened on May 26 — say Flats AND Coghill —
-and the user scrubs to May 26 on the Old tab, should the page show:
-
-- **(a)** Both Flats and Coghill cards together with header "May 26, …"
-- **(b)** Only one at a time, with the picker letting them switch
+### Header line
+Yes, keep the header. When exactly one opener is visible it reads
+that opener's window (e.g. `May 26, 7am–8pm`). When multiple openers
+are visible it reads the date only (e.g. `May 26`). Empty when zero
+openers are visible.
 
 ---
 
-After these are confirmed, the code changes are:
-1. Live / Upcoming SQL: stay broad (any wrapper overlap). Frontend skips
-   rows with no qualifying opener.
-2. Old SQL: any row with `earliest_opens_at < NOW()` (at least one
-   started opener). Already done.
-3. Scrubber: one entry per (per Q1 above).
-4. Renderer: every header / badge / list-row label derives from openers,
-   never from wrapper / announcement_date.
+## Implementation Plan
+
+1. Live / Upcoming SQL: stay broad (any wrapper overlap). Frontend
+   selects the soonest-relevant single row whose openers qualify;
+   shows empty state otherwise.
+2. Old SQL: any row with `earliest_opens_at < NOW()` (already done
+   in PR #82).
+3. Old tab eagerly loads `_html` for every row in `allResults`,
+   then extracts every `(districtKey, opens, closes)` opener tuple
+   across all rows into one flat `allOpeners` array.
+4. `buildScrubberDates(allOpeners)` returns unique AKDT calendar
+   days where at least one opener was active, capped at today,
+   sorted ascending.
+5. Ann-list picker re-renders to one row per opener, sorted by
+   `opens_at`, label `District · Mon D, Xam–Ypm`. Clicking a row
+   moves the scrubber to that opener's open date and renders that
+   day.
+6. Renderer assembles visible cards from whichever row(s) contain
+   openers active on the current scrubber day. Multi-row case is
+   handled by pulling each opener's source card from its parent
+   `_html` and merging into the grid.
+7. Header text derived from visible openers per the spec.
