@@ -46,6 +46,10 @@ if ! command -v pod >/dev/null 2>&1; then
   sudo gem install cocoapods --no-document
 fi
 
+echo "── npx cap sync ios (generates ios/App/App/{capacitor.config.json,config.xml,public/}) ──"
+cd "$REPO_ROOT"
+npx cap sync ios
+
 echo "── pod install ──"
 cd "$APP_DIR"
 pod install --repo-update
