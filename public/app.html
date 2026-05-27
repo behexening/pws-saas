@@ -1964,13 +1964,24 @@ let currentScrubberDate = null; // YYYY-MM-DD AKDT — set while on 'old' tab
 // already-loaded _html. Each opener carries a back-pointer to its
 // source result so the renderer can locate the right card later.
 function _extractAllOpeners(results) {
-  const out = [];
+  // Dedup by (districtKey, opensMs). ADF&G typically issues a new
+  // announcement that re-lists every still-future opener verbatim
+  // plus the new info — so without dedup, the Old-tab picker would
+  // show Eshamy / SW / Coghill / Montague twice when ann #14 and
+  // ann #15 both contain identical June 1 openers for them. Keep
+  // the entry from the most-recently-parsed announcement.
+  const byKey = new Map(); // 'districtKey|opensMs' → opener
   _openerIdSeq = 0;
-  for (const r of results) {
+  // Walk newest-first so the first entry seen for any (district,
+  // opens) tuple is authoritative.
+  const ordered = results.slice().sort((a, b) =>
+    new Date(b.parsed_at || 0) - new Date(a.parsed_at || 0));
+  for (const r of ordered) {
     if (!r._html) continue;
     let doc;
     try { doc = new DOMParser().parseFromString(r._html, 'text/html'); }
     catch (_) { continue; }
+    const parsedMs = new Date(r.parsed_at || 0).getTime();
     doc.querySelectorAll('.district-card').forEach(card => {
       const districtKey  = card.dataset.district || '';
       const nameEl       = card.querySelector('.district-name');
@@ -1978,10 +1989,14 @@ function _extractAllOpeners(results) {
       card.querySelectorAll('.time-block').forEach(block => {
         const { opensMs, closesMs } = _blockTimes(block);
         if (isNaN(opensMs) || isNaN(closesMs)) return;
+        const key = `${districtKey}|${opensMs}`;
+        const existing = byKey.get(key);
+        if (existing && existing.parsedMs >= parsedMs) return;
         const vals = block.querySelectorAll('.time-val');
-        out.push({
+        byKey.set(key, {
           id: 'op-' + (++_openerIdSeq),
           resultId: r.id,
+          parsedMs,
           districtKey,
           districtName,
           opensMs,
@@ -1992,7 +2007,7 @@ function _extractAllOpeners(results) {
       });
     });
   }
-  return out;
+  return Array.from(byKey.values());
 }
 
 function _akdtDayString(ms) {
@@ -2670,11 +2685,14 @@ function updateHeaderFromVisibleBlocks(container, result) {
   }
 
   if (currentTab === 'upcoming') {
-    const openDay  = _fmtAKDate(opensMs);
-    const closeDay = _fmtAKDate(closesMs);
-    meta.textContent = (openDay === closeDay)
-      ? `Opens ${_fmtAKDateTime(opensMs)}`
-      : `${openDay} – ${closeDay}`;
+    // Per spec (docs/specs/tab-semantics.md): single header value =
+    // the SOONEST opens across visible blocks. Bridging the soonest-
+    // opens to the latest-closes when the visible blocks are disjoint
+    // is misleading — e.g. CR/BR opens May 28 (closes same day),
+    // Montague opens June 1; 'May 28 – June 3' reads like a continuous
+    // window, which it isn't. Show 'Opens May 28, 7am' instead — the
+    // next thing about to happen.
+    meta.textContent = `Opens ${_fmtAKDateTime(opensMs)}`;
     return;
   }
 
