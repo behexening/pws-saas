@@ -2955,7 +2955,8 @@ document.getElementById('panel-share-btn')?.addEventListener('click', async () =
   // and any phone/tablet pass the touchstart check at runtime.
   if (!('ontouchstart' in window) && !navigator.maxTouchPoints) return;
 
-  const THRESHOLD = 72;        // px to commit a refresh
+  const HEAD      = 36;        // px of pull before the indicator even appears
+  const THRESHOLD = 110;       // px to commit a refresh — was 72, too sensitive
   const RESIST    = 0.45;      // post-threshold drag resistance
   let startY = null;
   let curY   = 0;
@@ -2982,20 +2983,33 @@ document.getElementById('panel-share-btn')?.addEventListener('click', async () =
   document.body.appendChild(ind);
 
   function setIndicator(dy) {
-    if (dy <= 0) {
+    // Below HEAD, indicator is invisible — prevents the flash that
+    // showed during a normal scroll-back-up gesture.
+    if (dy < HEAD) {
       ind.style.opacity = '0';
       ind.style.transform = 'translate(-50%, -40px)';
       return;
     }
     const visible = Math.min(dy, THRESHOLD + 40);
-    ind.style.opacity = String(Math.min(1, dy / 30));
+    ind.style.opacity = String(Math.min(1, (dy - HEAD) / 30));
     ind.style.transform = `translate(-50%, ${Math.max(-40 + visible * 0.5, 0)}px)`;
     ind.textContent = dy >= THRESHOLD ? 'Release to refresh' : 'Pull to refresh';
   }
 
+  function resetGesture() {
+    dragging = false;
+    startY = null;
+    curY = 0;
+    setIndicator(0);
+  }
+
   container.addEventListener('touchstart', (e) => {
     if (refreshing) return;
-    if (container.scrollTop > 0) { startY = null; return; }
+    // Only engage when the list is *already* at the top. If the touch
+    // begins mid-scroll, we never set dragging=true, so subsequent
+    // touchmoves are ignored even if the list scrolls past 0 during
+    // the gesture.
+    if (container.scrollTop > 0) { resetGesture(); return; }
     startY = e.touches[0].clientY;
     curY = 0;
     dragging = true;
@@ -3003,6 +3017,10 @@ document.getElementById('panel-share-btn')?.addEventListener('click', async () =
 
   container.addEventListener('touchmove', (e) => {
     if (!dragging || startY == null) return;
+    // Abandon mid-gesture if the container ever scrolls past the top —
+    // means the OS started a scroll instead of treating this as a pull.
+    // Fixes the "refresh fires on every scroll-back-up" bug.
+    if (container.scrollTop > 0) { resetGesture(); return; }
     const dy = e.touches[0].clientY - startY;
     if (dy <= 0) { curY = 0; setIndicator(0); return; }
     curY = dy < THRESHOLD ? dy : THRESHOLD + (dy - THRESHOLD) * RESIST;
@@ -3010,25 +3028,23 @@ document.getElementById('panel-share-btn')?.addEventListener('click', async () =
   }, { passive: true });
 
   container.addEventListener('touchend', async () => {
-    if (!dragging) return;
-    dragging = false;
+    if (!dragging) { setIndicator(0); return; }
     const commit = curY >= THRESHOLD;
-    if (!commit) { setIndicator(0); return; }
+    resetGesture();
+    if (!commit) return;
     refreshing = true;
     ind.textContent = 'Refreshing…';
     ind.style.opacity = '1';
+    ind.style.transform = 'translate(-50%, 8px)';
     try { await loadTab(currentTab); }
     catch (e) { console.error('PTR loadTab failed', e); }
     finally {
       refreshing = false;
-      curY = 0;
       setTimeout(() => setIndicator(0), 220);
     }
   });
 
-  container.addEventListener('touchcancel', () => {
-    dragging = false; curY = 0; setIndicator(0);
-  });
+  container.addEventListener('touchcancel', resetGesture);
 })();
 
 loadTab('live');
