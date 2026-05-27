@@ -1579,6 +1579,11 @@ let lastFittedResultId = null;  // last announcement id we ran fitBounds for —
                                 // resetting the user's zoom level.
 let currentTab = 'live';
 let allResults = [];
+// Old-tab only. Flattened across allResults so the scrubber + picker
+// can operate per-opener (Q1/Q2 in docs/specs/tab-semantics.md).
+// Populated by _extractAllOpeners() after we eager-load HTMLs.
+let allOpeners = [];
+let _openerIdSeq = 0;
 
 // ── Static district polygons — fetched ONCE at page load ─────────────────
 // Districts never change between announcements. Previously the full
@@ -1863,9 +1868,19 @@ async function loadTab(tab) {
     allResults = data.results || [];
 
     if (tab === 'old') {
-      initDateScrubber(allResults);
-      // initDateScrubber handles the initial render; nothing more to do
-      if (!allResults.length) { renderPanel(null); renderMap(null); }
+      // Per-opener model (docs/specs/tab-semantics.md): eager-load every
+      // result's HTML so we can flatten openers across the whole tab,
+      // then build the scrubber + picker from openers, not from rows.
+      await Promise.all(allResults.map(async (r) => {
+        if (r._html) return;
+        try {
+          const resp = await fetch(`/api/result/${r.id}/html`);
+          if (resp.ok) r._html = await resp.text();
+        } catch (_) { /* skip — that row just contributes no openers */ }
+      }));
+      allOpeners = _extractAllOpeners(allResults);
+      initDateScrubber(allOpeners);
+      if (!allOpeners.length) { renderPanel(null); renderMap(null); }
     } else {
       // Walk allResults to find one with blocks that actually match
       // this tab's filter. If NONE qualify, show empty state — do NOT
@@ -1945,42 +1960,90 @@ let scrubberDates = [];
 let scrubberIdx = 0;
 let currentScrubberDate = null; // YYYY-MM-DD AKDT — set while on 'old' tab
 
-function buildScrubberDates(results) {
-  // Map each result to every AKDT date within its opening window, but
-  // CAP at today (AKDT) — old tab is historical, the scrubber must
-  // never propose a future date. Without this cap, an announcement
-  // spanning May 26→June 3 surfaces June 1-3 on the scrubber even
-  // though those days are still future.
-  const todayAKDT = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' });
-  const dateMap = {}; // 'YYYY-MM-DD' → list of result objects
-
+// Pull every (district, opens, closes) opener out of every result's
+// already-loaded _html. Each opener carries a back-pointer to its
+// source result so the renderer can locate the right card later.
+function _extractAllOpeners(results) {
+  const out = [];
+  _openerIdSeq = 0;
   for (const r of results) {
-    let dates = [];
+    if (!r._html) continue;
+    let doc;
+    try { doc = new DOMParser().parseFromString(r._html, 'text/html'); }
+    catch (_) { continue; }
+    doc.querySelectorAll('.district-card').forEach(card => {
+      const districtKey  = card.dataset.district || '';
+      const nameEl       = card.querySelector('.district-name');
+      const districtName = (nameEl ? nameEl.textContent : districtKey).trim();
+      card.querySelectorAll('.time-block').forEach(block => {
+        const { opensMs, closesMs } = _blockTimes(block);
+        if (isNaN(opensMs) || isNaN(closesMs)) return;
+        const vals = block.querySelectorAll('.time-val');
+        out.push({
+          id: 'op-' + (++_openerIdSeq),
+          resultId: r.id,
+          districtKey,
+          districtName,
+          opensMs,
+          closesMs,
+          opensIso:  vals[0] ? vals[0].textContent.trim() : '',
+          closesIso: vals[1] ? vals[1].textContent.trim() : '',
+        });
+      });
+    });
+  }
+  return out;
+}
 
-    if (r.earliest_opens_at && r.latest_closes_at) {
-      // Walk day by day from open → close (in AKDT), capping at today.
-      const start = new Date(r.earliest_opens_at);
-      const end   = new Date(r.latest_closes_at);
-      let cur = new Date(start);
-      while (cur <= end) {
-        const iso = cur.toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' });
-        if (iso <= todayAKDT) dates.push(iso);
-        cur = new Date(cur.getTime() + 86400000);
+function _akdtDayString(ms) {
+  return new Date(ms).toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' });
+}
+
+function _addOneDayIso(iso) {
+  const d = new Date(iso + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().substring(0, 10);
+}
+
+function _fmtAKTimeOnly(ms) {
+  // 7am / 7:30am / 8pm — terse, lower-case to match brand voice.
+  return new Date(ms).toLocaleString('en-US', {
+    hour: 'numeric', minute: '2-digit', timeZone: 'America/Anchorage', hour12: true,
+  }).replace(/\s/g, '').replace(/:00/g, '').toLowerCase();
+}
+
+function _fmtOpenerWindow(op) {
+  // 'May 26, 7am-8pm' for single-day; 'May 26 7am – May 28 8pm' otherwise.
+  const startDay = _fmtAKDate(op.opensMs);
+  const endDay   = _fmtAKDate(op.closesMs - 1);
+  const startT   = _fmtAKTimeOnly(op.opensMs);
+  const endT     = _fmtAKTimeOnly(op.closesMs);
+  if (startDay === endDay) return `${startDay}, ${startT}–${endT}`;
+  return `${startDay} ${startT} – ${endDay} ${endT}`;
+}
+
+// Build scrubber ticks per CALENDAR DAY (AKDT). One tick per day where
+// at least one opener was active. Skip days with no opener entirely;
+// cap at today so the scrubber can't propose future days. Each tick
+// carries the list of openers active that day.
+function buildScrubberDates(openers) {
+  const todayAKDT = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Anchorage' });
+  const dayMap = {}; // 'YYYY-MM-DD' → [opener, ...]
+  for (const op of openers) {
+    const startAKDT = _akdtDayString(op.opensMs);
+    // closesMs is exclusive (opener ends AT that instant). Subtract 1ms
+    // so an 8pm-Tuesday close belongs to Tuesday, not bleeding into Wed.
+    const endAKDT   = _akdtDayString(op.closesMs - 1);
+    let cur = startAKDT;
+    while (cur <= endAKDT) {
+      if (cur <= todayAKDT) {
+        if (!dayMap[cur]) dayMap[cur] = [];
+        dayMap[cur].push(op);
       }
-    } else if (r.announcement_date) {
-      const iso = String(r.announcement_date).substring(0, 10);
-      if (iso <= todayAKDT) dates.push(iso);
-    }
-
-    for (const d of dates) {
-      if (!dateMap[d]) dateMap[d] = [];
-      // Avoid duplicates
-      if (!dateMap[d].find(x => x.id === r.id)) dateMap[d].push(r);
+      cur = _addOneDayIso(cur);
     }
   }
-
-  // Sort dates ascending
-  return Object.keys(dateMap).sort().map(d => ({ date: d, results: dateMap[d] }));
+  return Object.keys(dayMap).sort().map(d => ({ date: d, openers: dayMap[d] }));
 }
 
 function fmtScrubberDate(isoDate) {
@@ -1990,21 +2053,21 @@ function fmtScrubberDate(isoDate) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
-function initDateScrubber(results) {
+function initDateScrubber(openers) {
   const scrubber = document.getElementById('date-scrubber');
   const annList  = document.getElementById('ann-list');
 
-  if (!results.length) {
+  if (!openers.length) {
     scrubber.style.display = 'none';
-    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:0.6875rem">No past announcements.</div>';
+    if (annList) annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:0.6875rem">No past openers.</div>';
     return;
   }
 
-  scrubberDates = buildScrubberDates(results);
+  scrubberDates = buildScrubberDates(openers);
 
   if (!scrubberDates.length) {
     scrubber.style.display = 'none';
-    renderAnnList(results, results[0]);
+    renderAnnList(openers, null);
     return;
   }
 
@@ -2031,15 +2094,18 @@ function applyScrubberIndex(idx, autoLoad) {
   document.getElementById('scrubber-status').textContent =
     `${idx + 1} / ${scrubberDates.length}`;
 
-  // Pick the result with the widest open window for this date
-  const dayResults = entry.results.slice().sort((a, b) => {
-    if (b.has_open_districts !== a.has_open_districts) return b.has_open_districts ? 1 : -1;
-    return new Date(b.earliest_opens_at || 0) - new Date(a.earliest_opens_at || 0);
-  });
-  const chosen = dayResults[0];
+  // Pick a result row to render. Today's openers may live in 1+ rows;
+  // pick the most-recently-parsed one. Multi-row days are handled
+  // through filterCardsByScrubberDate which hides any block not
+  // spanning the scrubbed date, so unrelated openers vanish even if
+  // the row also contains them.
+  const resultIds = Array.from(new Set(entry.openers.map(o => o.resultId)));
+  const candidates = allResults.filter(r => resultIds.includes(r.id));
+  candidates.sort((a, b) => new Date(b.parsed_at || 0) - new Date(a.parsed_at || 0));
+  const chosen = candidates[0];
 
-  renderAnnList(allResults, chosen);
-  if (autoLoad !== false) loadAndRender(chosen);
+  renderAnnList(allOpeners, entry);
+  if (autoLoad !== false && chosen) loadAndRender(chosen);
 }
 
 function onSliderInput(val) {
@@ -2051,57 +2117,67 @@ function stepSlider(delta) {
   if (next !== scrubberIdx) applyScrubberIndex(next);
 }
 
-function renderAnnList(results, activeResult) {
+// Per-opener picker (Old tab). One row per opener, sorted by opens
+// ascending. Rows for openers active on the current scrubber day are
+// highlighted. Clicking a row jumps the scrubber to that opener's
+// open day.
+function renderAnnList(openers, activeEntry) {
   const annList = document.getElementById('ann-list');
-  if (!results.length) {
-    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:0.6875rem">No past announcements.</div>';
+  if (!annList) return;
+  if (!openers.length) {
+    annList.innerHTML = '<div class="no-data" style="padding:12px;font-size:0.6875rem">No past openers.</div>';
     return;
   }
-  annList.innerHTML = results.map(r => {
-    const cnt = (r.districts || []).length;
-    const isActive = activeResult && r.id === activeResult.id;
-    const openLabel = r.has_open_districts
-      ? '<span style="color:var(--open);font-weight:700">open</span>'
-      : '<span style="color:var(--muted)">closed</span>';
-    const statusWord = r.has_open_districts ? 'open' : 'closed';
-    const label = fmtOpenWindow(r);
-    const ariaLabel = `Opening ${label}, ${cnt} ${cnt === 1 ? 'district' : 'districts'}, ${statusWord}`;
-    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" data-result-id="${r.id}" aria-label="${ariaLabel}">
-      <span class="ann-date">${label}</span>
-      <span class="ann-meta" aria-hidden="true">${cnt} dist &middot; ${openLabel}</span>
+  const sorted = openers.slice().sort((a, b) => a.opensMs - b.opensMs);
+  const activeIds = new Set((activeEntry && activeEntry.openers || []).map(o => o.id));
+  annList.innerHTML = sorted.map(op => {
+    const isActive = activeIds.has(op.id);
+    const window   = _fmtOpenerWindow(op);
+    const district = op.districtName.replace(/[<>&"']/g, '');
+    const ariaLabel = `${district}, ${window}`;
+    return `<div class="ann-row${isActive ? ' ann-active' : ''}" role="button" tabindex="0" data-opener-id="${op.id}" aria-label="${ariaLabel}">
+      <span class="ann-date">${district} &middot; ${window}</span>
     </div>`;
   }).join('');
 
   annList.querySelectorAll('.ann-row').forEach(row => {
-    const id = Number(row.dataset.resultId);
-    row.addEventListener('click', () => selectAnnouncement(id, row));
+    const id = row.dataset.openerId;
+    row.addEventListener('click', () => selectOpener(id));
     row.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectAnnouncement(id, row); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectOpener(id); }
     });
   });
 }
 
+function selectOpener(openerId) {
+  const op = allOpeners.find(o => o.id === openerId);
+  if (!op) return;
+  // Jump the scrubber to this opener's open day. applyScrubberIndex
+  // does the rest (renders the day, refreshes ann-list highlight).
+  const targetDay = _akdtDayString(op.opensMs);
+  const idx = scrubberDates.findIndex(e => e.date === targetDay);
+  if (idx >= 0) applyScrubberIndex(idx, true);
+}
+
+// Kept for backwards-compat with any caller in the old code path —
+// route to the new opener-aware selectOpener via a result-level
+// lookup. Unused on the Old tab after this refactor.
 function selectAnnouncement(id, el) {
   document.querySelectorAll('.ann-row').forEach(r => r.classList.remove('ann-active'));
-  el.classList.add('ann-active');
+  if (el) el.classList.add('ann-active');
   const result = allResults.find(r => r.id === id);
   if (!result) return;
 
-  // Sync scrubber to this announcement's date
   if (scrubberDates.length) {
-    const targetDate = result.announcement_date
-      ? String(result.announcement_date).substring(0, 10)
-      : null;
-    if (targetDate) {
-      const matchIdx = scrubberDates.findIndex(e =>
-        e.results.some(r => r.id === id)
-      );
-      if (matchIdx >= 0) {
-        scrubberIdx = matchIdx;
-        document.getElementById('date-slider').value = scrubberIdx;
-        document.getElementById('scrubber-date-display').textContent = fmtScrubberDate(scrubberDates[matchIdx].date);
-        document.getElementById('scrubber-status').textContent = `${scrubberIdx + 1} / ${scrubberDates.length}`;
-      }
+    // Find the first scrubber day with an opener belonging to this row.
+    const matchIdx = scrubberDates.findIndex(e =>
+      e.openers && e.openers.some(o => o.resultId === id)
+    );
+    if (matchIdx >= 0) {
+      scrubberIdx = matchIdx;
+      document.getElementById('date-slider').value = scrubberIdx;
+      document.getElementById('scrubber-date-display').textContent = fmtScrubberDate(scrubberDates[matchIdx].date);
+      document.getElementById('scrubber-status').textContent = `${scrubberIdx + 1} / ${scrubberDates.length}`;
     }
   }
 
