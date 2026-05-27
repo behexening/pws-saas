@@ -1867,19 +1867,16 @@ async function loadTab(tab) {
       // initDateScrubber handles the initial render; nothing more to do
       if (!allResults.length) { renderPanel(null); renderMap(null); }
     } else {
-      // Walk allResults until we find one with blocks that actually
-      // match this tab's filter. Without this, a row like ann #14 —
-      // whose only live block was Flats and which has since closed —
-      // would still render with the wrapper window or fall through to
-      // announcement_date in the header. Caller wants what's actually
-      // happening; if no row qualifies, the empty-state message inside
-      // renderPanel handles it.
+      // Walk allResults to find one with blocks that actually match
+      // this tab's filter. If NONE qualify, show empty state — do NOT
+      // fall back to allResults[0]. The previous fallback rendered the
+      // ann #14 row on the live tab even though all of its blocks were
+      // either past (Flats) or future (Montague), surfacing a wrapper-
+      // based 'Live Now' badge on a row with literally nothing live.
       const chosen = await _firstRowWithVisibleBlocks(allResults, tab);
+      currentResult = chosen || null;
       if (chosen) {
         await loadAndRender(chosen);
-      } else if (allResults.length) {
-        // Show the first row's empty-state messaging.
-        await loadAndRender(allResults[0]);
       } else {
         renderPanel(null);
         renderMap(null);
@@ -2275,30 +2272,15 @@ function renderPanel(result) {
     else closedCount++;
   });
 
-  // Status badge based on opening window
+  // Status badge — DELIBERATELY blanked here. The recompute at the end
+  // of renderPanel (updateStatusBadgeFromVisibleBlocks) sets it from
+  // the actual visible blocks after the filter runs. Using the row's
+  // wrapper window here was the 'Live Now / 0 Open' bug: an
+  // announcement with Flats (already closed) + Montague (still future)
+  // had wrapper [May 26, June 3] so the badge said 'Live Now' on May 27
+  // despite nothing actually being open in that window.
   const badgeEl = document.getElementById('panel-status-badge');
-  const now = new Date();
-  if (result.earliest_opens_at) {
-    const opensAt  = new Date(result.earliest_opens_at);
-    const closesAt = result.latest_closes_at ? new Date(result.latest_closes_at) : null;
-    const opensValid  = !isNaN(opensAt.getTime());
-    const closesValid = closesAt && !isNaN(closesAt.getTime());
-    if (opensValid && now < opensAt) {
-      const opStr = opensAt.toLocaleString('en-US', {
-        timeZone: 'America/Anchorage', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-      });
-      badgeEl.innerHTML = `<span class="status-badge upcoming">Opens ${opStr}</span>`;
-    } else if (opensValid && (!closesValid || now <= closesAt)) {
-      badgeEl.innerHTML = `<span class="status-badge live-now">Live Now</span>`;
-    } else if (opensValid) {
-      badgeEl.innerHTML = `<span class="status-badge ended">Period Ended</span>`;
-    } else {
-      badgeEl.innerHTML = '';
-    }
-  } else {
-    badgeEl.innerHTML = '';
-  }
+  badgeEl.innerHTML = '';
 
   header.style.display = 'block';
   // Header text is recomputed from VISIBLE blocks after the per-tab
@@ -2508,6 +2490,42 @@ function renderPanel(result) {
   // need the range of the still-future blocks, not the wrapper. See
   // the DATE MODEL block above for the why.
   updateHeaderFromVisibleBlocks(container, result);
+  updateStatusBadgeFromVisibleBlocks(container);
+}
+
+// Set the Live Now / Opens / Period Ended badge based on what the user
+// is actually seeing. Counts a visible block as live iff opens<=now<closes;
+// upcoming iff now<opens; ended iff closes<=now. Mixed results across
+// multiple visible blocks resolve in priority order: any live → Live Now;
+// else any upcoming → Opens <soonest>; else Period Ended; else blank.
+function updateStatusBadgeFromVisibleBlocks(container) {
+  const badgeEl = document.getElementById('panel-status-badge');
+  if (!badgeEl) return;
+  const now = Date.now();
+  let anyLive = false;
+  let soonestOpensMs = Infinity;
+  let anyEnded = false;
+  container.querySelectorAll('.district-card').forEach(card => {
+    if (card.style.display === 'none') return;
+    card.querySelectorAll('.time-block').forEach(block => {
+      if (block.style.display === 'none') return;
+      const { opensMs, closesMs } = _blockTimes(block);
+      if (isNaN(opensMs) || isNaN(closesMs)) return;
+      if (opensMs <= now && now < closesMs) anyLive = true;
+      else if (now < opensMs) {
+        if (opensMs < soonestOpensMs) soonestOpensMs = opensMs;
+      } else anyEnded = true;
+    });
+  });
+  if (anyLive) {
+    badgeEl.innerHTML = '<span class="status-badge live-now">Live Now</span>';
+  } else if (isFinite(soonestOpensMs)) {
+    badgeEl.innerHTML = `<span class="status-badge upcoming">Opens ${_fmtAKDateTime(soonestOpensMs)}</span>`;
+  } else if (anyEnded) {
+    badgeEl.innerHTML = '<span class="status-badge ended">Period Ended</span>';
+  } else {
+    badgeEl.innerHTML = '';
+  }
 }
 
 // Walk the visible .time-block elements in the container, return the
