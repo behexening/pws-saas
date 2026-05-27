@@ -23,15 +23,28 @@ echo "CI_PRIMARY_REPOSITORY_PATH=$CI_PRIMARY_REPOSITORY_PATH"
 # (covers running this script locally for testing).
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$APP_DIR/../.." && pwd)"
 echo "APP_DIR=$APP_DIR"
+echo "REPO_ROOT=$REPO_ROOT"
+
+# Our Podfile line 1 is:
+#   require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
+# So pod install needs node_modules in place. Xcode Cloud's runner
+# doesn't run npm install for us; do it here. --no-audit / --no-fund
+# silence noise; --legacy-peer-deps skips peer-dep resolution that
+# isn't relevant for the iOS helper script.
+echo "── npm install (so the Capacitor Podfile helper is on disk) ──"
+cd "$REPO_ROOT"
+npm install --no-audit --no-fund --legacy-peer-deps
 
 # Xcode Cloud's base image ships with Ruby + gem but not necessarily
 # cocoapods. Install it for this build only.
 if ! command -v pod >/dev/null 2>&1; then
-  echo "Installing cocoapods…"
+  echo "── Installing cocoapods ──"
   sudo gem install cocoapods --no-document
 fi
 
+echo "── pod install ──"
 cd "$APP_DIR"
 pod install --repo-update
 echo "── Pods ready ──"

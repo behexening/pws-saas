@@ -109,3 +109,8 @@ android/captures/
 android/local.properties
 android/.idea/
 
+
+# Local-only secrets that must never go to GitHub. Reviewer creds,
+# private notes about live accounts, anything that would compromise
+# the prod surface if leaked.
+docs/admin-secrets/
