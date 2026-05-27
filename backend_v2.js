@@ -3278,8 +3278,7 @@ app.get('/api/results/live', async (req, res) => {
              OR announcement_date = ((NOW() AT TIME ZONE 'America/Anchorage') + INTERVAL '1 day')::date
            )
          )
-       ORDER BY
-         COALESCE(earliest_opens_at, parsed_at) DESC
+       ORDER BY parsed_at DESC
        LIMIT 10`
     );
     res.json({ results: result.rows });
@@ -3317,7 +3316,7 @@ app.get('/api/results/upcoming', async (req, res) => {
        FROM parsed_results
        WHERE latest_closes_at IS NOT NULL
          AND latest_closes_at > NOW()
-       ORDER BY COALESCE(earliest_opens_at, parsed_at) ASC
+       ORDER BY parsed_at DESC
        LIMIT 20`
     );
     res.json({ results: result.rows });
