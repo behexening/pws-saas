@@ -431,6 +431,25 @@
       gap: 6px;
     }
 
+    /* Sections produced by regroupVisibleByOpens — one per opens_at on
+       the upcoming tab so disjoint future openers don't pile under the
+       same misleading header. */
+    .opener-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .opener-group + .opener-group { margin-top: 14px; }
+    .opener-group-header {
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 6px 4px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
     .district-card {
       background: var(--surface);
       border-radius: 0;
@@ -2335,6 +2354,121 @@ function filterAndSortCardsByTab(container, tab) {
     .forEach(c => grid.appendChild(c));
 }
 
+// Attach the expand-on-click + keyboard handlers that make a card
+// behave like an accessible button. Pulled out of renderPanel because
+// regroupVisibleByOpens clones cards into sections and the clones
+// also need handlers.
+function _attachCardHandlers(card) {
+  const districtId = card.dataset.district || 'district';
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('role', 'button');
+  card.setAttribute('aria-expanded', 'false');
+  card.setAttribute('aria-label', districtId + ' — view on map, tap to read source notes');
+
+  const hasNotes = !!card.querySelector('.card-notes');
+  if (hasNotes && !card.querySelector('.card-chevron')) {
+    const header = card.querySelector('.card-header');
+    if (header) {
+      const chev = document.createElement('span');
+      chev.className = 'card-chevron';
+      chev.setAttribute('aria-hidden', 'true');
+      chev.textContent = '+';
+      header.appendChild(chev);
+    }
+  }
+
+  const toggle = (collapseOnly) => {
+    const expanded = card.classList.contains('expanded');
+    if (collapseOnly && expanded) {
+      card.classList.remove('expanded');
+      card.setAttribute('aria-expanded', 'false');
+      const chev = card.querySelector('.card-chevron'); if (chev) chev.textContent = '+';
+      return true;
+    }
+    if (!expanded && hasNotes) {
+      card.classList.add('expanded');
+      card.setAttribute('aria-expanded', 'true');
+      const chev = card.querySelector('.card-chevron'); if (chev) chev.textContent = '−';
+    }
+    return false;
+  };
+
+  card.addEventListener('click', (e) => {
+    const onHeader = !!e.target.closest('.card-header');
+    const collapsed = toggle(onHeader);
+    if (collapsed) return;
+    highlightDistrict(districtId);
+  });
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggle(false);
+      highlightDistrict(districtId);
+    }
+  });
+}
+
+// Reorganize visible (card, block) pairs into `<section.opener-group>`
+// blocks, one per unique opens_at, sorted by opens ascending. Each
+// section gets its own header like 'Opens May 28, 7am' so cards
+// underneath only ever represent openers that share that exact opens_at.
+// A district with multiple visible blocks at different opens_at values
+// is CLONED into each group; the cloned card only shows that group's
+// block. This fixes the 'Opens May 28' header sitting above June 1
+// Montague cards bug.
+function regroupVisibleByOpens(container, opts) {
+  const grid = container.querySelector('.cards-grid');
+  if (!grid) return;
+  const label = (opts && opts.label) || 'Opens';
+
+  const pairs = [];
+  grid.querySelectorAll('.district-card').forEach(card => {
+    if (card.style.display === 'none') return;
+    card.querySelectorAll('.time-block').forEach(block => {
+      if (block.style.display === 'none') return;
+      const { opensMs } = _blockTimes(block);
+      if (isNaN(opensMs)) return;
+      pairs.push({ card, block, opensMs, opensIso: block.dataset.opens || String(opensMs) });
+    });
+  });
+  if (pairs.length === 0) return;
+
+  const groupMap = new Map();
+  for (const p of pairs) {
+    if (!groupMap.has(p.opensIso)) {
+      groupMap.set(p.opensIso, { opensMs: p.opensMs, cardMap: new Map() });
+    }
+    const g = groupMap.get(p.opensIso);
+    if (!g.cardMap.has(p.card)) g.cardMap.set(p.card, []);
+    g.cardMap.get(p.card).push(p.block);
+  }
+  const groups = Array.from(groupMap.values()).sort((a, b) => a.opensMs - b.opensMs);
+
+  // If everything collapses to a single group, there is no ambiguity
+  // worth fragmenting the layout — leave the grid alone.
+  if (groups.length <= 1) return;
+
+  grid.innerHTML = '';
+  for (const g of groups) {
+    const section = document.createElement('section');
+    section.className = 'opener-group';
+    const head = document.createElement('div');
+    head.className = 'opener-group-header';
+    head.textContent = `${label} ${_fmtAKDateTime(g.opensMs)}`;
+    section.appendChild(head);
+    g.cardMap.forEach((blocks, originalCard) => {
+      const cloned = originalCard.cloneNode(true);
+      const wantedKeys = new Set(blocks.map(b => b.dataset.opens || ''));
+      cloned.querySelectorAll('.time-block').forEach(b => {
+        b.style.display = wantedKeys.has(b.dataset.opens || '') ? '' : 'none';
+      });
+      _attachCardHandlers(cloned);
+      section.appendChild(cloned);
+    });
+    grid.appendChild(section);
+  }
+}
+
 // ── Render district cards ──
 function renderPanel(result) {
   const container = document.getElementById('cards-container');
@@ -2460,57 +2594,7 @@ function renderPanel(result) {
   container.innerHTML = '';
   container.appendChild(grid);
 
-  container.querySelectorAll('.district-card').forEach(card => {
-    const districtId = card.dataset.district || 'district';
-    card.setAttribute('tabindex', '0');
-    card.setAttribute('role', 'button');
-    card.setAttribute('aria-expanded', 'false');
-    card.setAttribute('aria-label', districtId + ' — view on map, tap to read source notes');
-
-    // Add a small disclosure chevron, but only if the card has notes to reveal
-    const hasNotes = !!card.querySelector('.card-notes');
-    if (hasNotes) {
-      const header = card.querySelector('.card-header');
-      if (header && !header.querySelector('.card-chevron')) {
-        const chev = document.createElement('span');
-        chev.className = 'card-chevron';
-        chev.setAttribute('aria-hidden', 'true');
-        chev.textContent = '+';
-        header.appendChild(chev);
-      }
-    }
-
-    const toggle = (collapseOnly) => {
-      const expanded = card.classList.contains('expanded');
-      if (collapseOnly && expanded) {
-        card.classList.remove('expanded');
-        card.setAttribute('aria-expanded', 'false');
-        const chev = card.querySelector('.card-chevron'); if (chev) chev.textContent = '+';
-        return true;
-      }
-      if (!expanded && hasNotes) {
-        card.classList.add('expanded');
-        card.setAttribute('aria-expanded', 'true');
-        const chev = card.querySelector('.card-chevron'); if (chev) chev.textContent = '−';
-      }
-      return false;
-    };
-
-    card.addEventListener('click', (e) => {
-      // Click on header of an already-expanded card → collapse only (suppress pan)
-      const onHeader = !!e.target.closest('.card-header');
-      const collapsed = toggle(onHeader);
-      if (collapsed) return;
-      highlightDistrict(districtId);
-    });
-    card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggle(false);
-        highlightDistrict(districtId);
-      }
-    });
-  });
+  container.querySelectorAll('.district-card').forEach(_attachCardHandlers);
 
   // Prettify Opens/Closes ISO timestamps → "August 26 2025, 8am–8pm" (AKDT)
   container.querySelectorAll('.time-block').forEach(prettifyTimeBlock);
@@ -2521,6 +2605,15 @@ function renderPanel(result) {
     filterAndSortCardsByTab(container, currentTab);
   } else if (currentTab === 'old' && currentScrubberDate) {
     filterCardsByScrubberDate(container, currentScrubberDate);
+  }
+
+  // Upcoming-only: visible blocks may belong to disjoint future
+  // openers (e.g. CR/BR opens May 28, Montague opens June 1). One
+  // shared header above all the cards would be misleading. Rebuild
+  // the grid as sections grouped by opens_at, each with its own
+  // 'Opens <date, time>' header.
+  if (currentTab === 'upcoming') {
+    regroupVisibleByOpens(container, { label: 'Opens', tense: 'opens' });
   }
 
   // Stats pill + district-code chips must reflect what the user *sees*
@@ -2685,14 +2778,12 @@ function updateHeaderFromVisibleBlocks(container, result) {
   }
 
   if (currentTab === 'upcoming') {
-    // Per spec (docs/specs/tab-semantics.md): single header value =
-    // the SOONEST opens across visible blocks. Bridging the soonest-
-    // opens to the latest-closes when the visible blocks are disjoint
-    // is misleading — e.g. CR/BR opens May 28 (closes same day),
-    // Montague opens June 1; 'May 28 – June 3' reads like a continuous
-    // window, which it isn't. Show 'Opens May 28, 7am' instead — the
-    // next thing about to happen.
-    meta.textContent = `Opens ${_fmtAKDateTime(opensMs)}`;
+    // The cards are grouped under per-opens_at section headers
+    // (regroupVisibleByOpens), so the top-of-panel header would be
+    // redundant — and a single value here would either lie (range
+    // 'May 28 – June 3' across disjoint openers) or duplicate the
+    // first group's header. Blank it.
+    meta.textContent = '';
     return;
   }
 
