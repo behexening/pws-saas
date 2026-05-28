@@ -729,16 +729,37 @@ async function verifyPassword(password, stored) {
   });
 }
 
+// Tiny cookie reader so we don't pull in cookie-parser just for the
+// native-OAuth flag below. The cookie value sits in req.headers.cookie
+// regardless of middleware.
+function _getReqCookie(req, name) {
+  const raw = req.headers.cookie || '';
+  for (const part of raw.split(/;\s*/)) {
+    const eq = part.indexOf('=');
+    if (eq === -1) continue;
+    if (part.slice(0, eq) === name) return decodeURIComponent(part.slice(eq + 1));
+  }
+  return null;
+}
+
 // Start Google OAuth flow. When opened from the native shell via
 // Capacitor's Browser plugin (in-app SFSafariViewController), the URL
-// carries ?native=1 — we stash that on the session so the callback
-// below knows to issue a bearer JWT and bounce back through
-// /auth/native-return instead of the normal web redirect.
+// carries ?native=1 — store that intent on BOTH the session AND a
+// short-lived cookie. The cookie is the reliable signal: SameSite=Lax
+// survives the cross-site bounce from Google back to us; session
+// persistence has been flaky on SFSafariViewController in practice.
 app.get('/auth/google', (req, res, next) => {
   if (req.query.native === '1') {
     req.session.native_oauth_flow = true;
+    res.cookie('akfi_native_oauth', '1', {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge:   10 * 60 * 1000,
+    });
   } else {
     delete req.session.native_oauth_flow;
+    res.clearCookie('akfi_native_oauth');
   }
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
@@ -748,8 +769,14 @@ app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login?error=1' }),
   async (req, res) => {
     req.session.cookie.maxAge = THIRTY_DAYS;
-    const wasNative = !!req.session.native_oauth_flow;
+    // Native flag — read EITHER the session field OR the
+    // SameSite=Lax cookie. Either one being set is enough; clear both
+    // either way so it can't leak into a subsequent web flow.
+    const wasNative =
+      !!req.session.native_oauth_flow ||
+      _getReqCookie(req, 'akfi_native_oauth') === '1';
     delete req.session.native_oauth_flow;
+    res.clearCookie('akfi_native_oauth');
 
     if (wasNative) {
       // Native shell opened this via Capacitor Browser
