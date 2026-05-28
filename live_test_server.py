@@ -2279,7 +2279,12 @@ def build_html(all_results, geojson_data, pdf_texts):
                     print(f"  Restricted Southwestern-style opening to: "
                           f"{', '.join(restrict_hatch_names)}", file=sys.stderr)
 
-            suspend_anadromous = bool(d.get('anadromous_closures_suspended'))
+            # Anadromous-closure suspension was rolled back (PR #64/#65
+            # disabled in 2026-05). Stream-buffer points always render on
+            # the map; the parser no longer modifies geometry based on
+            # the announcement's suspension language. Flag stays in the
+            # JSON output for forensics, but downstream is hardcoded off.
+            suspend_anadromous = False
             open_geom = extract_open_geom(starting_geom, closures, excl_geoms_list,
                                           suspend_anadromous=suspend_anadromous)
             if open_geom is None:
@@ -2309,20 +2314,11 @@ def build_html(all_results, geojson_data, pdf_texts):
                 'geometry': _sg.mapping(open_geom),
             })
 
-            # Track zones where the static AWC stream overlay should be hidden
-            # while THIS announcement is being displayed. Driven off the same
-            # anadromous_closures_suspended flag the geometry pipeline used —
-            # the suspended zone IS the open polygon (the announcement scopes
-            # the suspension to the area it just opened).
-            if d.get('anadromous_closures_suspended'):
-                suspended_stream_features.append({
-                    'type': 'Feature',
-                    'properties': {
-                        'district_key': district_key,
-                        'district_name': d_name,
-                    },
-                    'geometry': _sg.mapping(open_geom),
-                })
+            # Suspended-stream-zones overlay is no longer emitted — the
+            # frontend doesn't honor it any more (rolled back 2026-05).
+            # The suspended_stream_features list stays empty so the
+            # template variable that consumes it still substitutes
+            # cleanly into an empty FeatureCollection.
 
     # ── Redundancy pass: mark closures whose named feature lies almost
     # entirely outside the computed open area. Example: "Waters of Valdez

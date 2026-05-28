@@ -1716,25 +1716,18 @@ function distancePointToGeoJSONMeters(lon, lat, fc, earlyExitMeters) {
 }
 
 function rebuildStreamLayer() {
+  // Anadromous closure points always render now. The previous
+  // suspended-stream-zones feature (PR #64/#65) hid points inside
+  // announcement-scoped polygons but was more hassle than it was
+  // worth — geometry mismatched ADF&G's intent and removing the
+  // dots made the map harder to read. SUSPENDED_STREAM_ZONES is
+  // still wired up below so old announcement HTML blobs don't
+  // error; it's just ignored.
   if (!streamLayerRef || !AWC_POINTS_CACHE) return;
   streamLayerRef.clearLayers();
   const canvasRenderer = L.canvas({ padding: 0.5 });
   const YARDS_TO_M = 0.9144;
-  const fc = SUSPENDED_STREAM_ZONES;
-  let suppressed = 0;
   for (const pt of AWC_POINTS_CACHE) {
-    if (fc) {
-      // Suppress if the point is inside a suspended zone OR if the
-      // point\'s buffer circle (radius_yards) reaches the zone. ADF&G
-      // anadromous-buffer points often sit just outside the polygon
-      // edge while the 500-yard buffer extends well inside.
-      const bufM = pt.yards * YARDS_TO_M;
-      if (pointInGeoJSON(pt.lon, pt.lat, fc) ||
-          distancePointToGeoJSONMeters(pt.lon, pt.lat, fc, bufM) <= bufM) {
-        suppressed++;
-        continue;
-      }
-    }
     L.circle([pt.lat, pt.lon], {
       renderer: canvasRenderer,
       radius: pt.yards * YARDS_TO_M,
@@ -1746,14 +1739,12 @@ function rebuildStreamLayer() {
       { direction: 'top', sticky: true }
     ).addTo(streamLayerRef);
   }
-  if (suppressed > 0) {
-    console.log('[streams] suppressed ' + suppressed + ' stream point(s) inside suspended zones');
-  }
 }
 
-window.applySuspendedStreamZones = function(fc) {
-  SUSPENDED_STREAM_ZONES = (fc && fc.features && fc.features.length) ? fc : null;
-  rebuildStreamLayer();
+window.applySuspendedStreamZones = function(_fc) {
+  // No-op. Kept exported because old per-announcement HTML blobs in
+  // parsed_results still call it. Future parses don't emit the var
+  // at all, so this is purely backward compat.
 };
 
 (function initStreamLayer() {
