@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>akFISHinfo uses your location to center the map on your boat and highlight the nearest PWS district. Location is read on demand only — never tracked in the background.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>akFISHinfo only reads your location while the app is open. Background access is never used — this string is required because a bundled SDK references the iOS background location API even though akFISHinfo doesn't call it.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
