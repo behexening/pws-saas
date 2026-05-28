@@ -142,6 +142,16 @@
       return;
     }
     if (isNative && url.charAt(0) === '/' && url.indexOf('.') === -1) {
+      // Backend-routed paths (/auth/logout, /api/..., /verify-email, …)
+      // are NOT bundled HTML files. Don't .html them — navigate to the
+      // real backend URL instead so the server can do its redirect / set
+      // cookies / clear sessions. The previous .html append made
+      // 'Sign out' silently fail on the native shell because there is
+      // no /auth/logout.html in the bundle.
+      if (shouldRouteToBackend(url)) {
+        window.location.href = BACKEND_ORIGIN + url;
+        return;
+      }
       // Preserve query string + hash. Insert .html before them.
       var match = url.match(/^([^?#]*)(.*)$/);
       var pathPart = match[1];
@@ -170,6 +180,19 @@
       // Only extensionless internal paths need rewriting.
       if (href.charAt(0) !== '/' || href.indexOf('.') !== -1) return;
       ev.preventDefault();
+      // /auth/logout is special on native: hitting it as a navigation
+      // would leave the WebView on akfishinfo.com after the server
+      // redirect. Instead fetch it to clear the session cookie + drop
+      // the local bearer, then nav back to the bundled login page.
+      if (href === '/auth/logout') {
+        fetch('/auth/logout', { credentials: 'include' })
+          .catch(function () { /* clear local state anyway */ })
+          .then(function () {
+            try { localStorage.removeItem('akfi.bearer'); } catch (_) {}
+            akfiNav('/login');
+          });
+        return;
+      }
       akfiNav(href);
     }, true);
   }

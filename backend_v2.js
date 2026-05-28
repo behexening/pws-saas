@@ -729,16 +729,46 @@ async function verifyPassword(password, stored) {
   });
 }
 
-// Start Google OAuth flow
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// Start Google OAuth flow. When opened from the native shell via
+// Capacitor's Browser plugin (in-app SFSafariViewController), the URL
+// carries ?native=1 — we stash that on the session so the callback
+// below knows to issue a bearer JWT and bounce back through
+// /auth/native-return instead of the normal web redirect.
+app.get('/auth/google', (req, res, next) => {
+  if (req.query.native === '1') {
+    req.session.native_oauth_flow = true;
+  } else {
+    delete req.session.native_oauth_flow;
+  }
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
-// Google redirects here after login
+// Google redirects here after login.
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login?error=1' }),
-  (req, res) => {
+  async (req, res) => {
     req.session.cookie.maxAge = THIRTY_DAYS;
+    const wasNative = !!req.session.native_oauth_flow;
+    delete req.session.native_oauth_flow;
+
+    if (wasNative) {
+      // Native shell opened this via Capacitor Browser
+      // (SFSafariViewController). The cookie we just set lives in
+      // Safari's cookie jar — the in-app WebView can't read it.
+      // Issue a JWT bearer instead and bounce to /auth/native-return
+      // with the bearer in the URL fragment (#bearer=…). The native
+      // app listens for that URL on Browser's pageLoaded event,
+      // grabs the bearer, stashes it in localStorage, closes Browser,
+      // and navigates to /app via akfiNav. Mirrors the SIWA flow.
+      try {
+        const bearer = await issueBearerForUser(req.user);
+        return res.redirect(`/auth/native-return#bearer=${encodeURIComponent(bearer)}`);
+      } catch (err) {
+        console.error('Google native bearer issue failed:', err);
+        return res.redirect('/auth/native-return#error=bearer');
+      }
+    }
+
     // alaska.gov and admins skip the link/trial setup entirely.
     // Everyone else lands on /setup if they haven't linked Telegram yet.
     if (!req.user.telegram_chat_id && !isAlaskaGov(req.user.email) && !req.user.is_admin && !isReviewerEmail(req.user.email)) {
@@ -748,6 +778,17 @@ app.get('/auth/google/callback',
     res.redirect('/pricing');
   }
 );
+
+// /auth/native-return — landing target for the in-app Safari after a
+// successful native OAuth flow. The Capacitor Browser plugin in the
+// host app sees this URL via pageLoaded, extracts the #bearer=… from
+// the fragment, closes the browser, and navigates the WebView to /app.
+// This server-side page is a friendly fallback for users who somehow
+// end up here in a normal browser tab.
+app.get('/auth/native-return', (_req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send('<!doctype html><meta charset="utf-8"><title>Signing in…</title><style>body{font-family:-apple-system,sans-serif;background:#060a0f;color:#dde8f4;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;padding:20px;text-align:center}h1{font-size:1rem;font-weight:600}</style><body><div><h1>Signing you in…</h1><p style="color:#5a7288;font-size:0.875rem">You can close this page and return to akFISHinfo.</p></div></body>');
+});
 
 app.get('/auth/logout', (req, res, next) => {
   req.logout(err => {
