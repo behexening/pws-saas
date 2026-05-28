@@ -51,5 +51,21 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Custom URL scheme so OAuth flows opened in SFSafariViewController
+	     can hand a bearer JWT back to the app via deep link. Used by the
+	     native Google sign-in: /auth/native-return redirects to
+	     info.akfish.app://auth-return?bearer=<JWT>, iOS dismisses Safari
+	     and fires Capacitor's App.appUrlOpen which platform.js handles. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>info.akfish.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>info.akfish.app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

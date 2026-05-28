@@ -234,13 +234,12 @@
     <script>
       // Native Google sign-in. Google refuses OAuth in embedded WebViews
       // (their 2019 'embedded user-agents are no longer supported' policy),
-      // so iOS was punting the user out to system Safari and never getting
-      // them back. Open Capacitor's Browser plugin instead — that uses
-      // SFSafariViewController, which Google DOES allow. The backend's
-      // /auth/google?native=1 flow issues a JWT bearer and bounces to
-      // /auth/native-return#bearer=<JWT>. We watch Browser's pageLoaded
-      // events for that URL, grab the JWT, persist it as akfi.bearer
-      // (same key SIWA uses), close Browser, and navigate to /app.
+      // so iOS was punting the user out to external Safari and never
+      // getting them back. Open Capacitor's Browser plugin which uses
+      // SFSafariViewController (Google DOES allow that). The return-to-app
+      // handoff isn't done here — the backend's /auth/native-return page
+      // redirects to info.akfish.app://auth-return?bearer=<JWT>, which iOS
+      // catches and routes to platform.js's App.appUrlOpen listener.
       (function () {
         var Cap = window.Capacitor;
         var Browser = Cap && Cap.Plugins && Cap.Plugins.Browser;
@@ -248,29 +247,8 @@
         var btn = document.getElementById('btn-google');
         if (!btn) return;
 
-        function onBrowserUrl(evt) {
-          var u = (evt && evt.url) || '';
-          if (u.indexOf('/auth/native-return') === -1) return;
-          var hash = u.indexOf('#') >= 0 ? u.substring(u.indexOf('#') + 1) : '';
-          var params = new URLSearchParams(hash);
-          var bearer = params.get('bearer');
-          var err    = params.get('error');
-          try { Browser.removeAllListeners(); } catch (_) {}
-          Browser.close().catch(function () { /* already closed */ });
-          if (err || !bearer) {
-            console.error('Google native sign-in returned no bearer:', err || 'missing');
-            if (window.akfiNav) window.akfiNav('/login?error=google-native');
-            return;
-          }
-          try { localStorage.setItem('akfi.bearer', bearer); } catch (_) {}
-          if (window.akfiNav) window.akfiNav('/app');
-          else window.location.href = '/app.html';
-        }
-
         btn.addEventListener('click', function (ev) {
           ev.preventDefault();
-          try { Browser.removeAllListeners(); } catch (_) {}
-          Browser.addListener('browserPageLoaded', onBrowserUrl);
           Browser.open({ url: 'https://akfishinfo.com/auth/google?native=1' });
         });
       })();

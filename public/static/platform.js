@@ -197,6 +197,42 @@
     }, true);
   }
 
+  // ── Deep-link bearer handoff from in-app OAuth ─────────────
+  // Native OAuth flows that have to run in SFSafariViewController
+  // (Google rejects WKWebView for OAuth) redirect to /auth/native-return,
+  // which JS-redirects to info.akfish.app://auth-return#bearer=<JWT>.
+  // iOS dismisses Safari and fires App.appUrlOpen here. We stash the
+  // bearer and navigate the WebView to /app. The same mechanism is
+  // reusable for any future scheme-based handoff.
+  if (isNative && Cap && Cap.Plugins && Cap.Plugins.App) {
+    try {
+      Cap.Plugins.App.addListener('appUrlOpen', function (data) {
+        var url = (data && data.url) || '';
+        if (url.indexOf('info.akfish.app://auth-return') !== 0) return;
+        var qs = '';
+        var qmark = url.indexOf('?');
+        var hash  = url.indexOf('#');
+        if (qmark >= 0) qs = url.substring(qmark + 1);
+        else if (hash >= 0) qs = url.substring(hash + 1);
+        var params = new URLSearchParams(qs);
+        var bearer = params.get('bearer');
+        var err    = params.get('error');
+        if (Cap.Plugins.Browser) {
+          try { Cap.Plugins.Browser.close(); } catch (_) {}
+        }
+        if (err || !bearer) {
+          console.error('native-return: no bearer:', err || 'missing');
+          akfiNav('/login?error=google-native');
+          return;
+        }
+        try { localStorage.setItem('akfi.bearer', bearer); } catch (_) {}
+        akfiNav('/app');
+      });
+    } catch (e) {
+      console.warn('appUrlOpen listener failed:', e);
+    }
+  }
+
   // ── Subtle haptic feedback on tap (native only) ────────────
   // Fires a light impact when any button or .btn is tapped. iOS users
   // expect this; Android Capacitor maps it to vibrate. On web it's
