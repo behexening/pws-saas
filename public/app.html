@@ -1054,6 +1054,14 @@
         cursor: grab;
         user-select: none;
         -webkit-user-select: none;
+        /* touch-action:none is critical: the parent .left-panel has
+           touch-action: pan-y so vertical drags through cards trigger
+           the native scroller. The handle must NOT participate in that.
+           Without this, iOS sometimes treats our document-level touchmove
+           as passive after a background-resume cycle and the native
+           vertical pan wins — the user sees scrolling but no height change. */
+        touch-action: none;
+        -webkit-touch-callout: none;
         border-top-left-radius: 14px;
         border-top-right-radius: 14px;
       }
@@ -3535,6 +3543,19 @@ function initFeedbackWidget(user) {
   handle.addEventListener('mousedown', onStart);
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup',   onEnd);
+
+  // Resetting state on background→foreground. Without this, an iOS
+  // suspend mid-drag could leave startY populated; on resume the next
+  // touchstart would think we're "still" dragging and behave oddly.
+  // Pairs with the touch-action: none on .sheet-handle above to keep
+  // the resize gesture working reliably after backgrounding.
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      startY = null;
+      moved = false;
+      sheet.classList.remove('sheet-dragging');
+    }
+  });
 })();
 </script>
 
