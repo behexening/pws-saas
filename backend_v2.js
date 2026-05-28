@@ -779,15 +779,34 @@ app.get('/auth/google/callback',
   }
 );
 
-// /auth/native-return — landing target for the in-app Safari after a
-// successful native OAuth flow. The Capacitor Browser plugin in the
-// host app sees this URL via pageLoaded, extracts the #bearer=… from
-// the fragment, closes the browser, and navigates the WebView to /app.
-// This server-side page is a friendly fallback for users who somehow
-// end up here in a normal browser tab.
+// /auth/native-return — landing target for the in-app SFSafariViewController
+// after a native OAuth flow completes. SFSafariViewController is
+// intentionally opaque on iOS — the host app can't observe redirects
+// inside it — so we bridge the bearer back via the info.akfish.app://
+// custom URL scheme registered in Info.plist. The page below reads the
+// #bearer=… fragment, copies it into the scheme URL, and assigns
+// window.location to it. iOS catches the scheme, dismisses Safari, and
+// fires App.appUrlOpen on the host app; platform.js stores the bearer
+// and navigates the WebView to /app.
 app.get('/auth/native-return', (_req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send('<!doctype html><meta charset="utf-8"><title>Signing in…</title><style>body{font-family:-apple-system,sans-serif;background:#060a0f;color:#dde8f4;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;padding:20px;text-align:center}h1{font-size:1rem;font-weight:600}</style><body><div><h1>Signing you in…</h1><p style="color:#5a7288;font-size:0.875rem">You can close this page and return to akFISHinfo.</p></div></body>');
+  res.send(
+    '<!doctype html><html><head><meta charset="utf-8">' +
+    '<title>Signing you in…</title>' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<style>body{font-family:-apple-system,sans-serif;background:#060a0f;color:#dde8f4;display:flex;align-items:center;justify-content:center;height:100dvh;margin:0;padding:20px;text-align:center}h1{font-size:1rem;font-weight:600;margin:0 0 8px}p{color:#5a7288;font-size:0.875rem;margin:0}a{color:#00b4d8;text-decoration:none}</style>' +
+    '</head><body><div>' +
+      '<h1>Signing you in…</h1>' +
+      '<p>Returning to akFISHinfo. <a href="#" id="ret">Tap here</a> if the app doesn\'t open automatically.</p>' +
+    '</div>' +
+    '<script>(function(){' +
+      'var hash = window.location.hash || "";' +
+      'var scheme = "info.akfish.app://auth-return" + (hash ? "?" + hash.substring(1) : "");' +
+      'var ret = document.getElementById("ret"); if (ret) ret.href = scheme;' +
+      'window.location.replace(scheme);' +
+    '})();</script>' +
+    '</body></html>'
+  );
 });
 
 app.get('/auth/logout', (req, res, next) => {
