@@ -1,6 +1,10 @@
 PODS:
   - Capacitor (7.6.5):
     - CapacitorCordova
+  - CapacitorApp (7.1.2):
+    - Capacitor
+  - CapacitorBrowser (7.0.5):
+    - Capacitor
   - CapacitorCommunityAppleSignIn (7.1.0):
     - Capacitor
   - CapacitorCordova (7.6.5)
@@ -19,6 +23,8 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCommunityAppleSignIn (from `../../node_modules/@capacitor-community/apple-sign-in`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
@@ -34,6 +40,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorBrowser:
+    :path: "../../node_modules/@capacitor/browser"
   CapacitorCommunityAppleSignIn:
     :path: "../../node_modules/@capacitor-community/apple-sign-in"
   CapacitorCordova:
@@ -51,6 +61,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Capacitor: fa6393e8023cd0f4740c9a22bc73720c049fffa2
+  CapacitorApp: 6b89831465d6bc99bc89779b1b7f5327e33011ce
+  CapacitorBrowser: 3bcddd9dd07cfff9105dcc88ad64853be9862e50
   CapacitorCommunityAppleSignIn: 59bc8ade5677e6ea60a14bdca8d3f4bdc91069e2
   CapacitorCordova: 2b36392a7292c3c451dcae154185ee8804d7b6b3
   CapacitorGeolocation: de4b0ccf90140528184e31676dd5e3a328eb589a
@@ -60,6 +72,6 @@ SPEC CHECKSUMS:
   CapacitorShare: 14b5d7f0a2c6de86dcad8995da80fb707ee32f62
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
 
-PODFILE CHECKSUM: 851eb3c68cc2011b5458ad8768714ad938cad406
+PODFILE CHECKSUM: 1369b47ea93165bdfcbf008078b588e21a9150d8
 
 COCOAPODS: 1.16.2
