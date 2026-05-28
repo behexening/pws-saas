@@ -236,19 +236,33 @@
       // (their 2019 'embedded user-agents are no longer supported' policy),
       // so iOS was punting the user out to external Safari and never
       // getting them back. Open Capacitor's Browser plugin which uses
-      // SFSafariViewController (Google DOES allow that). The return-to-app
-      // handoff isn't done here — the backend's /auth/native-return page
-      // redirects to info.akfish.app://auth-return?bearer=<JWT>, which iOS
-      // catches and routes to platform.js's App.appUrlOpen listener.
+      // SFSafariViewController — Google allows that. Return-to-app handoff
+      // happens in platform.js via the info.akfish.app:// scheme.
+      //
+      // Why neutralize the anchor's href on native: platform.js's
+      // click interceptor runs in capture phase and would route
+      // '/auth/google' to akfishinfo.com via akfiNav BEFORE this bubble-
+      // phase handler gets a chance. Swap the href to a javascript:
+      // URL — platform.js explicitly skips javascript: links — so the
+      // only handler that fires is the one below.
       (function () {
         var Cap = window.Capacitor;
         var Browser = Cap && Cap.Plugins && Cap.Plugins.Browser;
-        if (!Cap || !Cap.isNativePlatform || !Cap.isNativePlatform() || !Browser) return;
+        if (!Cap || !Cap.isNativePlatform || !Cap.isNativePlatform()) return;
         var btn = document.getElementById('btn-google');
         if (!btn) return;
 
+        btn.setAttribute('href', 'javascript:void(0)');
+        btn.setAttribute('role', 'button');
+
         btn.addEventListener('click', function (ev) {
           ev.preventDefault();
+          ev.stopPropagation();
+          if (!Browser) {
+            console.error('Capacitor Browser plugin missing — cannot start Google native flow');
+            alert('Google sign-in is temporarily unavailable on this build. Try Sign in with Apple or email + password.');
+            return;
+          }
           Browser.open({ url: 'https://akfishinfo.com/auth/google?native=1' });
         });
       })();
