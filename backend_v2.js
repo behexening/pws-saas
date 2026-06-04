@@ -1915,14 +1915,35 @@ app.post('/api/login', authLimiter, express.json(), async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    req.login(user, err => {
+    req.login(user, async (err) => {
       if (err) return res.status(500).json({ error: 'Session error.' });
       if (remember_me) req.session.cookie.maxAge = THIRTY_DAYS;
-      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin && !isReviewerEmail(user.email)) {
-        return res.json({ redirect: '/setup' });
+
+      // Always issue a bearer JWT — the native client uses it as the
+      // primary auth header on cross-origin fetches from the bundled
+      // capacitor://localhost WebView to akfishinfo.com. Without this,
+      // the user signs in successfully but /api/me from /app.html
+      // returns null (the session cookie set on /api/login doesn't
+      // reliably travel back to WKWebView), and they get bounced to
+      // the welcome screen. This was the cause of App Review's
+      // 'remained at welcome screen' rejection on submission #45.
+      let bearer = null;
+      try { bearer = await issueBearerForUser(user); }
+      catch (e) { console.warn('issueBearerForUser failed in /api/login:', e.message); }
+
+      // Native clients skip the Telegram link gate entirely — they get
+      // push notifications instead. Mirror the SIWA / Google native logic.
+      const isNativeClient = isNativeRequest(req);
+      if (isNativeClient) {
+        if (hasAccess(user)) return res.json({ redirect: '/app', user, bearer });
+        return res.json({ redirect: '/setup', user, bearer });
       }
-      if (hasAccess(user)) return res.json({ redirect: '/app' });
-      res.json({ redirect: '/pricing' });
+
+      if (!user.telegram_chat_id && !isAlaskaGov(user.email) && !user.is_admin && !isReviewerEmail(user.email)) {
+        return res.json({ redirect: '/setup', bearer });
+      }
+      if (hasAccess(user)) return res.json({ redirect: '/app', bearer });
+      res.json({ redirect: '/pricing', bearer });
     });
   } catch (err) {
     console.error('Login error:', err);
