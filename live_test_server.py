@@ -2223,32 +2223,51 @@ def build_html(all_results, geojson_data, pdf_texts):
             if override_entry is not None:
                 override_geom = override_entry.get('geom')
                 clip_subd = override_entry.get('subdistrict')
+                # Build exclusion set from excluded_subdistricts. Also catch
+                # the case where Claude puts an excluded subdistrict into
+                # restrict_to_hatchery_areas by mistake: if the name resolves
+                # to a known subdistrict polygon, treat it as excluded and add
+                # it to excl_geoms_list so it still gets subtracted.
                 excl_subd_set = {(s or '').lower().strip() for s in (d.get('excluded_subdistricts') or [])}
-                if clip_subd and clip_subd not in excl_subd_set:
-                    override_subd_label = clip_subd.title()
-                if clip_subd and override_geom is not None and clip_subd not in excl_subd_set:
-                    subd_geom = subd_geoms.get(clip_subd)
-                    if subd_geom is not None:
-                        try:
-                            clipped = override_geom.intersection(subd_geom)
-                            if not clipped.is_empty:
-                                override_geom = _polys_only(clipped) or clipped
-                                print(f"  Clipped override to subdistrict polygon: {clip_subd}",
-                                      file=sys.stderr)
-                            else:
-                                print(f"WARNING: override x {clip_subd} is empty -- "
-                                      f"falling back to unclipped override",
-                                      file=sys.stderr)
-                        except Exception as e:
-                            print(f"WARNING: failed to clip override to {clip_subd}: {e}",
-                                  file=sys.stderr)
-                    else:
-                        print(f"WARNING: override names subdistrict '{clip_subd}' "
-                              f"but no shapefile geom found -- using unclipped polygon",
-                              file=sys.stderr)
-                elif clip_subd:
-                    print(f"  Override clip to {clip_subd} skipped -- subdistrict is excluded",
+                for rh in (d.get('restrict_to_hatchery_areas') or []):
+                    rh_key = find_subd_key(rh)
+                    if rh_key:
+                        excl_subd_set.add(rh_key)
+                        rh_geom = subd_geoms.get(rh_key)
+                        if rh_geom is not None:
+                            excl_geoms_list.append(rh_geom)
+                        print(f"  [fix] restrict_to_hatchery_areas '{rh}' is a subdistrict "
+                              f"-- treating as excluded", file=sys.stderr)
+                if clip_subd and clip_subd in excl_subd_set:
+                    # Override targets a subdistrict that's excluded from this
+                    # opening. Null the override entirely and fall back to the
+                    # full district polygon so excl_geoms_list subtracts it.
+                    override_geom = None
+                    print(f"  Override nulled -- {clip_subd} is excluded from this opening",
                           file=sys.stderr)
+                else:
+                    if clip_subd:
+                        override_subd_label = clip_subd.title()
+                    if clip_subd and override_geom is not None:
+                        subd_geom = subd_geoms.get(clip_subd)
+                        if subd_geom is not None:
+                            try:
+                                clipped = override_geom.intersection(subd_geom)
+                                if not clipped.is_empty:
+                                    override_geom = _polys_only(clipped) or clipped
+                                    print(f"  Clipped override to subdistrict polygon: {clip_subd}",
+                                          file=sys.stderr)
+                                else:
+                                    print(f"WARNING: override x {clip_subd} is empty -- "
+                                          f"falling back to unclipped override",
+                                          file=sys.stderr)
+                            except Exception as e:
+                                print(f"WARNING: failed to clip override to {clip_subd}: {e}",
+                                      file=sys.stderr)
+                        else:
+                            print(f"WARNING: override names subdistrict '{clip_subd}' "
+                                  f"but no shapefile geom found -- using unclipped polygon",
+                                  file=sys.stderr)
             starting_geom = override_geom if override_geom is not None else d_geom
             if override_geom is not None:
                 # The override polygon defines the district's outer boundary
