@@ -4187,6 +4187,70 @@ app.post('/api/admin/test-dm', requireAdmin, express.json(), async (req, res) =>
   res.json({ ok: true, message_id: result.message_id });
 });
 
+// POST /api/admin/test-announcement — send a fake opening alert to only the
+// requesting admin captain (Telegram + push). Lets admin verify the full
+// notification pipeline end-to-end without broadcasting to subscribers.
+app.post('/api/admin/test-announcement', requireAdmin, async (req, res) => {
+  const captain = req.user;
+
+  // Build a realistic fake opening ~24h from now so fmtAKTime renders real times.
+  const opensMs  = Date.now() + 24 * 60 * 60 * 1000;
+  const closesMs = opensMs + 24 * 60 * 60 * 1000;
+  const opensIso  = new Date(opensMs).toISOString();
+  const closesIso = new Date(closesMs).toISOString();
+
+  const fakeDistricts = ['District 1', 'District 2'];
+  const fakeDetails = [
+    {
+      district: 'District 1 — Orca Subdistrict',
+      status: 'open',
+      opens_at: opensIso,
+      closes_at: closesIso,
+      duration_hours: 24,
+      gear_types: ['drift_gillnet'],
+    },
+    {
+      district: 'District 2 — Coghill Subdistrict',
+      status: 'open',
+      opens_at: opensIso,
+      closes_at: closesIso,
+      duration_hours: 24,
+      gear_types: ['drift_gillnet', 'set_gillnet'],
+    },
+  ];
+
+  const text = buildAlertText(fakeDistricts, fakeDetails, { kind: 'UPDATE' });
+  const pushTitle = `PWS opening — ${fakeDistricts.join(', ')} [TEST]`;
+  const pushBody = text.replace(/<[^>]+>/g, '').replace(/\n+/g, ' ').slice(0, 220).trim();
+
+  const results = { telegram: null, push: [] };
+
+  if (captain.telegram_chat_id) {
+    const r = await sendTelegramMessage(captain.telegram_chat_id, text);
+    results.telegram = { ok: r.ok, error: r.error || null };
+  }
+
+  const tokensRes = await db.query(
+    `SELECT platform, token FROM device_tokens WHERE captain_id = $1`,
+    [captain.id]
+  );
+  for (const dev of tokensRes.rows) {
+    const send =
+      dev.platform === 'ios'     ? sendApnsToToken :
+      dev.platform === 'android' ? sendFcmToToken :
+      null;
+    if (!send) continue;
+    const r = await send({ captainId: captain.id, token: dev.token, title: pushTitle, body: pushBody });
+    results.push.push({ platform: dev.platform, ok: r.ok, reason: r.reason || null });
+  }
+
+  if (!results.telegram && !results.push.length) {
+    return res.status(400).json({ error: 'No Telegram chat or registered devices found on your account.' });
+  }
+
+  res.json({ ok: true, results });
+});
+
 // GET /api/admin/beta-requests — list pending + recent requests, plus
 // QR-scan totals by source so admin can see scan → submit conversion.
 app.get('/api/admin/beta-requests', requireAdmin, async (req, res) => {
