@@ -138,9 +138,13 @@
 
     <div class="card">
       <div class="card-title">Self-test</div>
-      <div class="actions">
+      <div class="actions" style="margin-bottom: 10px;">
         <button id="btn-test-dm" class="btn-primary">Send test DM to my Telegram</button>
         <span class="page-sub" style="margin: 0;">Only reaches your own linked chat. Use this to verify the bot end-to-end.</span>
+      </div>
+      <div class="actions">
+        <button id="btn-test-announcement" class="btn-primary">Send fake announcement alert to me</button>
+        <span class="page-sub" style="margin: 0;">Fires a realistic opening alert (Telegram + push) only to your own account. Does not notify subscribers.</span>
       </div>
     </div>
 
@@ -352,6 +356,32 @@
         const r = await fetch('/api/admin/test-dm', { method: 'POST' }).then(r => r.json());
         if (r.ok) toast('Sent. Check your Telegram.');
         else toast('Failed: ' + (r.error || 'unknown'), 'fail');
+      } catch (e) {
+        toast('Failed: ' + e.message, 'fail');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = original;
+        loadNotifications();
+      }
+    });
+
+    document.getElementById('btn-test-announcement').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const r = await fetch('/api/admin/test-announcement', { method: 'POST' }).then(r => r.json());
+        if (r.ok) {
+          const tg = r.results.telegram;
+          const push = r.results.push || [];
+          const parts = [];
+          if (tg) parts.push(tg.ok ? 'Telegram: sent' : `Telegram: failed (${tg.error})`);
+          push.forEach(p => parts.push(p.ok ? `${p.platform} push: sent` : `${p.platform} push: failed (${p.reason})`));
+          toast(parts.join(' · ') || 'Sent.');
+        } else {
+          toast('Failed: ' + (r.error || 'unknown'), 'fail');
+        }
       } catch (e) {
         toast('Failed: ' + e.message, 'fail');
       } finally {
