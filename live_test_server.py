@@ -2223,9 +2223,10 @@ def build_html(all_results, geojson_data, pdf_texts):
             if override_entry is not None:
                 override_geom = override_entry.get('geom')
                 clip_subd = override_entry.get('subdistrict')
-                if clip_subd:
+                excl_subd_set = {(s or '').lower().strip() for s in (d.get('excluded_subdistricts') or [])}
+                if clip_subd and clip_subd not in excl_subd_set:
                     override_subd_label = clip_subd.title()
-                if clip_subd and override_geom is not None:
+                if clip_subd and override_geom is not None and clip_subd not in excl_subd_set:
                     subd_geom = subd_geoms.get(clip_subd)
                     if subd_geom is not None:
                         try:
@@ -2245,14 +2246,15 @@ def build_html(all_results, geojson_data, pdf_texts):
                         print(f"WARNING: override names subdistrict '{clip_subd}' "
                               f"but no shapefile geom found -- using unclipped polygon",
                               file=sys.stderr)
+                elif clip_subd:
+                    print(f"  Override clip to {clip_subd} skipped -- subdistrict is excluded",
+                          file=sys.stderr)
             starting_geom = override_geom if override_geom is not None else d_geom
             if override_geom is not None:
-                # Skip district-level closures/exclusions when the override
-                # IS the open area -- the curated polygon already encodes
-                # every clause in the opening sentence. Permanent closed
-                # waters still get subtracted in extract_open_geom.
+                # The override polygon defines the district's outer boundary
+                # (the "two lines"). Closures encoded in those boundary lines
+                # are already baked in, but excluded_subdistricts still apply.
                 closures = []
-                excl_geoms_list = []
 
             # Hatchery-only opening: when the announcement opens just the
             # AFK / WNH / etc. THA + SHA inside a district (not the whole
